@@ -23,9 +23,20 @@
     border: 0px none;
 }
 
-.ui-panelgrid.ui-noborder tr.ui-widget-content,
-.ui-panelgrid.ui-noborder tr.ui-widget-header {
+.ui-panelgrid.ui-noborder .ui-widget-content,
+.ui-panelgrid.ui-noborder .ui-widget-header {
     border: 0px none;
+}
+
+.ui-panelgrid.ui-panelgrid-blank .ui-panelgrid-content.ui-widget-content, 
+.ui-panelgrid.ui-panelgrid-blank .ui-panelgrid-header.ui-widget-header,
+.ui-panelgrid.ui-panelgrid-blank .ui-panelgrid-footer.ui-widget-header,
+.ui-panelgrid.ui-panelgrid-blank .ui-panelgrid-header > tr.ui-widget-header, 
+.ui-panelgrid.ui-panelgrid-blank tbody > tr.ui-widget-content,
+.ui-panelgrid.ui-panelgrid-blank tbody > tr.ui-widget-content > td.ui-panelgrid-cell,
+.ui-panelgrid.ui-panelgrid-blank .ui-panelgrid-footer > tr.ui-widget-footer {
+    background: none;
+    border: 0 none;
 }
 
 /* Grid CSS */
@@ -34,13 +45,16 @@
 }
 
 /* Responsive */
-@media (max-width: 35em) {       
+@media (max-width: 640px) {       
     .ui-panelgrid .ui-grid-responsive .ui-grid-row {
-        border-top: 1px solid;
-        border-top-color: inherit;
+        border-top: 1px solid #BCC7CF;
     }
     
     .ui-panelgrid .ui-grid-responsive .ui-grid-row:first-child {
         border-top: 0 none;
+    }
+    
+    .ui-panelgrid.ui-noborder .ui-grid-responsive .ui-grid-row {
+        border: 0 none;
     }
 }

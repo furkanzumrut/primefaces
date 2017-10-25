@@ -18,16 +18,16 @@
     <parent>javax.faces.component.html.HtmlInputText</parent>
     <description>AutoComplete provides live suggestions while an input is being typed.</description>
     <interfaces>
-		<interface>
-			<name>org.primefaces.component.api.Widget</name>
-		</interface>
         <interface>
-			<name>org.primefaces.component.api.InputHolder</name>
-		</interface>
+            <name>org.primefaces.component.api.Widget</name>
+        </interface>
         <interface>
-			<name>org.primefaces.component.api.MixedClientBehaviorHolder</name>
-		</interface>
-	</interfaces>
+            <name>org.primefaces.component.api.InputHolder</name>
+        </interface>
+        <interface>
+            <name>org.primefaces.component.api.MixedClientBehaviorHolder</name>
+        </interface>
+    </interfaces>
     <attributes>
         &input_component_attributes;
         &html_input_text_attributes;
@@ -56,6 +56,12 @@
             <required>false</required>
             <type>java.lang.Object</type>
             <description>Value of the item.</description>
+        </attribute>
+        <attribute>
+            <name>itemStyleClass</name>
+            <required>false</required>
+            <type>java.lang.String</type>
+            <description>A string to be rendered onto the class tag of the selected items (tokens rendered inside the input container).</description>
         </attribute>
         <attribute>
             <name>maxResults</name>
@@ -186,7 +192,7 @@
             <required>false</required>
             <type>java.lang.String</type>
             <description>Specifies the behavior dropdown button. Default "blank" mode
-            sends an empty string and "current" mode sends the input value.</description>
+                sends an empty string and "current" mode sends the input value.</description>
         </attribute>
         <attribute>
             <name>autoHighlight</name>
@@ -220,19 +226,62 @@
             <type>java.lang.String</type>
             <description>Tooltip to display on group headers.</description>
         </attribute>
+        <attribute>
+            <name>my</name>
+            <required>false</required>
+            <type>java.lang.String</type>
+            <description>Position of panel with respect to input Default is "left top".</description>
+        </attribute>
+        <attribute>
+            <name>at</name>
+            <required>false</required>
+            <type>java.lang.String</type>
+            <description>Position of input with respect to panel Default is "left bottom".</description>
+        </attribute>
+        <attribute>
+            <name>active</name>
+            <required>false</required>
+            <defaultValue>true</defaultValue>
+            <type>java.lang.Boolean</type>
+            <description>Defines if autocomplete functionality is enabled. Default is true and a false value simply turns the component into a simple inputtext.</description>
+        </attribute>
+        <attribute>
+            <name>type</name>
+            <required>false</required>
+            <type>java.lang.String</type>
+            <defaultValue>text</defaultValue>
+            <description>Input field type. Default is text.</description>
+        </attribute>
+        <attribute>
+            <name>moreText</name>
+            <required>false</required>
+            <type>java.lang.String</type>
+            <defaultValue>...</defaultValue>
+            <description>The text shown in panel when the suggested list is greater than maxResults.</description>
+        </attribute>
+        <attribute>
+            <name>unique</name>
+            <required>false</required>
+            <type>java.lang.Boolean</type>
+            <defaultValue>false</defaultValue>
+            <description>Ensures uniqueness of selected items.</description>
+        </attribute>
     </attributes>
     <resources>
         <resource>
-			<name>primefaces.css</name>
-		</resource>
-		<resource>
-			<name>jquery/jquery.js</name>
-		</resource>
+            <name>components.css</name>
+        </resource>
         <resource>
-			<name>jquery/jquery-plugins.js</name>
-		</resource>
+            <name>jquery/jquery.js</name>
+        </resource>
         <resource>
-			<name>primefaces.js</name>
-		</resource>
+            <name>jquery/jquery-plugins.js</name>
+        </resource>
+        <resource>
+            <name>core.js</name>
+        </resource>
+        <resource>
+            <name>components.js</name>
+        </resource>
     </resources>
 </component>

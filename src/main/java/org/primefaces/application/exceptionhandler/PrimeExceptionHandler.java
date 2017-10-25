@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
     public void handle() throws FacesException {
         FacesContext context = FacesContext.getCurrentInstance();
 
-        if (context.getResponseComplete()) {
+        if (context == null || context.getResponseComplete()) {
             return;
         }
 
@@ -90,15 +90,17 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
                     }
 
                     if (isLogException(context, rootCause)) {
-                        LOG.log(Level.SEVERE, rootCause.getMessage(), rootCause);
+                        logException(rootCause);
                     }
 
                     if (context.getPartialViewContext().isAjaxRequest()) {
                         handleAjaxException(context, rootCause, info);
-                    } else {
+                    }
+                    else {
                         handleRedirect(context, rootCause, info, false);
                     }
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     LOG.log(Level.SEVERE, "Could not handle exception!", ex);
                 }
             }
@@ -111,17 +113,21 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
         }
     }
 
+    protected void logException(Throwable rootCause) {
+        LOG.log(Level.SEVERE, rootCause.getMessage(), rootCause);
+    }
+
     protected boolean isLogException(FacesContext context, Throwable rootCause) {
-        
+
         if (context.isProjectStage(ProjectStage.Production)) {
             if (rootCause != null && rootCause instanceof ViewExpiredException) {
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     @Override
     public Throwable getRootCause(Throwable throwable) {
         while ((ELException.class.isInstance(throwable) || FacesException.class.isInstance(throwable)) && throwable.getCause() != null) {
@@ -133,11 +139,29 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
 
     protected void handleAjaxException(FacesContext context, Throwable rootCause, ExceptionInfo info) throws Exception {
         ExternalContext externalContext = context.getExternalContext();
+        PartialResponseWriter writer = context.getPartialViewContext().getPartialResponseWriter();
 
         boolean responseResetted = false;
 
         if (context.getCurrentPhaseId().equals(PhaseId.RENDER_RESPONSE)) {
             if (!externalContext.isResponseCommitted()) {
+                //mojarra workaround to avoid invalid partial output due to open tags
+                if (writer != null) {
+                    // this doesn't flush, just clears the internal state in mojarra
+                    writer.flush();
+
+                    writer.endCDATA();
+
+                    writer.endInsert();
+                    writer.endUpdate();
+
+                    writer.startError("");
+                    writer.endError();
+
+                    writer.getWrapped().endElement("changes");
+                    writer.getWrapped().endElement("partial-response");
+                }
+
                 String characterEncoding = externalContext.getResponseCharacterEncoding();
                 externalContext.responseReset();
                 externalContext.setResponseCharacterEncoding(characterEncoding);
@@ -146,13 +170,19 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
             }
         }
 
-        rootCause = buildView(context, rootCause, rootCause);
+        AjaxExceptionHandler handlerComponent = null;
 
-        AjaxExceptionHandler handlerComponent = findHandlerComponent(context, rootCause);
+        try {
+            rootCause = buildView(context, rootCause, rootCause);
+            handlerComponent = findHandlerComponent(context, rootCause);
+        }
+        catch (Exception ex) {
+            LOG.log(Level.WARNING, "Could not build view or lookup a AjaxExceptionHandler component!", ex);
+        }
 
         context.getAttributes().put(ExceptionInfo.ATTRIBUTE_NAME, info);
 
-        // redirect if no UIAjaxExceptionHandler available
+        // redirect if no AjaxExceptionHandler available
         if (handlerComponent == null) {
             handleRedirect(context, rootCause, info, responseResetted);
         }
@@ -161,8 +191,6 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
             externalContext.addResponseHeader("Content-Type", "text/xml; charset=" + externalContext.getResponseCharacterEncoding());
             externalContext.addResponseHeader("Cache-Control", "no-cache");
             externalContext.setResponseContentType("text/xml");
-
-            PartialResponseWriter writer = context.getPartialViewContext().getPartialResponseWriter();
 
             writer.startDocument();
             writer.startElement("changes", null);
@@ -194,7 +222,12 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
 
                 writer.write("var hf=function(type,message,timestampp){");
                 writer.write(handlerComponent.getOnexception());
-                writer.write("};hf.call(this,\"" + info.getType() + "\",\"" + ComponentUtils.escapeText(info.getMessage()) + "\",\"" + info.getFormattedTimestamp() + "\");");
+                writer.write("};hf.call(this,\""
+                        + info.getType() + "\",\""
+                        + ComponentUtils.escapeText(info.getMessage())
+                        + "\",\""
+                        + info.getFormattedTimestamp()
+                        + "\");");
 
                 writer.endCDATA();
                 writer.endElement("eval");
@@ -218,7 +251,7 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         rootCause.printStackTrace(pw);
-        info.setFormattedStackTrace(sw.toString().replaceAll("(\r\n|\n)", "<br/>"));
+        info.setFormattedStackTrace(ComponentUtils.escapeXml(sw.toString()).replaceAll("(\r\n|\n)", "<br/>"));
         pw.close();
         sw.close();
 
@@ -232,20 +265,38 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
      * Finds the proper {@link AjaxExceptionHandler} for the given {@link Throwable}.
      *
      * @param context The {@link FacesContext}.
-     * @param throwable The occurred {@link Throwable}.
-     * @return The {@link UIAjaxExceptionHandler} or <code>null</code>.
+     * @param rootCause The occurred {@link Throwable}.
+     * @return The {@link AjaxExceptionHandler} or <code>null</code>.
      */
-    protected AjaxExceptionHandler findHandlerComponent(FacesContext context, Throwable throwable) {
-        AjaxExceptionHandlerVisitCallback visitCallback = new AjaxExceptionHandlerVisitCallback(throwable);
+    protected AjaxExceptionHandler findHandlerComponent(FacesContext context, Throwable rootCause) {
+        AjaxExceptionHandlerVisitCallback visitCallback = new AjaxExceptionHandlerVisitCallback(rootCause);
 
         context.getViewRoot().visitTree(VisitContext.createVisitContext(context), visitCallback);
 
-        return visitCallback.getHandler();
+        Map<String, AjaxExceptionHandler> handlers = visitCallback.getHandlers();
+
+        // get handler by exception type
+        AjaxExceptionHandler handler = handlers.get(rootCause.getClass().getName());
+
+        // lookup by inheritance hierarchy
+        if (handler == null) {
+            Class throwableClass = rootCause.getClass();
+            while (handler == null && throwableClass.getSuperclass() != Object.class) {
+                throwableClass = throwableClass.getSuperclass();
+                handler = handlers.get(throwableClass.getName());
+            }
+        }
+
+        // get default handler
+        if (handler == null) {
+            handler = handlers.get(null);
+        }
+
+        return handler;
     }
 
     /**
-     * Builds the view if not already available.
-     * This is mostly required for ViewExpiredException's.
+     * Builds the view if not already available. This is mostly required for ViewExpiredException's.
      *
      * @param context The {@link FacesContext}.
      * @param throwable The occurred {@link Throwable}.
@@ -253,12 +304,11 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
      * @return The unwrapped {@link Throwable}.
      * @throws java.io.IOException If building the view fails.
      */
-    protected Throwable buildView(FacesContext context, Throwable throwable, Throwable rootCause) throws IOException
-    {
+    protected Throwable buildView(FacesContext context, Throwable throwable, Throwable rootCause) throws IOException {
         if (context.getViewRoot() == null) {
             ViewHandler viewHandler = context.getApplication().getViewHandler();
 
-            String viewId = viewHandler.deriveViewId(context, calculateViewId(context));
+            String viewId = viewHandler.deriveViewId(context, ComponentUtils.calculateViewId(context));
             ViewDeclarationLanguage vdl = viewHandler.getViewDeclarationLanguage(context, viewId);
             UIViewRoot viewRoot = vdl.createView(context, viewId);
             context.setViewRoot(viewRoot);
@@ -275,54 +325,17 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
         return rootCause;
     }
 
-    /**
-     * Calculates the current viewId - we can't get it from the ViewRoot if it's not available.
-     *
-     * @param context The {@link FacesContext}.
-     * @return The current viewId.
-     */
-    protected String calculateViewId(FacesContext context) {
-        Map<String, Object> requestMap = context.getExternalContext().getRequestMap();
-        String viewId = (String) requestMap.get("javax.servlet.include.path_info");
-
-        if (viewId == null) {
-            viewId = context.getExternalContext().getRequestPathInfo();
-        }
-
-        if (viewId == null) {
-            viewId = (String) requestMap.get("javax.servlet.include.servlet_path");
-        }
-
-        if (viewId == null) {
-            viewId = context.getExternalContext().getRequestServletPath();
-        }
-
-        return viewId;
-    }
-
     protected void handleRedirect(FacesContext context, Throwable rootCause, ExceptionInfo info, boolean responseResetted) throws IOException {
-        context.getExternalContext().getSessionMap().put(ExceptionInfo.ATTRIBUTE_NAME, info);
+        ExternalContext externalContext = context.getExternalContext();
+        externalContext.getSessionMap().put(ExceptionInfo.ATTRIBUTE_NAME, info);
 
-        Map<String, String> errorPages = RequestContext.getCurrentInstance().getApplicationContext().getConfig().getErrorPages();
+        Map<String, String> errorPages = RequestContext.getCurrentInstance(context).getApplicationContext().getConfig().getErrorPages();
+        String errorPage = evaluateErrorPage(errorPages, rootCause);
 
-        // get error page by exception type
-        String errorPage = errorPages.get(rootCause.getClass().getName());
-
-        // get default error page
-        if (errorPage == null) {
-            errorPage = errorPages.get(null);
-        }
-
-        if (errorPage == null) {
-            throw new IllegalArgumentException(
-                    "No default error page (Status 500 or java.lang.Throwable) and no error page for type \"" + rootCause.getClass() + "\" defined!");
-        }
-
-        String url = context.getExternalContext().getRequestContextPath() + errorPage;
+        String url = externalContext.getRequestContextPath() + errorPage;
 
         // workaround for mojarra -> mojarra doesn't reset PartialResponseWriter#inChanges if we call externalContext#resetResponse
         if (responseResetted && context.getPartialViewContext().isAjaxRequest()) {
-            ExternalContext externalContext = context.getExternalContext();
             PartialResponseWriter writer = context.getPartialViewContext().getPartialResponseWriter();
             externalContext.addResponseHeader("Content-Type", "text/xml; charset=" + externalContext.getResponseCharacterEncoding());
             externalContext.addResponseHeader("Cache-Control", "no-cache");
@@ -336,9 +349,46 @@ public class PrimeExceptionHandler extends ExceptionHandlerWrapper {
             writer.endElement("partial-response");
         }
         else {
-            context.getExternalContext().redirect(url);
+            // workaround for IllegalStateException from redirect of committed response
+            if (externalContext.isResponseCommitted() && !context.getPartialViewContext().isAjaxRequest()) {
+                PartialResponseWriter writer = context.getPartialViewContext().getPartialResponseWriter();
+                writer.startElement("script", null);
+                writer.write("window.location.href = '" + url + "';");
+                writer.endElement("script");
+                writer.getWrapped().endDocument();
+            }
+            else {
+                externalContext.redirect(url);
+            }
         }
 
         context.responseComplete();
+    }
+
+    protected String evaluateErrorPage(Map<String, String> errorPages, Throwable rootCause) {
+
+        // get error page by exception type
+        String errorPage = errorPages.get(rootCause.getClass().getName());
+
+        // lookup by inheritance hierarchy
+        if (errorPage == null) {
+            Class throwableClass = rootCause.getClass();
+            while (errorPage == null && throwableClass.getSuperclass() != Object.class) {
+                throwableClass = throwableClass.getSuperclass();
+                errorPage = errorPages.get(throwableClass.getName());
+            }
+        }
+
+        // get default error page
+        if (errorPage == null) {
+            errorPage = errorPages.get(null);
+        }
+
+        if (errorPage == null) {
+            throw new IllegalArgumentException(
+                    "No default error page (Status 500 or java.lang.Throwable) and no error page for type \"" + rootCause.getClass() + "\" defined!");
+        }
+
+        return errorPage;
     }
 }

@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class PieChartModel extends ChartModel {
 
-    private Map<String,Number> data;
+    private Map<String, Number> data;
     private int diameter;
     private int sliceMargin;
     private boolean fill = true;
@@ -30,6 +30,7 @@ public class PieChartModel extends ChartModel {
     private int dataLabelThreshold;
     private boolean showDatatip = true;
     private String datatipFormat = "%s - %d";
+    private String datatipEditor;
 
     public PieChartModel() {
         data = new LinkedHashMap<String, Number>();
@@ -38,7 +39,7 @@ public class PieChartModel extends ChartModel {
     public PieChartModel(Map<String, Number> data) {
         this.data = data;
     }
-    
+
     public Map<String, Number> getData() {
         return data;
     }
@@ -110,7 +111,7 @@ public class PieChartModel extends ChartModel {
     public void setDataLabelThreshold(int dataLabelThreshold) {
         this.dataLabelThreshold = dataLabelThreshold;
     }
-    
+
     public boolean isShowDatatip() {
         return showDatatip;
     }
@@ -125,5 +126,13 @@ public class PieChartModel extends ChartModel {
 
     public void setDatatipFormat(String datatipFormat) {
         this.datatipFormat = datatipFormat;
-    } 
+    }
+
+    public String getDatatipEditor() {
+        return datatipEditor;
+    }
+
+    public void setDatatipEditor(String datatipEditor) {
+        this.datatipEditor = datatipEditor;
+    }
 }

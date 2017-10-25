@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,20 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.el.ELContext;
 import javax.el.ExpressionFactory;
 import javax.el.ValueExpression;
 import javax.faces.application.FacesMessage;
+import javax.faces.application.ProjectStage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIViewRoot;
 import javax.faces.component.visit.VisitContext;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
+import org.primefaces.component.datatable.TableState;
+import org.primefaces.expression.ComponentNotFoundException;
 
 import org.primefaces.expression.SearchExpressionFacade;
 import org.primefaces.util.AjaxRequestBuilder;
@@ -43,12 +47,11 @@ import org.primefaces.visit.ResetInputVisitCallback;
 
 public class DefaultRequestContext extends RequestContext {
 
-    private final static String ATTRIBUTES_KEY = "ATTRIBUTES";
+    private static final Logger LOG = Logger.getLogger(DefaultRequestContext.class.getName());
+    
     private final static String CALLBACK_PARAMS_KEY = "CALLBACK_PARAMS";
     private final static String EXECUTE_SCRIPT_KEY = "EXECUTE_SCRIPT";
-    private final static String APPLICATION_CONTEXT_KEY = DefaultApplicationContext.class.getName();
 
-    private Map<Object, Object> attributes;
     private WidgetBuilder widgetBuilder;
     private AjaxRequestBuilder ajaxRequestBuilder;
     private CSVBuilder csvBuilder;
@@ -59,8 +62,7 @@ public class DefaultRequestContext extends RequestContext {
     private Boolean rtl;
 
     public DefaultRequestContext(FacesContext context) {
-    	this.context = context;
-    	this.attributes = new HashMap<Object, Object>();
+        this.context = context;
     }
 
     @Override
@@ -81,69 +83,107 @@ public class DefaultRequestContext extends RequestContext {
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> getCallbackParams() {
-        if(attributes.get(CALLBACK_PARAMS_KEY) == null) {
-            attributes.put(CALLBACK_PARAMS_KEY, new HashMap<String, Object>());
+        if (getAttributes().get(CALLBACK_PARAMS_KEY) == null) {
+            getAttributes().put(CALLBACK_PARAMS_KEY, new HashMap<String, Object>());
         }
-        return (Map<String, Object>) attributes.get(CALLBACK_PARAMS_KEY);
+        return (Map<String, Object>) getAttributes().get(CALLBACK_PARAMS_KEY);
     }
 
     @Override
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public List<String> getScriptsToExecute() {
-        if(attributes.get(EXECUTE_SCRIPT_KEY) == null) {
-            attributes.put(EXECUTE_SCRIPT_KEY, new ArrayList<String>());
+        if (getAttributes().get(EXECUTE_SCRIPT_KEY) == null) {
+            getAttributes().put(EXECUTE_SCRIPT_KEY, new ArrayList<String>());
         }
-        return (List<String>) attributes.get(EXECUTE_SCRIPT_KEY);
+        return (List<String>) getAttributes().get(EXECUTE_SCRIPT_KEY);
     }
 
     @Override
-	public WidgetBuilder getWidgetBuilder() {
-    	if (this.widgetBuilder == null) {
-    		this.widgetBuilder = new WidgetBuilder(context);
-    	}
+    public WidgetBuilder getWidgetBuilder() {
+        if (this.widgetBuilder == null) {
+            this.widgetBuilder = new WidgetBuilder(context);
+        }
 
         return widgetBuilder;
     }
 
-	@Override
-	public AjaxRequestBuilder getAjaxRequestBuilder() {
-		if (this.ajaxRequestBuilder == null) {
-			this.ajaxRequestBuilder = new AjaxRequestBuilder(context);
-		}
-
-		return ajaxRequestBuilder;
-	}
-    
     @Override
-	public CSVBuilder getCSVBuilder() {
-		if (this.csvBuilder == null) {
-			this.csvBuilder = new CSVBuilder(context);
-		}
+    public AjaxRequestBuilder getAjaxRequestBuilder() {
+        if (this.ajaxRequestBuilder == null) {
+            this.ajaxRequestBuilder = new AjaxRequestBuilder(context);
+        }
 
-		return csvBuilder;
-	}
-    
+        return ajaxRequestBuilder;
+    }
+
+    @Override
+    public CSVBuilder getCSVBuilder() {
+        if (this.csvBuilder == null) {
+            this.csvBuilder = new CSVBuilder(context);
+        }
+
+        return csvBuilder;
+    }
+
     @Override
     public void scrollTo(String clientId) {
-        this.execute("PrimeFaces.scrollTo('" + clientId +  "');");
+        this.execute("PrimeFaces.scrollTo('" + clientId + "');");
     }
 
     @Override
     public void update(String clientId) {
-    	context.getPartialViewContext().getRenderIds().add(clientId);
+        // call SEF to validate if a component with the clientId exists
+        if (context.isProjectStage(ProjectStage.Development)) {
+            try {
+                SearchExpressionFacade.resolveClientId(context, context.getViewRoot(), clientId);
+            }
+            catch (ComponentNotFoundException e) {
+                LOG.severe(e.getMessage());
+            }
+        }
+
+        context.getPartialViewContext().getRenderIds().add(clientId);
     }
 
     @Override
-    public void update(Collection<String> collection) {
-    	context.getPartialViewContext().getRenderIds().addAll(collection);
+    public void update(Collection<String> clientIds) {
+
+        // call SEF to validate if a component with the clientId exists
+        if (context.isProjectStage(ProjectStage.Development)) {
+            if (clientIds != null) {
+                for (String clientId : clientIds) {
+                    try {
+                        SearchExpressionFacade.resolveClientId(context, context.getViewRoot(), clientId);
+                    }
+                    catch (ComponentNotFoundException e) {
+                        LOG.severe(e.getMessage());
+                    }
+                }
+            }
+        }
+
+        context.getPartialViewContext().getRenderIds().addAll(clientIds);
     }
 
     @Override
     public void reset(Collection<String> expressions) {
         VisitContext visitContext = VisitContext.createVisitContext(context, null, ComponentUtils.VISIT_HINTS_SKIP_UNRENDERED);
 
-        for(String expression : expressions) {
-        	reset(visitContext, expression);
+        for (String expression : expressions) {
+            reset(visitContext, expression);
+        }
+    }
+    
+    @Override
+    public void reset(String... expressions) {
+        if (expressions == null) {
+            return;
+        }
+
+        VisitContext visitContext = VisitContext.createVisitContext(context, null, ComponentUtils.VISIT_HINTS_SKIP_UNRENDERED);
+
+        for (String expression : expressions) {
+            reset(visitContext, expression);
         }
     }
 
@@ -153,56 +193,63 @@ public class DefaultRequestContext extends RequestContext {
 
         reset(visitContext, expressions);
     }
-    
+
     private void reset(VisitContext visitContext, String expressions) {
         UIViewRoot root = context.getViewRoot();
-        
+
         List<UIComponent> components = SearchExpressionFacade.resolveComponents(context, root, expressions);
         for (UIComponent component : components) {
             component.visitTree(visitContext, ResetInputVisitCallback.INSTANCE);
         }
     }
-    
+
     @Override
     public void openDialog(String outcome) {
-        this.getAttributes().put(Constants.DIALOG_FRAMEWORK.OUTCOME, outcome);
+        context.getAttributes().put(Constants.DIALOG_FRAMEWORK.OUTCOME, outcome);
     }
-        
+
     @Override
-    public void openDialog(String outcome, Map<String,Object> options, Map<String,List<String>> params) {
-        this.getAttributes().put(Constants.DIALOG_FRAMEWORK.OUTCOME, outcome);
-        
-        if(options != null)
-            this.getAttributes().put(Constants.DIALOG_FRAMEWORK.OPTIONS, options);
-        
-        if(params != null)
-            this.getAttributes().put(Constants.DIALOG_FRAMEWORK.PARAMS, params);
+    public void openDialog(String outcome, Map<String, Object> options, Map<String, List<String>> params) {
+        context.getAttributes().put(Constants.DIALOG_FRAMEWORK.OUTCOME, outcome);
+
+        if (options != null) {
+            context.getAttributes().put(Constants.DIALOG_FRAMEWORK.OPTIONS, options);
+        }
+
+        if (params != null) {
+            context.getAttributes().put(Constants.DIALOG_FRAMEWORK.PARAMS, params);
+        }
     }
 
     @Override
     public void closeDialog(Object data) {
-        Map<String,String> params = context.getExternalContext().getRequestParameterMap();
+        Map<String, String> params = context.getExternalContext().getRequestParameterMap();
         String pfdlgcid = params.get(Constants.DIALOG_FRAMEWORK.CONVERSATION_PARAM);
-            
-        if(data != null) {
-            Map<String,Object> session = context.getExternalContext().getSessionMap();            
+
+        if (data != null) {
+            Map<String, Object> session = context.getExternalContext().getSessionMap();
             session.put(pfdlgcid, data);
         }
 
-        this.execute("parent.PrimeFaces.closeDialog({pfdlgcid:'" + pfdlgcid + "'});");
+        this.execute("PrimeFaces.closeDialog({pfdlgcid:'" + pfdlgcid + "'});");
     }
 
     @Override
     public void showMessageInDialog(FacesMessage message) {
-        this.execute("PrimeFaces.showMessageInDialog({severity:'" + message.getSeverity() + 
-                    "',summary:'" + message.getSummary() + "',detail:'" + message.getDetail() + "'});"); 
+
+        String summary = ComponentUtils.escapeText(message.getSummary());
+        summary = ComponentUtils.replaceNewLineWithHtml(summary);
+
+        String detail = ComponentUtils.escapeText(message.getDetail());
+        detail = ComponentUtils.replaceNewLineWithHtml(detail);
+
+        this.execute("PrimeFaces.showMessageInDialog({severity:\"" + message.getSeverity()
+                + "\",summary:\"" + summary
+                + "\",detail:\"" + detail + "\"});");
     }
-    
+
     @Override
     public void release() {
-        setCurrentInstance(null, context);
-        
-        attributes = null;
         widgetBuilder = null;
         ajaxRequestBuilder = null;
         context = null;
@@ -212,49 +259,46 @@ public class DefaultRequestContext extends RequestContext {
 
     @Override
     public Map<Object, Object> getAttributes() {
-        if(attributes.get(ATTRIBUTES_KEY) == null) {
-            attributes.put(ATTRIBUTES_KEY, new HashMap<Object, Object>());
-        }
-        return (Map<Object, Object>) attributes.get(ATTRIBUTES_KEY);
+        return context.getAttributes();
     }
 
-	@Override
-	public ApplicationContext getApplicationContext() {
-		if (this.applicationContext == null) {
-	    	// get applicationContext from application map
-	    	this.applicationContext = (ApplicationContext) context.getExternalContext().getApplicationMap().get(APPLICATION_CONTEXT_KEY);
-	    	if (this.applicationContext == null) {
-	    		this.applicationContext = new DefaultApplicationContext(context);
-				context.getExternalContext().getApplicationMap().put(APPLICATION_CONTEXT_KEY, this.applicationContext);
-	    	}
-		}
+    @Override
+    public ApplicationContext getApplicationContext() {
+        if (this.applicationContext == null) {
+            this.applicationContext = ApplicationContext.getCurrentInstance();
+            if (this.applicationContext == null) {
+                this.applicationContext = new DefaultApplicationContext(context);
+                ApplicationContext.setCurrentInstance(applicationContext, context);
+            }
+        }
 
-		return applicationContext;
-	}
+        return applicationContext;
+    }
 
-	@Override
-	public StringEncrypter getEncrypter() {
-		// lazy init, it's not required for all pages
-    	if (encrypter == null) {
-	    	// we can't store it in the ApplicationMap, as Cipher isn't thread safe
-	    	encrypter = new StringEncrypter(getApplicationContext().getConfig().getSecretKey());
-    	}
+    @Override
+    public StringEncrypter getEncrypter() {
+        // lazy init, it's not required for all pages
+        if (encrypter == null) {
+            // we can't store it in the ApplicationMap, as Cipher isn't thread safe
+            encrypter = new StringEncrypter(getApplicationContext().getConfig().getSecretKey());
+        }
 
-		return encrypter;
-	}
+        return encrypter;
+    }
 
     @Override
     public boolean isSecure() {
         Object request = context.getExternalContext().getRequest();
-        
-        if(request instanceof HttpServletRequest) {
+
+        if (request instanceof HttpServletRequest) {
             return ((HttpServletRequest) request).isSecure();
         }
         else {
             try {
                 Method method = request.getClass().getDeclaredMethod("isSecure", new Class[0]);
                 return (Boolean) method.invoke(request, null);
-            } catch(Exception e) {
+            }
+            catch (Exception e) {
                 return false;
             }
         }
@@ -264,29 +308,43 @@ public class DefaultRequestContext extends RequestContext {
     public boolean isIgnoreAutoUpdate() {
         if (ignoreAutoUpdate == null) {
             Object ignoreAutoUpdateObject = context.getExternalContext().getRequestParameterMap().get(Constants.RequestParams.IGNORE_AUTO_UPDATE_PARAM);
-            ignoreAutoUpdate = (null != ignoreAutoUpdateObject && "true".equals(ignoreAutoUpdateObject)) ? true : false;
+            ignoreAutoUpdate = (null != ignoreAutoUpdateObject && "true".equals(ignoreAutoUpdateObject));
         }
 
         return ignoreAutoUpdate;
     }
 
-	@Override
-	public boolean isRTL()
-	{
-		if (rtl == null) {
-			String param = context.getExternalContext().getInitParameter(Constants.ContextParams.DIRECTION);
-	        if (param == null) {
-	        	rtl = false;
-	        } else {
-				ELContext elContext = context.getELContext();
-		        ExpressionFactory expressionFactory = context.getApplication().getExpressionFactory();
-		        ValueExpression expression = expressionFactory.createValueExpression(elContext, param, String.class);
-		        String expressionValue = (String) expression.getValue(elContext);
+    @Override
+    public boolean isRTL() {
+        if (rtl == null) {
+            String param = context.getExternalContext().getInitParameter(Constants.ContextParams.DIRECTION);
+            if (param == null) {
+                rtl = false;
+            }
+            else {
+                ELContext elContext = context.getELContext();
+                ExpressionFactory expressionFactory = context.getApplication().getExpressionFactory();
+                ValueExpression expression = expressionFactory.createValueExpression(elContext, param, String.class);
+                String expressionValue = (String) expression.getValue(elContext);
 
-		        rtl = (expressionValue == null) ? false : expressionValue.equalsIgnoreCase("rtl");
-	        }
-		}
+                rtl = (expressionValue == null) ? false : expressionValue.equalsIgnoreCase("rtl");
+            }
+        }
 
-		return rtl;
-	}
+        return rtl;
+    }
+
+    @Override
+    public void clearTableStates() {
+        this.context.getExternalContext().getSessionMap().remove(Constants.TABLE_STATE);
+    }
+
+    @Override
+    public void clearTableState(String key) {
+        Map<String, Object> sessionMap = this.context.getExternalContext().getSessionMap();
+        Map<String, TableState> dtState = (Map) sessionMap.get(Constants.TABLE_STATE);
+        if (dtState != null) {
+            dtState.remove(key);
+        }
+    }
 }

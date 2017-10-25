@@ -10,6 +10,7 @@ PrimeFaces.widget.BlockUI = PrimeFaces.widget.BaseWidget.extend({
         this.block = PrimeFaces.expressions.SearchExpressionFacade.resolveComponentsAsSelector(this.cfg.block);
         this.content = $(this.jqId);
         this.cfg.animate = (this.cfg.animate === false)? false : true;
+        this.cfg.blocked = (this.cfg.blocked === true)? true : false;
         
         this.render();
 
@@ -25,28 +26,33 @@ PrimeFaces.widget.BlockUI = PrimeFaces.widget.BaseWidget.extend({
     },
             
     refresh: function(cfg) {
+        this.blocker.remove();
+        this.block.children('.ui-blockui-content').remove();
         $(document).off('pfAjaxSend.' + this.id + ' pfAjaxComplete.' + this.id);
         
         this._super(cfg);
     },
     
     bindTriggers: function() {
-        var $this = this,
-        triggers = PrimeFaces.expressions.SearchExpressionFacade.resolveComponents(this.cfg.triggers);
+        var $this = this;
         
         //listen global ajax send and complete callbacks
         $(document).on('pfAjaxSend.' + this.id, function(e, xhr, settings) {
             var sourceId = $.type(settings.source) === 'string' ? settings.source : settings.source.name;
+            // we must evaluate it each time as the DOM might has been changed
+            var triggers = PrimeFaces.expressions.SearchExpressionFacade.resolveComponents(this.cfg.triggers);
             
-            if($.inArray(sourceId, triggers) !== -1) {
+            if($.inArray(sourceId, triggers) !== -1 && !$this.cfg.blocked) {
                 $this.show();
             }
         });
 
         $(document).on('pfAjaxComplete.' + this.id, function(e, xhr, settings) {
             var sourceId = $.type(settings.source) === 'string' ? settings.source : settings.source.name;
+            // we must evaluate it each time as the DOM might has been changed
+            var triggers = PrimeFaces.expressions.SearchExpressionFacade.resolveComponents(this.cfg.triggers);
             
-            if($.inArray(sourceId, triggers) !== -1) {
+            if($.inArray(sourceId, triggers) !== -1 && !$this.cfg.blocked) {
                 $this.hide();
             }
         });
@@ -56,11 +62,16 @@ PrimeFaces.widget.BlockUI = PrimeFaces.widget.BaseWidget.extend({
         this.blocker.css('z-index', ++PrimeFaces.zindex);
         
         //center position of content
-        this.content.css({
-            'left': (this.blocker.width() - this.content.outerWidth()) / 2,
-            'top': (this.blocker.height() - this.content.outerHeight()) / 2,
-            'z-index': ++PrimeFaces.zindex
-        });
+        for(var i = 0; i < this.block.length; i++) {
+            var blocker = $(this.blocker[i]),
+                content = $(this.content[i]);
+           
+            content.css({
+                'left': (blocker.width() - content.outerWidth()) / 2,
+                'top': (blocker.height() - content.outerHeight()) / 2,
+                'z-index': ++PrimeFaces.zindex
+            });
+        }
 
         if(this.cfg.animate)
             this.blocker.fadeIn();    
@@ -68,8 +79,13 @@ PrimeFaces.widget.BlockUI = PrimeFaces.widget.BaseWidget.extend({
             this.blocker.show();
 
         if(this.hasContent()) {
-            this.content.fadeIn();
+            if(this.cfg.animate)
+                this.content.fadeIn();
+            else
+                this.content.show();
         }
+        
+        this.block.attr('aria-busy', true);
     },
     
     hide: function() {
@@ -79,18 +95,36 @@ PrimeFaces.widget.BlockUI = PrimeFaces.widget.BaseWidget.extend({
             this.blocker.hide();
 
         if(this.hasContent()) {
-            this.content.fadeOut();
+            if(this.cfg.animate)
+                this.content.fadeOut();
+            else
+                this.content.hide();
         }
+        
+        this.block.attr('aria-busy', false);
     },
     
     render: function() {   
         this.blocker = $('<div id="' + this.id + '_blocker" class="ui-blockui ui-widget-overlay ui-helper-hidden"></div>');
 
+        if(this.cfg.styleClass) {
+            this.blocker.addClass(this.cfg.styleClass);
+        }
+
         if(this.block.hasClass('ui-corner-all')) {
             this.blocker.addClass('ui-corner-all');
         }
-
-        this.block.css('position', 'relative').append(this.blocker).append(this.content);
+        
+        if(this.block.length > 1) {
+            this.content = this.content.clone();
+        }
+        
+        this.block.css('position', 'relative').attr('aria-busy', this.cfg.blocked).append(this.blocker).append(this.content);
+    
+        if(this.block.length > 1) {
+            this.blocker = $(PrimeFaces.escapeClientId(this.id + '_blocker'));
+            this.content = this.block.children('.ui-blockui-content');
+        }
     },
     
     hasContent: function() {

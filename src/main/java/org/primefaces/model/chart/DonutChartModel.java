@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class DonutChartModel extends ChartModel {
 
-    private List<Map<String,Number>> data;
+    private List<Map<String, Number>> data;
     private int sliceMargin;
     private boolean fill = true;
     private boolean showDataLabels = false;
@@ -30,7 +30,8 @@ public class DonutChartModel extends ChartModel {
     private int dataLabelThreshold;
     private boolean showDatatip = true;
     private String datatipFormat = "%s - %d";
-    
+    private String datatipEditor;
+
     public DonutChartModel() {
         data = new ArrayList<Map<String, Number>>();
     }
@@ -38,7 +39,7 @@ public class DonutChartModel extends ChartModel {
     public DonutChartModel(List<Map<String, Number>> data) {
         this.data = data;
     }
-    
+
     public List<Map<String, Number>> getData() {
         return data;
     }
@@ -46,8 +47,8 @@ public class DonutChartModel extends ChartModel {
     public void setData(List<Map<String, Number>> data) {
         this.data = data;
     }
-    
-    public void addCircle(Map<String, Number> circle){
+
+    public void addCircle(Map<String, Number> circle) {
         this.data.add(circle);
     }
 
@@ -58,6 +59,7 @@ public class DonutChartModel extends ChartModel {
     public int getSliceMargin() {
         return sliceMargin;
     }
+
     public void setSliceMargin(int sliceMargin) {
         this.sliceMargin = sliceMargin;
     }
@@ -65,6 +67,7 @@ public class DonutChartModel extends ChartModel {
     public boolean isFill() {
         return fill;
     }
+
     public void setFill(boolean fill) {
         this.fill = fill;
     }
@@ -72,6 +75,7 @@ public class DonutChartModel extends ChartModel {
     public boolean isShowDataLabels() {
         return showDataLabels;
     }
+
     public void setShowDataLabels(boolean showDataLabels) {
         this.showDataLabels = showDataLabels;
     }
@@ -79,6 +83,7 @@ public class DonutChartModel extends ChartModel {
     public String getDataFormat() {
         return dataFormat;
     }
+
     public void setDataFormat(String dataFormat) {
         this.dataFormat = dataFormat;
     }
@@ -113,5 +118,13 @@ public class DonutChartModel extends ChartModel {
 
     public void setDatatipFormat(String datatipFormat) {
         this.datatipFormat = datatipFormat;
+    }
+
+    public String getDatatipEditor() {
+        return datatipEditor;
+    }
+
+    public void setDatatipEditor(String datatipEditor) {
+        this.datatipEditor = datatipEditor;
     }
 }

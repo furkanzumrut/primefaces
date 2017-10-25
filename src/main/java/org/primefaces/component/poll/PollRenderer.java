@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import javax.faces.event.PhaseId;
 import org.primefaces.context.RequestContext;
 import org.primefaces.renderkit.CoreRenderer;
 import org.primefaces.util.AjaxRequestBuilder;
-import org.primefaces.util.ComponentUtils;
+import org.primefaces.util.ComponentTraversalUtils;
 import org.primefaces.util.WidgetBuilder;
 
 public class PollRenderer extends CoreRenderer {
@@ -35,13 +35,15 @@ public class PollRenderer extends CoreRenderer {
     public void decode(FacesContext context, UIComponent component) {
         Poll poll = (Poll) component;
 
-        if(context.getExternalContext().getRequestParameterMap().containsKey(poll.getClientId(context))) {
+        if (context.getExternalContext().getRequestParameterMap().containsKey(poll.getClientId(context))) {
             ActionEvent event = new ActionEvent(poll);
-            if(poll.isImmediate())
+            if (poll.isImmediate()) {
                 event.setPhaseId(PhaseId.APPLY_REQUEST_VALUES);
-            else
+            }
+            else {
                 event.setPhaseId(PhaseId.INVOKE_APPLICATION);
-            
+            }
+
             poll.queueEvent(event);
         }
     }
@@ -51,13 +53,13 @@ public class PollRenderer extends CoreRenderer {
         Poll poll = (Poll) component;
         String clientId = poll.getClientId(context);
 
-        UIComponent form = ComponentUtils.findParentForm(context, poll);
-        if(form == null) {
+        UIComponent form = ComponentTraversalUtils.closestForm(context, poll);
+        if (form == null) {
             throw new FacesException("Poll:" + clientId + " needs to be enclosed in a form component");
         }
 
-        AjaxRequestBuilder builder = RequestContext.getCurrentInstance().getAjaxRequestBuilder();
-        
+        AjaxRequestBuilder builder = RequestContext.getCurrentInstance(context).getAjaxRequestBuilder();
+
         String request = builder.init()
                 .source(clientId)
                 .form(form.getClientId(context))
@@ -76,12 +78,12 @@ public class PollRenderer extends CoreRenderer {
                 .oncomplete(poll.getOncomplete())
                 .params(poll)
                 .build();
-        
+
         WidgetBuilder wb = getWidgetBuilder(context);
         wb.initWithDomReady("Poll", poll.resolveWidgetVar(), clientId)
-            .attr("frequency", poll.getInterval())
-            .attr("autoStart", poll.isAutoStart())
-            .callback("fn", "function()", request);
+                .attr("frequency", poll.getInterval())
+                .attr("autoStart", poll.isAutoStart())
+                .callback("fn", "function()", request);
 
         wb.finish();
     }

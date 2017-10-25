@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
  */
 package org.primefaces.component.ajaxexceptionhandler;
 
+import java.util.HashMap;
+import java.util.Map;
 import javax.faces.component.UIComponent;
 import javax.faces.component.visit.VisitCallback;
 import javax.faces.component.visit.VisitContext;
 import javax.faces.component.visit.VisitResult;
+import org.primefaces.component.api.UIData;
 import org.primefaces.util.ComponentUtils;
 
 /**
@@ -27,36 +30,41 @@ import org.primefaces.util.ComponentUtils;
 public class AjaxExceptionHandlerVisitCallback implements VisitCallback {
 
     private final Throwable throwable;
-    
-    private AjaxExceptionHandler handler;
-    private AjaxExceptionHandler defaultHandler;
+
+    private Map<String, AjaxExceptionHandler> handlers;
 
     public AjaxExceptionHandlerVisitCallback(Throwable throwable) {
         this.throwable = throwable;
-        
-        this.handler = null;
-        this.defaultHandler = null;
+
+        this.handlers = new HashMap<String, AjaxExceptionHandler>();
     }
-    
-    public VisitResult visit(VisitContext context, UIComponent target) {;
+
+    @Override
+    public VisitResult visit(VisitContext context, UIComponent target) {
 
         if (target instanceof AjaxExceptionHandler) {
             AjaxExceptionHandler currentHandler = (AjaxExceptionHandler) target;
 
             if (ComponentUtils.isValueBlank(currentHandler.getType())) {
-                defaultHandler = currentHandler;
+                handlers.put(null, currentHandler);
             }
+            else {
+                handlers.put(currentHandler.getType(), currentHandler);
 
-            if (throwable.getClass().getName().equals(currentHandler.getType())) {
-                handler = currentHandler;
-                return VisitResult.COMPLETE;
+                // exact type matched - we don't need to search more generic handlers
+                if (throwable.getClass().getName().equals(currentHandler.getType())) {
+                    return VisitResult.COMPLETE;
+                }
             }
         }
-        
+        else if (target instanceof UIData) {
+            return VisitResult.REJECT;
+        }
+
         return VisitResult.ACCEPT;
     }
-    
-    public AjaxExceptionHandler getHandler() {
-        return handler == null ? defaultHandler : handler;
+
+    public Map<String, AjaxExceptionHandler> getHandlers() {
+        return handlers;
     }
 }

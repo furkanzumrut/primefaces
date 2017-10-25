@@ -8,35 +8,31 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import javax.faces.application.FacesMessage;
 import javax.faces.FacesException;
-import javax.servlet.http.HttpServletRequest;
-import java.util.logging.Logger;
+import org.primefaces.context.RequestContext;
+import org.primefaces.component.captcha.Captcha;
 import org.primefaces.context.PrimeExternalContext;
+import org.primefaces.json.JSONObject;
 
     public final static String PUBLIC_KEY = "primefaces.PUBLIC_CAPTCHA_KEY";
     public final static String PRIVATE_KEY = "primefaces.PRIVATE_CAPTCHA_KEY";
     public final static String INVALID_MESSAGE_ID = "primefaces.captcha.INVALID";
-
-    public final static String OLD_PRIVATE_KEY = "org.primefaces.component.captcha.PRIVATE_KEY";
-
-    private static final Logger logger = Logger.getLogger(Captcha.class.getName());
 
     @Override
 	protected void validateValue(FacesContext context, Object value) {
 		super.validateValue(context, value);
 
         if(isValid()) {
-
-            String result = null;
-            Verification verification = (Verification) value;
-
+            
+            boolean result = false;
+            
             try {
-                URL url = new URL("http://api-verify.recaptcha.net/verify");
+                URL url = new URL("https://www.google.com/recaptcha/api/siteverify");
                 URLConnection conn = url.openConnection();
                 conn.setDoInput(true);
                 conn.setDoOutput(true);
                 conn.setUseCaches(false);
                 conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                String postBody = createPostParameters(context, verification);
+                String postBody = createPostParameters(context, value);
 
                 OutputStream out = conn.getOutputStream();
                 out.write(postBody.getBytes());
@@ -44,15 +40,28 @@ import org.primefaces.context.PrimeExternalContext;
                 out.close();
 
                 BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                result = rd.readLine();
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+
+                while ((inputLine = rd.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                
+                JSONObject json = new JSONObject(response.toString());
+                result = json.getBoolean("success");
+                
                 rd.close();
             }catch(Exception exception) {
                 throw new FacesException(exception);
-            }
+            } finally {
+            	// the captcha token is valid for only one request, in case of an ajax request we have to get a new one
+	        RequestContext requestContext = RequestContext.getCurrentInstance(getFacesContext());
+	        if(requestContext.isAjaxRequest()) {
+	            requestContext.execute("grecaptcha.reset()");
+	        }
+	    }
 
-            boolean isValid = Boolean.valueOf(result);
-
-            if(!isValid) {
+            if(!result) {
                 setValid(false);
 
                 String validatorMessage = getValidatorMessage();
@@ -64,7 +73,7 @@ import org.primefaces.context.PrimeExternalContext;
                 else {
                     Object[] params = new Object[2];
                     params[0] = MessageFactory.getLabel(context, this);
-                    params[1] = verification.getAnswer();
+                    params[1] = (String)value;
 
                     msg = MessageFactory.getMessage(Captcha.INVALID_MESSAGE_ID, FacesMessage.SEVERITY_ERROR, params);
                 }
@@ -74,33 +83,20 @@ import org.primefaces.context.PrimeExternalContext;
         }
 	}
 
-    private String createPostParameters(FacesContext facesContext, Verification verification) throws UnsupportedEncodingException {
-		String challenge = verification.getChallenge();
-		String answer = verification.getAnswer();
-		String remoteAddress = ((PrimeExternalContext) facesContext.getExternalContext()).getRemoteAddr();
-        String privateKey = null;
-		String oldPrivateKey = facesContext.getExternalContext().getInitParameter(Captcha.OLD_PRIVATE_KEY);
-        String newPrivateKey = facesContext.getExternalContext().getInitParameter(Captcha.PRIVATE_KEY);
+    private String createPostParameters(FacesContext context, Object value) throws UnsupportedEncodingException {
 
-        //Backward compatibility
-        if(oldPrivateKey != null) {
-            logger.warning("PrivateKey definition on captcha is deprecated, use primefaces.PRIVATE_CAPTCHA_KEY context-param instead");
-
-            privateKey = oldPrivateKey;
-        }
-        else {
-            privateKey = newPrivateKey;
-        }
+        String privateKey = context.getApplication().evaluateExpressionGet(context, context.getExternalContext().getInitParameter(Captcha.PRIVATE_KEY), String.class);
 
         if(privateKey == null) {
             throw new FacesException("Cannot find private key for catpcha, use primefaces.PRIVATE_CAPTCHA_KEY context-param to define one");
         }
 
 		StringBuilder postParams = new StringBuilder();
-		postParams.append("privatekey=").append(URLEncoder.encode(privateKey, "UTF-8"));
-		postParams.append("&remoteip=").append(URLEncoder.encode(remoteAddress, "UTF-8"));
-		postParams.append("&challenge=").append(URLEncoder.encode(challenge, "UTF-8"));
-		postParams.append("&response=").append(URLEncoder.encode(answer, "UTF-8"));
+		postParams.append("secret=").append(URLEncoder.encode(privateKey, "UTF-8"));
+		postParams.append("&response=").append(value == null ? "" : URLEncoder.encode((String) value, "UTF-8"));
 
-		return postParams.toString();
+        String params = postParams.toString();
+        postParams.setLength(0);
+        
+		return params;
 	}

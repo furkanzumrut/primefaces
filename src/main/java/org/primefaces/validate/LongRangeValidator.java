@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,23 +21,39 @@ import org.primefaces.util.HTML;
 
 public class LongRangeValidator extends javax.faces.validator.LongRangeValidator implements ClientValidator {
 
-    private Map<String,Object> metadata;
-    
+    private Map<String, Object> metadata;
+    private boolean minimumSet;
+    private boolean maximumSet;
+
     public Map<String, Object> getMetadata() {
         metadata = new HashMap<String, Object>();
         long min = this.getMinimum();
         long max = this.getMaximum();
-        
-        if(min != 0)
+
+        if (minimumSet) {
             metadata.put(HTML.VALIDATION_METADATA.MIN_VALUE, min);
-            
-        if(max != 0)
+        }
+
+        if (maximumSet) {
             metadata.put(HTML.VALIDATION_METADATA.MAX_VALUE, max);
-        
+        }
+
         return metadata;
     }
 
     public String getValidatorId() {
         return LongRangeValidator.VALIDATOR_ID;
+    }
+
+    @Override
+    public void setMaximum(long maximum) {
+        super.setMaximum(maximum);
+        this.maximumSet = true;
+    }
+
+    @Override
+    public void setMinimum(long minimum) {
+        super.setMinimum(minimum);
+        this.minimumSet = true;
     }
 }

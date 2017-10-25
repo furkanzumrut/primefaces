@@ -1,5 +1,5 @@
 import org.primefaces.component.column.Column;
-import org.primefaces.config.ConfigContainer;
+import org.primefaces.config.PrimeConfiguration;
 import org.primefaces.context.RequestContext;
 import java.util.Collection;
 import java.util.List;
@@ -18,11 +18,12 @@ import org.primefaces.util.MessageFactory;
 import org.primefaces.util.Constants;
 import org.primefaces.event.SelectEvent;
 import java.util.Map;
+import javax.faces.render.Renderer;
 
     public final static String STYLE_CLASS = "ui-selectonemenu ui-widget ui-state-default ui-corner-all";
     public final static String LABEL_CLASS = "ui-selectonemenu-label ui-inputfield ui-corner-all";
     public final static String TRIGGER_CLASS = "ui-selectonemenu-trigger ui-state-default ui-corner-right";
-    public final static String PANEL_CLASS = "ui-selectonemenu-panel ui-widget-content ui-corner-all ui-helper-hidden ui-shadow";
+    public final static String PANEL_CLASS = "ui-selectonemenu-panel ui-widget ui-widget-content ui-corner-all ui-helper-hidden ui-shadow";
     public final static String ITEMS_WRAPPER_CLASS = "ui-selectonemenu-items-wrapper";
     public final static String LIST_CLASS = "ui-selectonemenu-items ui-selectonemenu-list ui-widget-content ui-widget ui-corner-all ui-helper-reset";
     public final static String TABLE_CLASS = "ui-selectonemenu-items ui-selectonemenu-table ui-widget-content ui-widget ui-corner-all ui-helper-reset";
@@ -33,7 +34,21 @@ import java.util.Map;
     public final static String FILTER_CLASS = "ui-selectonemenu-filter ui-inputfield ui-inputtext ui-widget ui-state-default ui-corner-all";
     public final static String FILTER_ICON_CLASS = "ui-icon ui-icon-search";
 
-    public List<Column> getColums() {
+    private static final Collection<String> EVENT_NAMES = Collections.unmodifiableCollection(Arrays.asList("itemSelect","blur","change","valueChange","click","dblclick","focus","keydown","keypress","keyup","mousedown","mousemove","mouseout","mouseover","mouseup","select"));
+
+    public Collection<String> getEventNames() {
+        return EVENT_NAMES;    
+    }
+
+    public boolean isLazyloadRequest(FacesContext context) {
+        return context.getExternalContext().getRequestParameterMap().containsKey(this.getClientId(context) + "_lazyload");
+    }
+
+    public String getDefaultEventName() {
+        return "valueChange";    
+    }
+
+    public List<Column> getColumns() {
         List<Column> columns = new ArrayList<Column>();
         
         for(UIComponent kid : this.getChildren()) {
@@ -53,7 +68,13 @@ import java.util.Map;
             String eventName = params.get(Constants.RequestParams.PARTIAL_BEHAVIOR_EVENT_PARAM);
             
             if("itemSelect".equals(eventName)) {
-                Object item = context.getRenderKit().getRenderer("javax.faces.SelectOne", "javax.faces.Menu").getConvertedValue(context, this, this.getSubmittedValue());
+                Renderer renderer = ComponentUtils.getUnwrappedRenderer(
+                    context,
+                    "javax.faces.SelectOne",
+                    "javax.faces.Menu",
+                    Renderer.class);
+                
+                Object item = renderer.getConvertedValue(context, this, this.getSubmittedValue());
                 SelectEvent selectEvent = new SelectEvent(this, behaviorEvent.getBehavior(), item);
                 selectEvent.setPhaseId(event.getPhaseId());
                 super.queueEvent(selectEvent);
@@ -86,7 +107,7 @@ import java.util.Map;
                 setValid(false);
             }
 
-            ConfigContainer config = RequestContext.getCurrentInstance().getApplicationContext().getConfig();
+            PrimeConfiguration config = RequestContext.getCurrentInstance(getFacesContext()).getApplicationContext().getConfig();
             
             //other validators
             if(isValid() && (!isEmpty(value) || config.isValidateEmptyFields())) {
@@ -138,6 +159,15 @@ import java.util.Map;
     public String getValidatableInputClientId() {
         return this.getClientId(getFacesContext()) + "_input";
     }
+
+    public void setLabelledBy(String labelledBy) {
+        getStateHelper().put("labelledby", labelledBy);
+    }
+    public String getLabelledBy() {
+        return (String) getStateHelper().get("labelledby");
+    }
+
+    
 
 
     

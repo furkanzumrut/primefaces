@@ -1,263 +1,346 @@
 /**
  * PrimeFaces Carousel Widget
  */
-PrimeFaces.widget.Carousel = PrimeFaces.widget.BaseWidget.extend({
+PrimeFaces.widget.Carousel = PrimeFaces.widget.DeferredWidget.extend({
     
     init: function(cfg) {
         this._super(cfg);
-        
-        this.viewport = this.jq.children('.ui-carousel-viewport');
-        this.header = this.jq.children('.ui-carousel-header'),
-        this.list = this.viewport.children('ul');
-        this.items = this.list.children('.ui-carousel-item');
-        this.prevButton = this.header.children('.ui-carousel-prev-button');
-        this.nextButton = this.header.children('.ui-carousel-next-button');
-        this.pageLinks = this.header.find('.ui-carousel-page-links .ui-carousel-page-link');
+        this.viewport = this.jq.children('.ui-carousel-viewport'); 
+        this.itemsContainer = this.viewport.children('.ui-carousel-items');
+        this.items = this.itemsContainer.children('li');
+        this.itemsCount = this.items.length;
+        this.header = this.jq.children('.ui-carousel-header');
+        this.prevNav = this.header.children('.ui-carousel-prev-button');
+        this.nextNav = this.header.children('.ui-carousel-next-button');
+        this.pageLinks = this.header.find('> .ui-carousel-page-links > .ui-carousel-page-link');
         this.dropdown = this.header.children('.ui-carousel-dropdown');
-        this.state = $(this.jqId + '_first');
-
-        //configuration
+        this.mobileDropdown = this.header.children('.ui-carousel-mobiledropdown');
+        this.stateholder = $(this.jqId + '_page');
+        
+        if(this.cfg.toggleable) {
+            this.toggler = $(this.jqId + '_toggler');
+            this.toggleStateHolder = $(this.jqId + '_collapsed');
+            this.toggleableContent = this.jq.find(' > .ui-carousel-viewport > .ui-carousel-items, > .ui-carousel-footer');
+        }
+        
         this.cfg.numVisible = this.cfg.numVisible||3;
-        this.cfg.pageLinks = this.cfg.pageLinks||3;
-        this.cfg.effect = this.cfg.effect||'slide';
+        this.cfg.firstVisible = this.cfg.firstVisible||0;
+        this.columns = this.cfg.numVisible;
+        this.first = this.cfg.firstVisible;
         this.cfg.effectDuration = this.cfg.effectDuration||500;
-        this.cfg.easing = this.cfg.easing||'easeInOutCirc';
-        this.cfg.pageCount = Math.ceil(this.items.length / this.cfg.numVisible);
-        this.cfg.firstVisible = (this.cfg.firstVisible||0) % this.items.length;
-        this.cfg.page = (this.cfg.firstVisible / this.cfg.numVisible) + 1;
-        this.animating = false;
-
-        if(this.items.length) {
-            var firstItem  = this.items.filter(':first'),
-            firstItemNative = firstItem.get(0);
-            this.cfg.itemOuterWidth =  firstItem.innerWidth() + parseInt(this.getProperty(firstItemNative, 'margin-Left')) + parseInt(this.getProperty(firstItemNative, 'margin-Right')) +  ((parseInt(this.getProperty(firstItemNative, 'border-Left-Width')) + parseInt(this.getProperty(firstItemNative, 'border-Right-Width'))));
-            this.cfg.itemOuterHeight = firstItem.innerHeight() + Math.max(parseInt(this.getProperty(firstItemNative, 'margin-Top')), parseInt(this.getProperty(firstItemNative, 'margin-Bottom'))) + ((parseInt(this.getProperty(firstItemNative, 'border-Top-Width')) + parseInt(this.getProperty(firstItemNative, 'border-Bottom-Width'))));
-
-            //viewport width/height
-            if(this.cfg.vertical) {
-                this.viewport.width(this.cfg.itemOuterWidth);
-                this.viewport.height(this.cfg.numVisible * this.cfg.itemOuterHeight);
-            }
-            else{
-                this.viewport.width(this.cfg.numVisible * this.cfg.itemOuterWidth);
-                this.viewport.height(this.cfg.itemOuterHeight);
-            }
-            this.jq.width(this.viewport.outerWidth(true));
-
-            //set offset position
-            this.setOffset(this.getItemPosition(this.cfg.firstVisible));
-
-            this.checkButtons();
-
-            this.bindEvents();
-
-            if(this.cfg.autoplayInterval) {
-                this.startAutoplay();
-            }
+        this.cfg.circular = this.cfg.circular||false;
+        this.cfg.breakpoint = this.cfg.breakpoint||640;
+        this.page = parseInt(this.first/this.columns);
+        this.totalPages = Math.ceil(this.itemsCount/this.cfg.numVisible);
+        
+        if(this.cfg.stateful) {
+            this.stateKey = 'carousel-' + this.id;
+            
+            this.restoreState();
+        }
+        
+        this.renderDeferred();
+    },
+    
+    _render: function() {
+        this.updateNavigators();
+        this.bindEvents();
+        
+        if(this.cfg.vertical) {
+            this.calculateItemHeights();
+        }
+        else if(this.cfg.responsive) {
+            this.refreshDimensions();
+        }
+        else {
+            this.calculateItemWidths(this.columns);
+            this.jq.width(this.jq.width());
+            this.updateNavigators();
+        }
+        
+        if(this.cfg.collapsed) {
+            this.toggleableContent.hide();
         }
     },
     
-    /**
-     * Returns browser specific computed style property value.
-     */
-    getProperty: function(item, prop){
-        return $.browser.msie ? item.currentStyle.getAttribute(prop.replace(/-/g, "")) : document.defaultView.getComputedStyle(item, "").getPropertyValue(prop.toLowerCase());
-    },
-    
-    /**
-     * Autoplay startup.
-     */
-    startAutoplay: function(){
-        var $this = this;
-        if(this.cfg.autoplayInterval) {
-            this.slideshowInterval = setInterval(function() {
-                $this.next();
-            }, this.cfg.autoplayInterval);
+    calculateItemWidths: function() {
+        var firstItem = this.items.eq(0);
+        if(firstItem.length) {
+            var itemFrameWidth = firstItem.outerWidth(true) - firstItem.width();    //sum of margin, border and padding
+            this.items.width((this.viewport.innerWidth() - itemFrameWidth * this.columns) / this.columns);
         }
     },
-            
-    stopAutoplay: function() {
-        if(this.slideshowInterval) {
-            clearInterval(this.slideshowInterval);
-        }        
-    },
     
-    /**
-     * Binds related mouse/key events.
-     */
-    bindEvents: function(){
-        var $this = this;
-
-        this.pageLinks.click(function(e) {
-            $this.stopAutoplay();
-            
-            if(!$this.animating) {
-                $this.setPage($(this).index() + 1);
-            }
-
-            e.preventDefault();
-        });
-
-        PrimeFaces.skinSelect(this.dropdown);
-        this.dropdown.change(function(e) {
-            $this.stopAutoplay();
-            
-            if(!$this.animating)
-                $this.setPage(parseInt($(this).val()));
-        });
-
-        this.prevButton.click(function(e) {
-            $this.stopAutoplay();
-            
-            if(!$this.prevButton.hasClass('ui-state-disabled') && !$this.animating)
-                $this.prev();
-        });
-
-        this.nextButton.click(function() {
-            $this.stopAutoplay();
-            
-            if(!$this.nextButton.hasClass('ui-state-disabled') && !$this.animating)
-                $this.next();
-        });
-    },
-    
-    /**
-     * Calculates position of list for a page index.
-     */
-    getPagePosition: function(index) {
-        return -((index - 1) * (this.cfg.vertical ? this.cfg.itemOuterHeight : this.cfg.itemOuterWidth) * this.cfg.numVisible);
-    },
-    
-    /**
-     * Calculates position of a given indexed item.
-     */
-    getItemPosition: function(index){
-        return -(index * (this.cfg.vertical ? this.cfg.itemOuterHeight : this.cfg.itemOuterWidth));
-    },
-    
-    /**
-     * Returns instant position of list.
-     */
-    getPosition: function(){
-        return parseInt(this.list.css(this.cfg.vertical ? 'top' : 'left'));
-    },
-    
-    /**
-     * Sets instant position of list.
-     */
-    setOffset: function(val) {
-        this.list.css(this.cfg.vertical ? {
-            'top' : val
-        } : {
-            'left' : val
-        });
-    },
-    
-    fade: function(val){
-        var _self = this;
-        this.list.animate(
-        {
-            opacity: 0
-        },
-        {
-            duration: this.cfg.effectDuration / 2,
-            specialEasing: {
-                opacity : this.cfg.easing
-            },
-            complete: function() {
-                _self.setOffset(val);
-                $(this).animate( 
-                {
-                    opacity: 1
-                }, 
-                {
-                    duration: _self.cfg.effectDuration / 2,
-                    specialEasing: {
-                        opacity : _self.cfg.easing
-                    },
-                    complete: function() {
-                        _self.animating = false;
+    calculateItemHeights: function() {
+        var firstItem = this.items.eq(0);
+        if(firstItem.length) {
+            if(!this.cfg.responsive) {
+                this.items.width(firstItem.width());
+                this.jq.width(this.jq.width());
+                var maxHeight = 0;
+                for(var i = 0; i < this.items.length; i++) {
+                    var item = this.items.eq(i),
+                    height = item.height();
+                    
+                    if(maxHeight < height) {
+                        maxHeight = height;
                     }
-                });
+                }
+                this.items.height(maxHeight);
             }
-        });
+            var totalMargins = ((firstItem.outerHeight(true) - firstItem.outerHeight()) / 2) * (this.cfg.numVisible);
+            this.viewport.height((firstItem.outerHeight() * this.cfg.numVisible) + totalMargins);
+            this.updateNavigators();
+            this.itemsContainer.css('top', -1 * (this.viewport.innerHeight() * this.page));
+        }
     },
     
-    slide: function(val){
-        var _self = this,
-        animateOption = this.cfg.vertical ? {
-            top : val
-        } : {
-            left : val
-        };
-
-        this.list.animate( 
-            animateOption, 
-            {
+    refreshDimensions: function() {
+        var win = $(window);
+        if(win.width() <= this.cfg.breakpoint) {
+            this.columns = 1;
+            this.calculateItemWidths(this.columns);
+            this.totalPages = this.itemsCount;
+            this.mobileDropdown.show();
+            this.pageLinks.hide();
+        }
+        else {
+            this.columns = this.cfg.numVisible;
+            this.calculateItemWidths();
+            this.totalPages = Math.ceil(this.itemsCount / this.cfg.numVisible);
+            this.mobileDropdown.hide();
+            this.pageLinks.show();
+        }
+        
+        this.page = parseInt(this.first / this.columns);
+        this.updateNavigators();
+        this.itemsContainer.css('left', (-1 * (this.viewport.innerWidth() * this.page)));
+    },
+    
+    bindEvents: function() {
+        var $this = this;
+        
+        this.prevNav.on('click', function() {
+            if($this.page !== 0) {
+                $this.setPage($this.page - 1);
+            }
+            else if($this.cfg.circular) {
+                $this.setPage($this.totalPages - 1);
+            }
+        });
+        
+        this.nextNav.on('click', function() {
+            var lastPage = ($this.page === ($this.totalPages - 1));
+            
+            if(!lastPage) {
+                $this.setPage($this.page + 1);
+            }
+            else if($this.cfg.circular) {
+                $this.setPage(0);
+            }
+        });
+        
+        this.itemsContainer.swipe({
+            swipe:function(event, direction) {
+                if(direction === 'left') {
+                    if($this.page === ($this.totalPages - 1)) {
+                        if($this.cfg.circular)
+                            $this.setPage(0);
+                    }
+                    else {
+                        $this.setPage($this.page + 1);
+                    }
+                }
+                else if(direction === 'right') {
+                    if($this.page === 0) {
+                        if($this.cfg.circular)
+                            $this.setPage($this.totalPages - 1);
+                    }
+                    else {
+                        $this.setPage($this.page - 1);
+                    }
+                }
+            }
+        });
+        
+        if(this.pageLinks.length) {
+            this.pageLinks.on('click', function(e) {
+                $this.setPage($(this).index());
+                e.preventDefault();
+            });
+        }
+        
+        this.header.children('select').on('change', function() {
+            $this.setPage(parseInt($(this).val()) - 1);
+        });
+        
+        if(this.cfg.autoplayInterval) {
+            this.cfg.circular = true;
+            this.startAutoplay();
+        }
+        
+        if(this.cfg.responsive) {
+            var resizeNS = 'resize.' + this.id;
+            $(window).off(resizeNS).on(resizeNS, function() {
+                if($this.cfg.vertical) {
+                    $this.calculateItemHeights();
+                }
+                else {
+                    $this.refreshDimensions();
+                }
+            });
+        }
+        
+        if(this.cfg.toggleable) {
+            this.toggler.on('mouseover.carouselToggler',function() {
+                $(this).addClass('ui-state-hover');
+            }).on('mouseout.carouselToggler',function() {
+                $(this).removeClass('ui-state-hover');
+            }).on('click.carouselToggler', function(e) {
+                $this.toggle(); 
+                e.preventDefault();
+            });
+        }
+    },
+    
+    updateNavigators: function() {
+        if(!this.cfg.circular) {
+            if(this.page === 0) {
+                this.prevNav.addClass('ui-state-disabled');
+                this.nextNav.removeClass('ui-state-disabled');   
+            }
+            else if(this.page === (this.totalPages - 1)) {
+                this.prevNav.removeClass('ui-state-disabled');
+                this.nextNav.addClass('ui-state-disabled');
+            }
+            else {
+                this.prevNav.removeClass('ui-state-disabled');
+                this.nextNav.removeClass('ui-state-disabled');   
+            }
+        }
+        
+        if(this.pageLinks.length) {
+            this.pageLinks.filter('.ui-icon-radio-on').removeClass('ui-icon-radio-on');
+            this.pageLinks.eq(this.page).addClass('ui-icon-radio-on');
+        }
+        
+        if(this.dropdown.length) {
+            this.dropdown.val(this.page + 1);
+        }
+        
+        if(this.mobileDropdown.length) {
+            this.mobileDropdown.val(this.page + 1);
+        }
+    },
+    
+    setPage: function(p) {      
+        if(p !== this.page && !this.itemsContainer.is(':animated')) {
+            var $this = this,
+            animationProps = this.cfg.vertical ? {top: -1 * (this.viewport.innerHeight() * p)} : {left: -1 * (this.viewport.innerWidth() * p)};
+            animationProps.easing = this.cfg.easing;
+            
+            this.itemsContainer.animate(animationProps, 
+            { 
                 duration: this.cfg.effectDuration,
                 easing: this.cfg.easing,
                 complete: function() {
-                    _self.animating = false;
+                    $this.page = p;
+                    $this.first = $this.page * $this.columns;
+                    $this.updateNavigators();
+                    $this.stateholder.val($this.page);
+                    if($this.cfg.stateful) {
+                        $this.saveState();
+                    }
                 }
             });
+        }
     },
     
-    next: function(){
-        this.setPage(this.cfg.page + 1);
+    startAutoplay: function() {
+        var $this = this;
+        
+        this.interval = setInterval(function() {
+            if($this.page === ($this.totalPages - 1))
+                $this.setPage(0);
+            else
+                $this.setPage($this.page + 1);
+        }, this.cfg.autoplayInterval);
     },
     
-    prev: function(){
-        this.setPage(this.cfg.page - 1);
+    stopAutoplay: function() {
+        clearInterval(this.interval);
     },
     
-    setPage: function(index) {  
-        if(this.cfg.circular)
-            this.cfg.page = index > this.cfg.pageCount ? 1 : index < 1 ? this.cfg.pageCount : index;
-        else
-            this.cfg.page  = index;
-
-        this.checkButtons();
-
-        this.state.val((this.cfg.page - 1) * this.cfg.numVisible);
-
-        var newPosition = this.getPagePosition(this.cfg.page);
-
-        if(this.getPosition() == newPosition) {
-            this.animating = false;
-            return;
+    toggle: function() {
+        if(this.cfg.collapsed) {
+            this.expand();
         }
-
-        if(this.cfg.effect == 'fade')
-            this.fade(newPosition);
-        else
-            this.slide(newPosition);
+        else {
+            this.collapse();
+        }
+        
+        PrimeFaces.invokeDeferredRenders(this.id);
     },
     
-    checkButtons: function() {
-        this.pageLinks.filter('.ui-icon-radio-on').removeClass('ui-icon-radio-on');
-        this.pageLinks.eq(this.cfg.page - 1).addClass('ui-icon-radio-on');
+    expand: function() {
+        this.toggleState(false, 'ui-icon-plusthick', 'ui-icon-minusthick');
 
-        this.dropdown.val(this.cfg.page);
+        this.slideDown(); 
+    },
+    
+    collapse: function() {
+        this.toggleState(true, 'ui-icon-minusthick', 'ui-icon-plusthick');
 
-        //no bound
-        if(this.cfg.circular)
-            return;
-
-        //lower bound
-        if(this.cfg.page == 1){
-            this.prevButton.addClass('ui-state-disabled');
+        this.slideUp();
+    },
+    
+    slideUp: function() {        
+        this.toggleableContent.slideUp(this.cfg.toggleSpeed, 'easeInOutCirc');
+    },
+    
+    slideDown: function() {        
+        this.toggleableContent.slideDown(this.cfg.toggleSpeed, 'easeInOutCirc');
+    },
+    
+    toggleState: function(collapsed, removeIcon, addIcon) {
+        this.toggler.children('span.ui-icon').removeClass(removeIcon).addClass(addIcon);
+        this.cfg.collapsed = collapsed;
+        this.toggleStateHolder.val(collapsed);
+        
+        if(this.cfg.stateful) {
+            this.saveState();
         }
-        else{
-            this.prevButton.removeClass('ui-state-disabled');
-        }
+    },
+    
+    restoreState: function() {
+        var carouselStateAsString = PrimeFaces.getCookie(this.stateKey) || "first: null, collapsed: null";
+        this.carouselState = eval('({' + carouselStateAsString + '})');
 
-        //upper bound
-        if(this.cfg.page >= this.cfg.pageCount){
-            this.nextButton.addClass('ui-state-disabled');
+        this.first = this.carouselState.first||this.first;
+        this.page = parseInt(this.first/this.columns);
+        
+        this.stateholder.val(this.page);
+        
+        if(this.cfg.toggleable && (this.carouselState.collapsed === false || this.carouselState.collapsed === true)) {
+            this.cfg.collapsed = !this.carouselState.collapsed;
+            this.toggle();
         }
-        else{
-            this.nextButton.removeClass('ui-state-disabled');
+    },
+    
+    saveState: function() {       
+        var carouselStateAsString = "first:" + this.first; 
+        
+        if(this.cfg.toggleable) {
+            carouselStateAsString += ", collapsed: " + this.toggleStateHolder.val();
+        }
+        
+        PrimeFaces.setCookie(this.stateKey, carouselStateAsString, {path:'/'});
+    },
+    
+    clearState: function() {
+        if(this.cfg.stateful) {
+            PrimeFaces.deleteCookie(this.stateKey, {path:'/'});
         }
     }
     
-});
+});  

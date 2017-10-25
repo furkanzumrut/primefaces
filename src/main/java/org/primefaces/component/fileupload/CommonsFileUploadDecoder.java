@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,54 +20,54 @@ import javax.servlet.ServletRequestWrapper;
 import org.apache.commons.fileupload.FileItem;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultUploadedFile;
+import org.primefaces.model.UploadedFileWrapper;
 import org.primefaces.webapp.MultipartRequest;
 
-public class CommonsFileUploadDecoder{
+public class CommonsFileUploadDecoder {
 
-    public static void decode(FacesContext context, FileUpload fileUpload) {
-		MultipartRequest multipartRequest = null;
+    public static void decode(FacesContext context, FileUpload fileUpload, String inputToDecodeId) {
+        MultipartRequest multipartRequest = null;
         Object request = context.getExternalContext().getRequest();
-		
-		while(request instanceof ServletRequestWrapper) {
-			if(request instanceof MultipartRequest) {
-				multipartRequest = (MultipartRequest) request;
+
+        while (request instanceof ServletRequestWrapper) {
+            if (request instanceof MultipartRequest) {
+                multipartRequest = (MultipartRequest) request;
                 break;
-			}
-			else {
-				request = ((ServletRequestWrapper) request).getRequest();
-			}
-		}
-        
-		if(multipartRequest != null) {
-            if(fileUpload.getMode().equals("simple")) {
-                decodeSimple(context, fileUpload, multipartRequest);
+            }
+            else {
+                request = ((ServletRequestWrapper) request).getRequest();
+            }
+        }
+
+        if (multipartRequest != null) {
+            if (fileUpload.getMode().equals("simple")) {
+                decodeSimple(context, fileUpload, multipartRequest, inputToDecodeId);
             }
             else {
                 decodeAdvanced(context, fileUpload, multipartRequest);
             }
-		}
+        }
     }
-        
-    private static void decodeSimple(FacesContext context, FileUpload fileUpload, MultipartRequest request) {
-        FileItem file = request.getFileItem(fileUpload.getSimpleInputDecodeId(context));
-        
-        if(file != null) {
-            if(file.getName().equals("")) {
+
+    private static void decodeSimple(FacesContext context, FileUpload fileUpload, MultipartRequest request, String inputToDecodeId) {
+        FileItem file = request.getFileItem(inputToDecodeId);
+
+        if (file != null) {
+            if (file.getName().isEmpty()) {
                 fileUpload.setSubmittedValue("");
-            } else {
-                fileUpload.setTransient(true);
-                fileUpload.setSubmittedValue(new DefaultUploadedFile(file));
             }
-        }  
-	}
-    
+            else {
+                fileUpload.setSubmittedValue(new UploadedFileWrapper(new DefaultUploadedFile(file)));
+            }
+        }
+    }
+
     private static void decodeAdvanced(FacesContext context, FileUpload fileUpload, MultipartRequest request) {
         String clientId = fileUpload.getClientId(context);
         FileItem file = request.getFileItem(clientId);
-            
-        if(file != null) {
-            fileUpload.setTransient(true);
+
+        if (file != null) {
             fileUpload.queueEvent(new FileUploadEvent(fileUpload, new DefaultUploadedFile(file)));
         }
-	}
+    }
 }

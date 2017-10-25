@@ -612,6 +612,18 @@ if (window.PrimeFaces) {
             else {
                 vc.renderMessages(form);
             }
+            
+            //focus first element
+            for(var key in vc.messages) {
+                if(vc.messages.hasOwnProperty(key)) {
+                    var el = $(PrimeFaces.escapeClientId(key));
+                    if(!el.is(':focusable'))
+                        el.find(':focusable:first').focus();
+                    else
+                        el.focus();
+                    break;
+                }
+            }
 
             vc.clear();
 
@@ -642,7 +654,7 @@ if (window.PrimeFaces) {
         valid = true,
         converterId = element.data('p-con');
 
-        if(PrimeFaces.settings.considerEmptyStringNull && submittedValue.length === 0) {
+        if(PrimeFaces.settings.considerEmptyStringNull && ((!submittedValue) || submittedValue.length === 0)) {
             submittedValue = null;
         }
 
@@ -794,7 +806,7 @@ if (window.PrimeFaces) {
         },
 
         renderMessages: function(container) {
-            var uiMessagesAll = container.is('div.ui-messages') ? container : container.find('div.ui-messages'),
+            var uiMessagesAll = container.is('div.ui-messages') ? container : container.find('div.ui-messages:not(.ui-fileupload-messages)'),
                 uiMessages = uiMessagesAll.filter(function(idx) { return $(uiMessagesAll[idx]).data('severity').indexOf('error') !== -1; }),
                 uiMessageCollection = container.find('div.ui-message'),
                 growlPlaceholderAll = container.is('.ui-growl-pl') ? container : container.find('.ui-growl-pl'),
@@ -1106,6 +1118,7 @@ if (window.PrimeFaces) {
                     for(var i = 0; i < radios.length; i++) {
                         radios.eq(i).addClass('ui-state-error');
                     }
+                    PrimeFaces.validator.Highlighter.highlightLabel(container);
                 },
 
                 unhighlight: function(element) {
@@ -1115,6 +1128,34 @@ if (window.PrimeFaces) {
                     for(var i = 0; i < radios.length; i++) {
                         radios.eq(i).removeClass('ui-state-error');
                     }
+                    PrimeFaces.validator.Highlighter.unhighlightLabel(container);
+                }
+
+            },
+            
+            'booleanbutton': {
+
+                highlight: function(element) {
+                    element.parent().parent().addClass('ui-state-error');
+                },
+
+                unhighlight: function(element) {
+                    element.parent().parent().removeClass('ui-state-error');
+                }
+
+            },
+            
+            'inputnumber': {
+
+                highlight: function(element) {
+                    element.addClass('ui-state-error');
+                    PrimeFaces.validator.Highlighter.highlightLabel(element);
+                },
+
+                unhighlight: function(element) {
+                    element.removeClass('ui-state-error');
+                    PrimeFaces.validator.Highlighter.unhighlightLabel(element);
+
                 }
 
             }

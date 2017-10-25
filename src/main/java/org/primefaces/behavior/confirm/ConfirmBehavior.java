@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,57 +17,92 @@ package org.primefaces.behavior.confirm;
 
 import javax.faces.FacesException;
 import javax.faces.component.UIComponent;
-import javax.faces.component.behavior.ClientBehaviorBase;
 import javax.faces.component.behavior.ClientBehaviorContext;
 import javax.faces.context.FacesContext;
+import org.primefaces.behavior.base.AbstractBehavior;
 import org.primefaces.component.api.Confirmable;
 import org.primefaces.json.JSONObject;
 
-public class ConfirmBehavior extends ClientBehaviorBase {
+public class ConfirmBehavior extends AbstractBehavior {
 
-    private String header;
-    private String message;
-    private String icon;
+    public final static String BEHAVIOR_ID = "org.primefaces.behavior.ConfirmBehavior";
+
+    public enum PropertyKeys {
+        header(String.class),
+        message(String.class),
+        icon(String.class),
+        disabled(Boolean.class);
+
+        public final Class<?> expectedType;
+
+        PropertyKeys(Class<?> expectedType) {
+            this.expectedType = expectedType;
+        }
+    }
 
     @Override
     public String getScript(ClientBehaviorContext behaviorContext) {
+        if (isDisabled()) {
+            return null;
+        }
+
         FacesContext context = behaviorContext.getFacesContext();
         UIComponent component = behaviorContext.getComponent();
         String source = component.getClientId(context);
         String headerText = JSONObject.quote(this.getHeader());
         String messageText = JSONObject.quote(this.getMessage());
-        
-        if(component instanceof Confirmable) {
+
+        if (component instanceof Confirmable) {
             String sourceProperty = (source == null) ? "source:this" : "source:\"" + source + "\"";
-            String script = "PrimeFaces.confirm({" + sourceProperty + ",header:" + headerText + ",message:" + messageText + ",icon:\"" + getIcon()  + "\"});return false;";
+            String script = "PrimeFaces.confirm({" + sourceProperty
+                    + ",header:" + headerText
+                    + ",message:" + messageText
+                    + ",icon:\"" + getIcon()
+                    + "\"});return false;";
             ((Confirmable) component).setConfirmationScript(script);
 
             return null;
         }
         else {
-            throw new FacesException("Component " + source + " is not a Confirmable. ConfirmBehavior can only be attached to components that implement org.primefaces.component.api.Confirmable interface");
+            throw new FacesException("Component " + source + " is not a Confirmable. "
+                    + "ConfirmBehavior can only be attached to components that implement " + Confirmable.class.getName() + " interface");
         }
-        
     }
-    
+
+    @Override
+    protected Enum<?>[] getAllProperties() {
+        return PropertyKeys.values();
+    }
+
     public String getHeader() {
-        return header;
+        return eval(PropertyKeys.header, null);
     }
+
     public void setHeader(String header) {
-        this.header = header;
+        setLiteral(PropertyKeys.header, header);
     }
 
     public String getMessage() {
-        return message;
+        return eval(PropertyKeys.message, null);
     }
+
     public void setMessage(String message) {
-        this.message = message;
+        setLiteral(PropertyKeys.message, message);
     }
 
     public String getIcon() {
-        return icon;
+        return eval(PropertyKeys.icon, null);
     }
+
     public void setIcon(String icon) {
-        this.icon = icon;
-    }    
+        setLiteral(PropertyKeys.icon, icon);
+    }
+
+    public boolean isDisabled() {
+        return eval(PropertyKeys.disabled, Boolean.FALSE);
+    }
+
+    public void setDisabled(boolean disabled) {
+        setLiteral(PropertyKeys.disabled, disabled);
+    }
 }

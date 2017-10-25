@@ -15,9 +15,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import javax.faces.component.UIComponent;
 import org.primefaces.util.Constants;
 import javax.faces.event.AjaxBehaviorEvent;
 import javax.faces.event.FacesEvent;
+import org.primefaces.event.data.PageEvent;
+import javax.faces.event.BehaviorEvent;
 
 	public static final String DATALIST_CLASS = "ui-datalist ui-widget";
     public static final String CONTENT_CLASS = "ui-datalist-content ui-widget-content";
@@ -30,7 +34,20 @@ import javax.faces.event.FacesEvent;
 
     public static final String MOBILE_CONTENT_CLASS = "ui-datalist-content";
 
-    private static final Collection<String> EVENT_NAMES = Collections.unmodifiableCollection(Arrays.asList("swipeleft","swiperight","tap","taphold"));
+    private static final Map<String, Class<? extends BehaviorEvent>> BEHAVIOR_EVENT_MAPPING = Collections.unmodifiableMap(new HashMap<String, Class<? extends BehaviorEvent>>() {{
+        put("page", PageEvent.class);
+        put("swipeleft", SwipeEvent.class);
+        put("swiperight", SwipeEvent.class);
+        put("tap", SelectEvent.class);
+        put("taphold", SelectEvent.class);
+    }});
+
+    private static final Collection<String> EVENT_NAMES = BEHAVIOR_EVENT_MAPPING.keySet();
+
+    @Override
+    public Map<String, Class<? extends BehaviorEvent>> getBehaviorEventMapping() {
+         return BEHAVIOR_EVENT_MAPPING;
+    }
 
     @Override
     public Collection<String> getEventNames() {
@@ -68,8 +85,8 @@ import javax.faces.event.FacesEvent;
             lazyModel.setWrappedData(data);
 
             //Update paginator for callback
-            if(this.isPaginator()) {
-                RequestContext requestContext = RequestContext.getCurrentInstance();
+            if(ComponentUtils.isRequestSource(this, getFacesContext()) && this.isPaginator()) {
+                RequestContext requestContext = RequestContext.getCurrentInstance(getFacesContext());
 
                 if(requestContext != null) {
                     requestContext.addCallbackParam("totalRecords", lazyModel.getRowCount());
@@ -78,23 +95,28 @@ import javax.faces.event.FacesEvent;
         }
     }
 
-    public boolean isRequestSource(FacesContext context) {
-        String partialSource = context.getExternalContext().getRequestParameterMap().get(Constants.RequestParams.PARTIAL_SOURCE_PARAM);
-
-        return partialSource != null && this.getClientId(context).equals(partialSource);
-    }
-
     @Override
     public void queueEvent(FacesEvent event) {
         FacesContext context = getFacesContext();
 
-        if(isRequestSource(context) && event instanceof AjaxBehaviorEvent) {
+        if(ComponentUtils.isRequestSource(this, context) && event instanceof AjaxBehaviorEvent) {
             setRowIndex(-1);
+            AjaxBehaviorEvent behaviorEvent = (AjaxBehaviorEvent) event;
             Map<String,String> params = context.getExternalContext().getRequestParameterMap();
             String eventName = params.get(Constants.RequestParams.PARTIAL_BEHAVIOR_EVENT_PARAM);
 
-            if(eventName.equals("swipeleft")||eventName.equals("swiperight")) {
-                AjaxBehaviorEvent behaviorEvent = (AjaxBehaviorEvent) event;
+            if(eventName.equals("page")) {
+                String clientId = this.getClientId(context);
+                int rows = this.getRowsToRender();
+                int first = Integer.parseInt(params.get(clientId + "_first"));
+                int page = rows > 0 ? (int) (first / rows) : 0;
+        
+                PageEvent pageEvent = new PageEvent(this, behaviorEvent.getBehavior(), page);
+                pageEvent.setPhaseId(behaviorEvent.getPhaseId());
+
+                super.queueEvent(pageEvent);
+            }
+            else if(eventName.equals("swipeleft")||eventName.equals("swiperight")) {
                 String clientId = this.getClientId(context);
                 int index = Integer.parseInt(params.get(clientId + "_item"));
                 this.setRowIndex(index);
@@ -106,7 +128,6 @@ import javax.faces.event.FacesEvent;
                 super.queueEvent(swipeEvent);
             }
             else if(eventName.equals("tap")||eventName.equals("taphold")) {
-                AjaxBehaviorEvent behaviorEvent = (AjaxBehaviorEvent) event;
                 String clientId = this.getClientId(context);
                 int index = Integer.parseInt(params.get(clientId + "_item"));
                 this.setRowIndex(index);
@@ -122,3 +143,43 @@ import javax.faces.event.FacesEvent;
             super.queueEvent(event);
         }
     }
+
+    @Override
+    protected void processFacets(FacesContext context, PhaseId phaseId) {
+        if(this.getFacetCount() > 0) {
+            UIComponent descriptionFacet = getFacet("description");
+            for(UIComponent facet : getFacets().values()) {
+                if(facet.equals(descriptionFacet)) {
+                   continue;
+                }
+                process(context, facet, phaseId);
+            }
+        }
+    }
+    
+    @Override
+    protected void processChildren(FacesContext context, PhaseId phaseId) {
+        int first = getFirst();
+        int rows = getRows();
+        int last = rows == 0 ? getRowCount() : (first + rows);
+        
+        for(int rowIndex = first; rowIndex < last; rowIndex++) {
+            setRowIndex(rowIndex);
+
+            if(!isRowAvailable()) {
+                break;
+            }
+            
+            for(UIComponent child : this.getIterableChildren()) {
+                if(child.isRendered()) {
+                    process(context, child, phaseId);
+                }
+            }
+
+            UIComponent descriptionFacet = getFacet("description");
+            if(descriptionFacet != null && isDefinition()) {
+                process(context, descriptionFacet, phaseId);
+            }
+        }
+    }
+

@@ -881,7 +881,7 @@
 								return;
 							}
 							var dX = horizontalDragPosition, dY = verticalDragPosition;
-							switch(e.keyCode) {
+							switch(e.which) {
 								case 40: // down
 								case 38: // up
 								case 34: // page down
@@ -889,7 +889,7 @@
 								case 33: // page up
 								case 39: // right
 								case 37: // left
-									keyDown = e.keyCode;
+									keyDown = e.which;
 									keyDownHandler();
 									break;
 								case 35: // end
@@ -902,14 +902,14 @@
 									break;
 							}
 
-							elementHasScrolled = e.keyCode == keyDown && dX != horizontalDragPosition || dY != verticalDragPosition;
+							elementHasScrolled = e.which == keyDown && dX != horizontalDragPosition || dY != verticalDragPosition;
 							return !elementHasScrolled;
 						}
 					).bind(
 						'keypress.jsp', // For FF/ OSX so that we can cancel the repeat key presses if the JSP scrolls...
 						function(e)
 						{
-							if (e.keyCode == keyDown) {
+							if (e.which == keyDown) {
 								keyDownHandler();
 							}
 							return !elementHasScrolled;
@@ -1394,10 +1394,15 @@
 /* 
  * PrimeFaces ScrollPanel Widget 
  */
-PrimeFaces.widget.ScrollPanel = PrimeFaces.widget.BaseWidget.extend({
+PrimeFaces.widget.ScrollPanel = PrimeFaces.widget.DeferredWidget.extend({
     
     init: function(cfg) {
         this._super(cfg);
+        
+        this.renderDeferred();
+    },
+    
+    _render: function() {
         this.jsp = this.jq.jScrollPane(this.cfg).data('jsp');
     },
     

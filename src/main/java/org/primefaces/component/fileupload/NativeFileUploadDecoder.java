@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,48 +23,49 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.NativeUploadedFile;
+import org.primefaces.model.UploadedFileWrapper;
 
 public class NativeFileUploadDecoder {
 
-    public static void decode(FacesContext context, FileUpload fileUpload) {
+    public static void decode(FacesContext context, FileUpload fileUpload, String inputToDecodeId) {
         HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 
         try {
-            if(fileUpload.getMode().equals("simple")) {
-                decodeSimple(context, fileUpload, request);
+            if (fileUpload.getMode().equals("simple")) {
+                decodeSimple(context, fileUpload, request, inputToDecodeId);
             }
             else {
                 decodeAdvanced(context, fileUpload, request);
             }
-        } 
+        }
         catch (IOException ioe) {
             throw new FacesException(ioe);
-        } 
+        }
         catch (ServletException se) {
             throw new FacesException(se);
         }
     }
-    
-    private static void decodeSimple(FacesContext context, FileUpload fileUpload, HttpServletRequest request) throws IOException, ServletException {
-        Part part = request.getPart(fileUpload.getSimpleInputDecodeId(context));
-        
-        if(part != null) {
-            fileUpload.setTransient(true);
-            fileUpload.setSubmittedValue(new NativeUploadedFile(part));
+
+    private static void decodeSimple(FacesContext context, FileUpload fileUpload, HttpServletRequest request, String inputToDecodeId)
+            throws IOException, ServletException {
+
+        Part part = request.getPart(inputToDecodeId);
+
+        if (part != null) {
+            fileUpload.setSubmittedValue(new UploadedFileWrapper(new NativeUploadedFile(part)));
         }
         else {
             fileUpload.setSubmittedValue("");
         }
-	}
-    
+    }
+
     private static void decodeAdvanced(FacesContext context, FileUpload fileUpload, HttpServletRequest request) throws IOException, ServletException {
         String clientId = fileUpload.getClientId(context);
         Part part = request.getPart(clientId);
 
-        if(part != null) {
-            fileUpload.setTransient(true);
+        if (part != null) {
             fileUpload.queueEvent(new FileUploadEvent(fileUpload, new NativeUploadedFile(part)));
         }
-	}
-    
+    }
+
 }

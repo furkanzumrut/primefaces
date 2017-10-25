@@ -38,9 +38,11 @@ PrimeFaces.widget.OrderList = PrimeFaces.widget.BaseWidget.extend({
 
         this.list.children('.ui-orderlist-item').each(function() {
             var item = $(this),
-            itemValue = item.data('item-value');
+            itemValue = item.data('item-value'),
+            option = $('<option selected="selected"></option>');
 
-            $this.input.append('<option value="' + itemValue + '" selected="selected">' + itemValue + '</option>');
+            option.prop('value', itemValue).text(itemValue);
+            $this.input.append(option);
         });
     },
     
@@ -67,7 +69,7 @@ PrimeFaces.widget.OrderList = PrimeFaces.widget.BaseWidget.extend({
                 element.removeClass('ui-state-hover').addClass('ui-state-highlight')
                 .siblings('.ui-state-highlight').removeClass('ui-state-highlight');
         
-                $this.fireItemSelectEvent(element);
+                $this.fireItemSelectEvent(element, e);
             }
             else {
                 if(element.hasClass('ui-state-highlight')) {
@@ -76,7 +78,7 @@ PrimeFaces.widget.OrderList = PrimeFaces.widget.BaseWidget.extend({
                 }
                 else {
                     element.removeClass('ui-state-hover').addClass('ui-state-highlight');
-                    $this.fireItemSelectEvent(element);
+                    $this.fireItemSelectEvent(element, e);
                 }
             }
         });
@@ -106,89 +108,146 @@ PrimeFaces.widget.OrderList = PrimeFaces.widget.BaseWidget.extend({
     },
     
     moveUp: function() {
-        var $this = this;
+        var $this = this,
+        selectedItems = $this.list.children('.ui-orderlist-item.ui-state-highlight'),
+        itemsToMoveCount = selectedItems.length,
+        movedItemsCount = 0,
+        hasFirstChild = selectedItems.is(':first-child');
 
-        this.items.filter('.ui-state-highlight').each(function() {
+        if(hasFirstChild) {
+            return;
+        }
+        
+        selectedItems.each(function() {
             var item = $(this);
 
             if(!item.is(':first-child')) {
                 item.hide($this.cfg.effect, {}, 'fast', function() {
                     item.insertBefore(item.prev()).show($this.cfg.effect, {}, 'fast', function() {
-                        $this.saveState();
-                        $this.fireReorderEvent();
+                        movedItemsCount++;
+                        
+                        if(itemsToMoveCount === movedItemsCount) {
+                            $this.saveState();
+                            $this.fireReorderEvent();
+                        }
                     });
                 });
+            }
+            else {
+                itemsToMoveCount--;
             }
         });
     },
     
     moveTop: function() {
-        var $this = this;
+        var $this = this,
+        selectedItems = $this.list.children('.ui-orderlist-item.ui-state-highlight'),
+        itemsToMoveCount = selectedItems.length,
+        movedItemsCount = 0,
+        hasFirstChild = selectedItems.is(':first-child'),
+        firstSelectedItemIndex = selectedItems.eq(0).index();
 
-        this.items.filter('.ui-state-highlight').each(function() {
-            var item = $(this);
+        if(hasFirstChild) {
+            return;
+        }
+
+        selectedItems.each(function(index) {
+            var item = $(this),
+                currentIndex = (index === 0) ? 0 : (item.index() - firstSelectedItemIndex);
 
             if(!item.is(':first-child')) {
                 item.hide($this.cfg.effect, {}, 'fast', function() {
-                    item.prependTo(item.parent()).show($this.cfg.effect, {}, 'fast', function(){
-                        $this.saveState();
-                        $this.fireReorderEvent();
+                    item.insertBefore($this.list.children('.ui-orderlist-item').eq(currentIndex)).show($this.cfg.effect, {}, 'fast', function(){
+                        movedItemsCount++;
+                        
+                        if(itemsToMoveCount === movedItemsCount) {
+                            $this.saveState();
+                            $this.fireReorderEvent();
+                        }
                     });
                 });
             }
-
+            else {
+                itemsToMoveCount--;
+            }
         });
     },
     
     moveDown: function() {
-        var $this = this;
+        var $this = this,
+        selectedItems = $($this.list.children('.ui-orderlist-item.ui-state-highlight').get().reverse()),
+        itemsToMoveCount = selectedItems.length,
+        movedItemsCount = 0,
+        hasFirstChild = selectedItems.is(':last-child');
 
-        $(this.items.filter('.ui-state-highlight').get().reverse()).each(function() {
+        if(hasFirstChild) {
+            return;
+        }
+
+        selectedItems.each(function() {
             var item = $(this);
 
-            if(!item.is(':last-child')) {
+            if(!item.is(':last-child')) {                
                 item.hide($this.cfg.effect, {}, 'fast', function() {
                     item.insertAfter(item.next()).show($this.cfg.effect, {}, 'fast', function() {
-                        $this.saveState();
-                        $this.fireReorderEvent();
+                        movedItemsCount++;
+                        
+                        if(itemsToMoveCount === movedItemsCount) {
+                            $this.saveState();
+                            $this.fireReorderEvent();
+                        }
                     });
                 });
             }
-
+            else {
+                itemsToMoveCount--;
+            }
         });
     },
     
     moveBottom: function() {
-        var $this = this;
+        var $this = this,
+        selectedItems = $($this.list.children('.ui-orderlist-item.ui-state-highlight').get().reverse()),
+        itemsToMoveCount = selectedItems.length,
+        movedItemsCount = 0,
+        hasFirstChild = selectedItems.is(':last-child'),
+        lastSelectedItemIndex = selectedItems.eq(0).index(),
+        itemsLength = this.items.length;
+        
+        if(hasFirstChild) {
+            return;
+        }
 
-        this.items.filter('.ui-state-highlight').each(function() {
-            var item = $(this);
+        selectedItems.each(function(index) {
+            var item = $(this),
+                currentIndex = (index === 0) ? itemsLength - 1 : (item.index() - lastSelectedItemIndex) - 1;
 
             if(!item.is(':last-child')) {
                 item.hide($this.cfg.effect, {}, 'fast', function() {
-                    item.appendTo(item.parent()).show($this.cfg.effect, {}, 'fast', function() {
-                        $this.saveState();
-                        $this.fireReorderEvent();
+                    item.insertAfter($this.list.children('.ui-orderlist-item').eq(currentIndex)).show($this.cfg.effect, {}, 'fast', function() {
+                        movedItemsCount++;
+                        
+                        if(itemsToMoveCount === movedItemsCount) {
+                            $this.saveState();
+                            $this.fireReorderEvent();
+                        }
                     });
                 });
             }
+            else {
+                itemsToMoveCount--;
+            }
         });
     },
-    
-    hasBehavior: function(event) {
-        if(this.cfg.behaviors) {
-            return this.cfg.behaviors[event] != undefined;
-        }
-    
-        return false;
-    },
-    
-    fireItemSelectEvent: function(item) {
+
+    fireItemSelectEvent: function(item, e) {
         if(this.hasBehavior('select')) {
             var itemSelectBehavior = this.cfg.behaviors['select'],
             ext = {
                 params: [
-                    {name: this.id + '_itemIndex', value: item.index()}
+                    {name: this.id + '_itemIndex', value: item.index()},
+                    {name: this.id + '_metaKey', value: e.metaKey},
+                    {name: this.id + '_ctrlKey', value: e.ctrlKey}
                 ]
             };
 

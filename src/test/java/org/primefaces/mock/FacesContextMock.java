@@ -15,6 +15,7 @@
  */
 package org.primefaces.mock;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -25,6 +26,7 @@ import javax.faces.application.FacesMessage.Severity;
 import javax.faces.component.UIViewRoot;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.faces.context.PartialViewContext;
 import javax.faces.context.ResponseStream;
 import javax.faces.context.ResponseWriter;
 import javax.faces.render.RenderKit;
@@ -33,23 +35,34 @@ public class FacesContextMock extends FacesContext {
 
     private ExternalContext externalContext = new ExternalContextMock();
     private Application application = new ApplicationMock();
-    
+    private PartialViewContext partialViewContext = new PartialViewContextMock();
+
 	private Map<Object, Object> attributes;
 	private ResponseWriter writer;
     private UIViewRoot viewRoot;
-    
+
 
 	public FacesContextMock() {
-    }
-	
-	public FacesContextMock(ResponseWriter writer) {
-		this.writer = writer;
+            this.attributes = new HashMap<Object, Object>();
 
-		setCurrentInstance(this);
+            setCurrentInstance(this);
+    }
+
+	public FacesContextMock(ResponseWriter writer) {
+            this();
+            this.writer = writer;
+
+
 	}
-	
+
 	public FacesContextMock(Map<Object, Object> attributes) {
-		this.attributes = attributes;
+            this();
+            this.attributes = attributes;
+	}
+    
+    public FacesContextMock(ResponseWriter writer, Map<Object, Object> attributes) {
+		this.writer = writer;
+        this.attributes = attributes;
 
 		setCurrentInstance(this);
 	}
@@ -83,6 +96,11 @@ public class FacesContextMock extends FacesContext {
 	public ExternalContext getExternalContext() {
 		return externalContext;
 	}
+
+    @Override
+    public PartialViewContext getPartialViewContext() {
+        return partialViewContext;
+    }
 
 	@Override
 	public Severity getMaximumSeverity() {
@@ -158,4 +176,9 @@ public class FacesContextMock extends FacesContext {
 	public void setViewRoot(UIViewRoot viewRoot) {
         this.viewRoot = viewRoot;
 	}
+
+    @Override
+    public boolean isReleased() {
+        return false;
+    }
 }

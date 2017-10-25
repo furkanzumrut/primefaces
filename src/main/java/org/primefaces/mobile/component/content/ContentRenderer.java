@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,15 @@ public class ContentRenderer extends CoreRenderer {
         String styleClass = content.getStyleClass();
         styleClass = (styleClass == null) ? "ui-content" : "ui-content " + styleClass;
 
-        writer.startElement("div", content);
+        writer.startElement("div", null);
         writer.writeAttribute("role", "main", null);
         writer.writeAttribute("class", styleClass, null);
-        
-        if(style != null) {
+
+        if (style != null) {
             writer.writeAttribute("style", style, null);
         }
+
+        renderDynamicPassThruAttributes(context, component);
     }
 
     @Override

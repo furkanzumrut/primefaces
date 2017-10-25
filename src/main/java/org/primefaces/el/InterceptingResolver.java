@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,5 +72,15 @@ public class InterceptingResolver extends ELResolver {
     @Override
     public Class<?> getCommonPropertyType(ELContext context, Object base) {
         return delegate.getCommonPropertyType(context, base);
+    }
+
+    // @Override
+    // < EL 2.2 compatibility
+    public Object invoke(ELContext context,
+            Object base,
+            Object method,
+            Class<?>[] paramTypes,
+            Object[] params) {
+        return delegate.invoke(context, base, method, paramTypes, params);
     }
 }

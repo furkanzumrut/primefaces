@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2011 Prime Technology.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,13 @@ public class FieldRenderer extends CoreRenderer {
         ResponseWriter writer = context.getResponseWriter();
         Field field = (Field) component;
 
-        writer.startElement("div", field);
+        writer.startElement("div", null);
         if (shouldWriteId(field)) {
             writer.writeAttribute("id", field.getClientId(context), "id");
         }
         writer.writeAttribute("class", "ui-field-contain", null);
+
+        renderDynamicPassThruAttributes(context, component);
     }
 
     @Override

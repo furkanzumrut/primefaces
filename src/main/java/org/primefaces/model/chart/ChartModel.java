@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,10 @@ public class ChartModel implements Serializable {
     private int legendCols;
     private int legendRows;
     private LegendPlacement legendPlacement;
+    private boolean legendEscapeHtml = false;
     private boolean mouseoverHighlight = true;
     private String extender;
+    private boolean resetAxesOnResize = true;
 
     public String getTitle() {
         return title;
@@ -61,7 +63,7 @@ public class ChartModel implements Serializable {
     public void setNegativeSeriesColors(String negativeSeriesColors) {
         this.negativeSeriesColors = negativeSeriesColors;
     }
-    
+
     public String getLegendPosition() {
         return legendPosition;
     }
@@ -93,7 +95,7 @@ public class ChartModel implements Serializable {
     public void setLegendPlacement(LegendPlacement legendPlacement) {
         this.legendPlacement = legendPlacement;
     }
-    
+
     public boolean isMouseoverHighlight() {
         return mouseoverHighlight;
     }
@@ -101,12 +103,28 @@ public class ChartModel implements Serializable {
     public void setMouseoverHighlight(boolean mouseoverHighlight) {
         this.mouseoverHighlight = mouseoverHighlight;
     }
-    
+
+    public boolean isResetAxesOnResize() {
+        return resetAxesOnResize;
+    }
+
+    public void setResetAxesOnResize(boolean resetAxesOnResize) {
+        this.resetAxesOnResize = resetAxesOnResize;
+    }
+
     public String getExtender() {
         return extender;
     }
 
     public void setExtender(String extender) {
         this.extender = extender;
+    }
+
+    public boolean isLegendEscapeHtml() {
+        return legendEscapeHtml;
+    }
+
+    public void setLegendEscapeHtml(boolean legendEscapeHtml) {
+        this.legendEscapeHtml = legendEscapeHtml;
     }
 }

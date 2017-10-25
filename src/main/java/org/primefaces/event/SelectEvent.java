@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,30 +17,34 @@ package org.primefaces.event;
 
 import javax.faces.component.UIComponent;
 import javax.faces.component.behavior.Behavior;
-import javax.faces.event.AjaxBehaviorEvent;
-import javax.faces.event.AjaxBehaviorListener;
-import javax.faces.event.FacesListener;
 
-public class SelectEvent extends AjaxBehaviorEvent {
+public class SelectEvent extends AbstractAjaxBehaviorEvent {
 
-	private Object object;
-	
-	public SelectEvent(UIComponent component, Behavior behavior, Object object) {
-		super(component, behavior);
-		this.object = object;
-	}
+    private Object object;
+    private boolean metaKey;
+    private boolean ctrlKey;
 
-	@Override
-	public boolean isAppropriateListener(FacesListener faceslistener) {
-		return (faceslistener instanceof AjaxBehaviorListener);
-	}
+    public SelectEvent(UIComponent component, Behavior behavior, Object object) {
+        super(component, behavior);
+        this.object = object;
+    }
 
-	@Override
-	public void processListener(FacesListener faceslistener) {
-		((AjaxBehaviorListener) faceslistener).processAjaxBehavior(this);
-	}
-	
-	public Object getObject() {
-		return object;
-	}
+    public SelectEvent(UIComponent component, Behavior behavior, Object object, boolean metaKey, boolean ctrlKey) {
+        super(component, behavior);
+        this.object = object;
+        this.metaKey = metaKey;
+        this.ctrlKey = ctrlKey;
+    }
+
+    public Object getObject() {
+        return object;
+    }
+
+    public boolean isMetaKey() {
+        return metaKey;
+    }
+
+    public boolean isCtrlKey() {
+        return ctrlKey;
+    }
 }

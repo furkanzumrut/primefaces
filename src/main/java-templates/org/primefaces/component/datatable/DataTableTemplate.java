@@ -6,12 +6,13 @@ import org.primefaces.component.row.Row;
 import org.primefaces.component.subtable.SubTable;
 import org.primefaces.component.contextmenu.ContextMenu;
 import org.primefaces.component.summaryrow.SummaryRow;
+import org.primefaces.component.headerrow.HeaderRow;
 import org.primefaces.context.RequestContext;
+import org.primefaces.util.Constants;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import javax.faces.application.NavigationHandler;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import org.primefaces.model.LazyDataModel;
 import java.lang.StringBuilder;
 import java.util.List;
@@ -63,7 +65,11 @@ import org.primefaces.model.SortMeta;
 import org.primefaces.component.datatable.feature.*;
 import org.primefaces.model.FilterMeta;
 import org.primefaces.util.ComponentUtils;
+import org.primefaces.util.LocaleUtils;
 import org.primefaces.util.SharedStringBuilder;
+import javax.faces.event.BehaviorEvent;
+import org.primefaces.component.datatable.FilterState;
+import org.primefaces.component.datatable.TableState;
 
     private final static Logger logger = Logger.getLogger(DataTable.class.getName());
 
@@ -104,6 +110,7 @@ import org.primefaces.util.SharedStringBuilder;
     public static final String CELL_EDITOR_CLASS = "ui-cell-editor";
     public static final String CELL_EDITOR_INPUT_CLASS = "ui-cell-editor-input";
     public static final String CELL_EDITOR_OUTPUT_CLASS = "ui-cell-editor-output";
+    public static final String CELL_EDITOR_DISABLED_CLASS = "ui-cell-editor-disabled";
     public static final String ROW_EDITOR_COLUMN_CLASS = "ui-row-editor-column";
     public static final String ROW_EDITOR_CLASS = "ui-row-editor ui-helper-clearfix";
     public static final String SELECTION_COLUMN_CLASS = "ui-selection-column";
@@ -115,13 +122,25 @@ import org.primefaces.util.SharedStringBuilder;
     public static final String SCROLLABLE_BODY_CLASS = "ui-datatable-scrollable-body";
     public static final String SCROLLABLE_FOOTER_CLASS = "ui-widget-header ui-datatable-scrollable-footer";
     public static final String SCROLLABLE_FOOTER_BOX_CLASS = "ui-datatable-scrollable-footer-box";
+    public static final String VIRTUALSCROLL_WRAPPER_CLASS = "ui-datatable-virtualscroll-wrapper";
+    public static final String VIRTUALSCROLL_TABLE_CLASS = "ui-datatable-virtualscroll-table";
     public static final String COLUMN_RESIZER_CLASS = "ui-column-resizer";
     public static final String RESIZABLE_CONTAINER_CLASS = "ui-datatable-resizable"; 
     public static final String SUBTABLE_HEADER = "ui-datatable-subtable-header"; 
     public static final String SUBTABLE_FOOTER = "ui-datatable-subtable-footer"; 
     public static final String SUMMARY_ROW_CLASS = "ui-datatable-summaryrow ui-widget-header";
+    public static final String HEADER_ROW_CLASS = "ui-rowgroup-header ui-datatable-headerrow ui-widget-header";
+    public static final String ROW_GROUP_TOGGLER_CLASS = "ui-rowgroup-toggler";
+    public static final String ROW_GROUP_TOGGLER_ICON_CLASS = "ui-rowgroup-toggler-icon ui-icon ui-icon-circle-triangle-s";
     public static final String EDITING_ROW_CLASS = "ui-row-editing";
     public static final String STICKY_HEADER_CLASS = "ui-datatable-sticky";
+    
+    public static final String ARIA_FILTER_BY = "primefaces.datatable.aria.FILTER_BY";
+    public static final String ARIA_HEADER_CHECKBOX_ALL = "primefaces.datatable.aria.HEADER_CHECKBOX_ALL";
+    public static final String SORT_LABEL = "primefaces.datatable.SORT_LABEL";
+    public static final String SORT_ASC = "primefaces.datatable.SORT_ASC";
+    public static final String SORT_DESC = "primefaces.datatable.SORT_DESC";
+    public final static String ROW_GROUP_TOGGLER = "primefaces.rowgrouptoggler.aria.ROW_GROUP_TOGGLER";
     
     public static final String MOBILE_CONTAINER_CLASS = "ui-datatable ui-shadow";
     public static final String MOBILE_TABLE_CLASS = "ui-responsive ui-table table-stripe";
@@ -133,11 +152,35 @@ import org.primefaces.util.SharedStringBuilder;
     public static final String MOBILE_SORTED_COLUMN_CLASS = "ui-column-sorted";
     public static final String MOBILE_CELL_LABEL = "ui-table-cell-label";
 
-    private static final Collection<String> EVENT_NAMES = Collections.unmodifiableCollection(Arrays.asList("page","sort","filter", "rowSelect", 
-                                                        "rowUnselect", "rowEdit", "rowEditInit", "rowEditCancel", "colResize", "toggleSelect", "colReorder", "contextMenu"
-                                                        ,"rowSelectRadio", "rowSelectCheckbox", "rowUnselectCheckbox", "rowDblselect", "rowToggle"
-                                                        ,"cellEdit", "rowReorder", "swipeleft","swiperight","tap","taphold"));
-
+    private static final Map<String, Class<? extends BehaviorEvent>> BEHAVIOR_EVENT_MAPPING = Collections.unmodifiableMap(new HashMap<String, Class<? extends BehaviorEvent>>() {{
+        put("page", PageEvent.class);
+        put("sort", SortEvent.class);
+        put("filter", FilterEvent.class);
+        put("rowSelect", SelectEvent.class);
+        put("rowUnselect", UnselectEvent.class);
+        put("rowEdit", RowEditEvent.class);
+        put("rowEditInit", RowEditEvent.class);
+        put("rowEditCancel", RowEditEvent.class);
+        put("colResize", ColumnResizeEvent.class);
+        put("toggleSelect", ToggleSelectEvent.class);
+        put("colReorder", null);
+        put("contextMenu", SelectEvent.class);
+        put("rowSelectRadio", SelectEvent.class);
+        put("rowSelectCheckbox", SelectEvent.class);
+        put("rowUnselectCheckbox", UnselectEvent.class);
+        put("rowDblselect", SelectEvent.class);
+        put("rowToggle", ToggleEvent.class);
+        put("cellEditInit", CellEditEvent.class);
+        put("cellEdit", CellEditEvent.class);
+        put("rowReorder", ReorderEvent.class);
+        put("swipeleft", SwipeEvent.class);
+        put("swiperight", SwipeEvent.class);
+        put("tap", SelectEvent.class);
+        put("taphold", SelectEvent.class);
+        put("cellEditCancel", CellEditEvent.class);
+    }});
+    
+    private static final Collection<String> EVENT_NAMES = BEHAVIOR_EVENT_MAPPING.keySet();
                                                         
     static Map<DataTableFeatureKey,DataTableFeature> FEATURES;
     
@@ -154,6 +197,7 @@ import org.primefaces.util.SharedStringBuilder;
         FEATURES.put(DataTableFeatureKey.ROW_EXPAND, new RowExpandFeature());
         FEATURES.put(DataTableFeatureKey.SCROLL, new ScrollFeature());
         FEATURES.put(DataTableFeatureKey.DRAGGABLE_ROWS, new DraggableRowsFeature());
+        FEATURES.put(DataTableFeatureKey.ADD_ROW, new AddRowFeature());
     }
     
     public DataTableFeature getFeature(DataTableFeatureKey key) {
@@ -166,6 +210,22 @@ import org.primefaces.util.SharedStringBuilder;
     
     public boolean isRowEditRequest(FacesContext context) {
         return context.getExternalContext().getRequestParameterMap().containsKey(this.getClientId(context) + "_rowEditAction");
+    }
+
+    public boolean isCellEditCancelRequest(FacesContext context) {
+        return context.getExternalContext().getRequestParameterMap().containsKey(this.getClientId(context) + "_cellEditCancel");
+    }
+
+    public boolean isCellEditInitRequest(FacesContext context) {
+        return context.getExternalContext().getRequestParameterMap().containsKey(this.getClientId(context) + "_cellEditInit");
+    }
+
+    public boolean isClientCacheRequest(FacesContext context) {
+        return context.getExternalContext().getRequestParameterMap().containsKey(this.getClientId(context) + "_clientCache");
+    }
+
+    public boolean isPageStateRequest(FacesContext context) {
+        return context.getExternalContext().getRequestParameterMap().containsKey(this.getClientId(context) + "_pageState");
     }
     
     public boolean isRowEditCancelRequest(FacesContext context) {
@@ -226,7 +286,7 @@ import org.primefaces.util.SharedStringBuilder;
     public void processUpdates(FacesContext context) {
         super.processUpdates(context);
 
-        ValueExpression selectionVE = this.getValueExpression("selection");
+        ValueExpression selectionVE = this.getValueExpression(PropertyKeys.selection.toString());
 
         if(selectionVE != null) {
             selectionVE.setValue(context.getELContext(), this.getLocalSelection());
@@ -239,7 +299,7 @@ import org.primefaces.util.SharedStringBuilder;
             ELContext eLContext = context.getELContext();
             for(FilterMeta fm : filterMeta) {
                 UIColumn column = fm.getColumn();
-                ValueExpression columnFilterValueVE = column.getValueExpression("filterValue");
+                ValueExpression columnFilterValueVE = column.getValueExpression(Column.PropertyKeys.filterValue.toString());
                 if(columnFilterValueVE != null) {
                     if(column.isDynamic()) { 
                         DynamicColumn dynamicColumn = (DynamicColumn) column;
@@ -258,7 +318,7 @@ import org.primefaces.util.SharedStringBuilder;
     public void queueEvent(FacesEvent event) {
         FacesContext context = getFacesContext();
 
-        if(isRequestSource(context) && event instanceof AjaxBehaviorEvent) {
+        if(ComponentUtils.isRequestSource(this, context) && event instanceof AjaxBehaviorEvent) {
             setRowIndex(-1);
             Map<String,String> params = context.getExternalContext().getRequestParameterMap();
             String eventName = params.get(Constants.RequestParams.PARTIAL_BEHAVIOR_EVENT_PARAM);
@@ -334,10 +394,14 @@ import org.primefaces.util.SharedStringBuilder;
                 
                 wrapperEvent = new ToggleEvent(this, behaviorEvent.getBehavior(), visibility, getRowData());
             }
-            else if(eventName.equals("cellEdit")) {
+            else if(eventName.equals("cellEdit")||eventName.equals("cellEditCancel")||eventName.equals("cellEditInit")) {
                 String[] cellInfo = params.get(clientId + "_cellInfo").split(",");
                 int rowIndex = Integer.parseInt(cellInfo[0]);
                 int cellIndex = Integer.parseInt(cellInfo[1]);
+                String rowKey = null;
+                if(cellInfo.length == 3) {
+                    rowKey = cellInfo[2];
+                }
                 int i = -1;
                 UIColumn column = null;
                 
@@ -352,7 +416,7 @@ import org.primefaces.util.SharedStringBuilder;
                     }
                 }
 
-                wrapperEvent = new CellEditEvent(this, behaviorEvent.getBehavior(), rowIndex, column);
+                wrapperEvent = new CellEditEvent(this, behaviorEvent.getBehavior(), rowIndex, column, rowKey);
             }
             else if(eventName.equals("rowReorder")) {
                 int fromIndex = Integer.parseInt(params.get(clientId + "_fromIndex"));
@@ -405,6 +469,10 @@ import org.primefaces.util.SharedStringBuilder;
     }
     
     public UIColumn findColumnInGroup(String clientId, ColumnGroup group) {
+        if(group == null) {
+            return null;
+        }
+        
         FacesContext context = this.getFacesContext();
         
         for(UIComponent row : group.getChildren()) {
@@ -464,25 +532,42 @@ import org.primefaces.util.SharedStringBuilder;
         
         if(model != null && model instanceof LazyDataModel) {            
             LazyDataModel lazyModel = (LazyDataModel) model;
-            
             List<?> data = null;
             
-			// #7176
-			calculateFirst();
-			
-            if(this.isMultiSort()) {
-                data = lazyModel.load(getFirst(), getRows(), getMultiSortMeta(), getFilters());
+            calculateFirst();
+            
+            FacesContext context = getFacesContext();
+            int first = getFirst();
+            
+            if(this.isClientCacheRequest(context)) {
+                Map<String,String> params = context.getExternalContext().getRequestParameterMap();
+                first = Integer.valueOf(params.get(getClientId(context) + "_first")) + getRows();
+            }           
+            
+            if(this.isMultiViewState()) {
+                List<FilterState> filters = this.getFilterBy();
+                if(filters != null) {
+                    String globalFilterParam = this.getClientId(context) + UINamingContainer.getSeparatorChar(context) + "globalFilter";
+                    List filterMetaDataList = this.getFilterMetadata();
+                    if(filterMetaDataList != null) {
+                        FilterFeature filterFeature = (FilterFeature) this.getFeature(DataTableFeatureKey.FILTER);
+                        Map<String, Object> filterParameterMap = filterFeature.populateFilterParameterMap(context, this, filterMetaDataList, globalFilterParam);
+                        this.setFilters(filterParameterMap);
+                    }
+                }
             }
-            else {
-                data = lazyModel.load(getFirst(), getRows(),  resolveSortField(), convertSortOrder(), getFilters());
-            }
+
+            if(this.isMultiSort())
+                data = lazyModel.load(first, getRows(), getMultiSortMeta(), getFilters());
+            else
+                data = lazyModel.load(first, getRows(), resolveSortField(), convertSortOrder(), getFilters());
             
             lazyModel.setPageSize(getRows());
             lazyModel.setWrappedData(data);
 
-            //Update paginator for callback
-            if(this.isPaginator()) {
-                RequestContext requestContext = RequestContext.getCurrentInstance();
+            //Update paginator/livescroller for callback
+            if(ComponentUtils.isRequestSource(this, context) && (this.isPaginator() || this.isLiveScroll() || this.isVirtualScroll())) {
+                RequestContext requestContext = RequestContext.getCurrentInstance(getFacesContext());
 
                 if(requestContext != null) {
                     requestContext.addCallbackParam("totalRecords", lazyModel.getRowCount());
@@ -491,7 +576,7 @@ import org.primefaces.util.SharedStringBuilder;
         }
     }
     
-     public void loadLazyScrollData(int offset, int rows) {
+    public void loadLazyScrollData(int offset, int rows) {
         DataModel model = getDataModel();
         
         if(model != null && model instanceof LazyDataModel) {            
@@ -509,9 +594,9 @@ import org.primefaces.util.SharedStringBuilder;
             lazyModel.setPageSize(rows);
             lazyModel.setWrappedData(data);
 
-            //Update paginator for callback
-            if(this.isPaginator()) {
-                RequestContext requestContext = RequestContext.getCurrentInstance();
+            //Update paginator/livescroller  for callback
+            if(ComponentUtils.isRequestSource(this, getFacesContext()) && (this.isPaginator() || this.isLiveScroll())) {
+                RequestContext requestContext = RequestContext.getCurrentInstance(getFacesContext());
 
                 if(requestContext != null) {
                     requestContext.addCallbackParam("totalRecords", lazyModel.getRowCount());
@@ -523,7 +608,7 @@ import org.primefaces.util.SharedStringBuilder;
     protected String resolveSortField() {
         String sortField = null;
         UIColumn column = this.getSortColumn();
-        ValueExpression tableSortByVE = this.getValueExpression("sortBy");
+        ValueExpression tableSortByVE = this.getValueExpression(PropertyKeys.sortBy.toString());
         Object tableSortByProperty = this.getSortBy();
         
         if(column == null) {
@@ -534,7 +619,7 @@ import org.primefaces.util.SharedStringBuilder;
                 sortField = field;
         }
         else {
-            ValueExpression columnSortByVE = column.getValueExpression("sortBy");
+            ValueExpression columnSortByVE = column.getValueExpression(PropertyKeys.sortBy.toString());
             
             if(column.isDynamic()) {
                 ((DynamicColumn) sortColumn).applyStatelessModel();
@@ -579,21 +664,30 @@ import org.primefaces.util.SharedStringBuilder;
     }
     
     public String resolveDynamicField(ValueExpression expression) {
-        if(expression != null) {
-            String expressionString = expression.getExpressionString();
-            expressionString = expressionString.substring(expressionString.indexOf("[") + 1, expressionString.indexOf("]"));            
-            expressionString = "#{" + expressionString + "}";
-            
-            FacesContext context = getFacesContext();
-            ELContext eLContext = context.getELContext();
-            ValueExpression dynaVE = context.getApplication()
-                                    .getExpressionFactory().createValueExpression(eLContext, expressionString, String.class);
-
-            return (String) dynaVE.getValue(eLContext);
-        }
-        else {
+        
+        if (expression == null){
             return null;
         }
+        
+        FacesContext context = getFacesContext();
+        ELContext elContext = context.getELContext();
+        
+        String expressionString = expression.getExpressionString();
+        
+        // old syntax compatibility
+        // #{car[column.property]}
+        // new syntax is:
+        // #{column.property} or even a method call
+        if (expressionString.startsWith("#{" + getVar() + "[")) {
+            expressionString = expressionString.substring(expressionString.indexOf("[") + 1, expressionString.indexOf("]"));            
+            expressionString = "#{" + expressionString + "}";
+
+            ValueExpression dynaVE = context.getApplication()
+                                    .getExpressionFactory().createValueExpression(elContext, expressionString, String.class);
+            return (String) dynaVE.getValue(elContext);
+        }
+
+        return (String) expression.getValue(elContext);
     }
 
     public void clearLazyCache() {
@@ -649,6 +743,7 @@ import org.primefaces.util.SharedStringBuilder;
         this.setSortByVE(null);
         this.setSortColumn(null);
         this.setSortField(null);
+        this.setDefaultSort(true);
         this.clearMultiSortMeta();
     }
 
@@ -675,14 +770,13 @@ import org.primefaces.util.SharedStringBuilder;
 	}
 
     @Override
-    public Collection<String> getEventNames() {
-        return EVENT_NAMES;
+    public Map<String, Class<? extends BehaviorEvent>> getBehaviorEventMapping() {
+         return BEHAVIOR_EVENT_MAPPING;
     }
 
-    public boolean isRequestSource(FacesContext context) {
-        String partialSource = context.getExternalContext().getRequestParameterMap().get(Constants.RequestParams.PARTIAL_SOURCE_PARAM);
-
-        return partialSource != null && this.getClientId(context).equals(partialSource);
+    @Override
+    public Collection<String> getEventNames() {
+        return EVENT_NAMES;
     }
 
     public boolean isBodyUpdate(FacesContext context) {
@@ -710,40 +804,55 @@ import org.primefaces.util.SharedStringBuilder;
     }
 
     public Object getRowData(String rowKey) {
-        if (getDataModel() != null && getDataModel() instanceof LazyDataModel) {
-            DataModel model = getDataModel();
-            if(!(model instanceof SelectableDataModel)) {
-                throw new FacesException("DataModel must implement org.primefaces.model.SelectableDataModel when selection is enabled or you need to define rowKey attribute");
-            }
-
-            return ((SelectableDataModel) getDataModel()).getRowData(rowKey);
-        }
-        else {
+        
+        boolean hasRowKeyVe = this.getValueExpression(PropertyKeys.rowKey.toString()) != null;
+        DataModel model = getDataModel();
+ 
+        // use rowKey if available and if != lazy
+        // lazy must implement #getRowData
+        if (hasRowKeyVe && !(model instanceof LazyDataModel)) {
             Map<String,Object> requestMap = getFacesContext().getExternalContext().getRequestMap();
             String var = this.getVar();
             Collection data = (Collection) getDataModel().getWrappedData();
 
-            for(Iterator it = data.iterator(); it.hasNext();) {
-                Object object = it.next();
-                requestMap.put(var, object);
+            if(data != null) {
+                for(Iterator it = data.iterator(); it.hasNext();) {
+                    Object object = it.next();
+                    requestMap.put(var, object);
 
-                if(String.valueOf(this.getRowKey()).equals(rowKey)) {
-                    return object;
+                    if(String.valueOf(this.getRowKey()).equals(rowKey)) {
+                        return object;
+                    }
                 }
             }
 
             return null;
         }
+        else {
+            if(!(model instanceof SelectableDataModel)) {
+                throw new FacesException("DataModel must implement org.primefaces.model.SelectableDataModel when selection is enabled or you need to define rowKey attribute");
+            }
+
+            return ((SelectableDataModel) model).getRowData(rowKey);
+        }
     }
 
     private List<Object> selectedRowKeys = new ArrayList<Object>();
+    private boolean isRowKeyRestored = false;
 
     public void findSelectedRowKeys() {
         Object selection = this.getSelection();
-        selectedRowKeys = new ArrayList<Object>();
-        boolean hasRowKeyVe = this.getValueExpression("rowKey") != null;
+        boolean hasRowKeyVe = this.getValueExpression(PropertyKeys.rowKey.toString()) != null;
         String var = this.getVar();
         Map<String,Object> requestMap = getFacesContext().getExternalContext().getRequestMap();
+
+        if(this.isMultiViewState() && selection == null && this.isRowKeyRestored && this.getSelectedRowKeys() != null) {
+            this.selectedRowKeys = this.getSelectedRowKeys();
+            this.isRowKeyRestored = false;
+        }
+        else {
+            this.selectedRowKeys = new ArrayList<Object>();
+        }
 
         if(isSelectionEnabled() && selection != null) {
             if(this.isSingleSelectionMode()) {
@@ -812,6 +921,16 @@ import org.primefaces.util.SharedStringBuilder;
         return null;
     }
 
+    public HeaderRow getHeaderRow() {
+        for(UIComponent kid : getChildren()) {
+            if(kid.isRendered() && kid instanceof HeaderRow) {
+                return (HeaderRow) kid;
+            }
+        }
+
+        return null;
+    }
+
     private int columnsCount = -1;
     
     public int getColumnsCount() {
@@ -827,7 +946,9 @@ import org.primefaces.util.SharedStringBuilder;
                         }
                     }
                     else if(kid instanceof Column) {
-                        columnsCount++;
+                        if(((UIColumn)kid).isVisible()) {
+                            columnsCount++;
+                        }
                     } 
                     else if(kid instanceof SubTable) {
                         SubTable subTable = (SubTable) kid;
@@ -842,6 +963,41 @@ import org.primefaces.util.SharedStringBuilder;
         }
 
         return columnsCount;
+    }
+    
+    int columnsCountWithSpan = -1;
+    
+    public int getColumnsCountWithSpan() {
+        if(columnsCountWithSpan == -1) {
+            columnsCountWithSpan = 0;
+
+            for(UIComponent kid : getChildren()) {
+                if(kid.isRendered()) {
+                    if(kid instanceof Columns) {
+                        int dynamicColumnsCount = ((Columns) kid).getRowCount();
+                        if(dynamicColumnsCount > 0) {
+                            columnsCountWithSpan += dynamicColumnsCount;
+                        }
+                    }
+                    else if(kid instanceof Column) {
+                        Column col = (Column) kid;
+                        if(col.isVisible()) {
+                            columnsCountWithSpan += col.getColspan();
+                        }
+                    } 
+                    else if(kid instanceof SubTable) {
+                        SubTable subTable = (SubTable) kid;
+                        for(UIComponent subTableKid : subTable.getChildren()) {
+                            if(subTableKid.isRendered() && subTableKid instanceof Column) {
+                                columnsCountWithSpan += ((Column) subTableKid).getColspan();
+                            }
+                        }
+                    }
+                } 
+            }
+        }
+
+        return columnsCountWithSpan;
     }
     
     private List<UIColumn> columns;
@@ -886,7 +1042,12 @@ import org.primefaces.util.SharedStringBuilder;
     
     @Override
     protected boolean shouldSkipChildren(FacesContext context) {
-        return this.isSkipChildren() || context.getExternalContext().getRequestParameterMap().containsKey(this.getClientId(context) + "_skipChildren");
+        Map<String,String> params =  context.getExternalContext().getRequestParameterMap();
+        String paramValue = params.get(Constants.RequestParams.SKIP_CHILDREN_PARAM);
+        if(paramValue != null && Boolean.valueOf(paramValue) == false)
+            return false;
+        else
+            return (this.isSkipChildren() || params.containsKey(this.getClientId(context) + "_skipChildren"));
     }
     
     private UIColumn sortColumn;
@@ -938,7 +1099,7 @@ import org.primefaces.util.SharedStringBuilder;
             }
         }
         else {
-            ValueExpression ve = this.getValueExpression("sortBy");
+            ValueExpression ve = this.getValueExpression(PropertyKeys.sortBy.toString());
             if(ve != null) {
                 multiSortMeta = (List<SortMeta>) ve.getValue(getFacesContext().getELContext());
             }
@@ -1082,22 +1243,21 @@ import org.primefaces.util.SharedStringBuilder;
     public MethodExpression getDefaultSortFunction() {
         return (MethodExpression) this.getStateHelper().get("defaultSortFunction");
     }
+
+    public void setDefaultSort(boolean defaultSort) {
+		this.getStateHelper().put("defaultSort", defaultSort);
+	}
+    public boolean isDefaultSort() {
+        Object value = this.getStateHelper().get("defaultSort");
+        if(value == null)
+            return true;
+        else
+            return (java.lang.Boolean) value;
+	}
     
     public Locale resolveDataLocale() {
         FacesContext context = this.getFacesContext();
-        Object userLocale = this.getDataLocale();
-        
-        if(userLocale != null) {
-            if(userLocale instanceof String)
-                return ComponentUtils.toLocale((String) userLocale);
-            else if(userLocale instanceof java.util.Locale)
-                return (java.util.Locale) userLocale;
-            else
-                throw new IllegalArgumentException("Type:" + userLocale.getClass() + " is not a valid locale type for datatable:" + this.getClientId(context));
-        } 
-        else {
-            return context.getViewRoot().getLocale();
-        }
+        return LocaleUtils.resolveLocale(this.getDataLocale(), this.getClientId(context));
     }
     
     private boolean isFilterRequest(FacesContext context) {
@@ -1131,7 +1291,7 @@ import org.primefaces.util.SharedStringBuilder;
     }
     
     public void updateFilteredValue(FacesContext context,  List<?> value) {
-        ValueExpression ve = this.getValueExpression("filteredValue");
+        ValueExpression ve = this.getValueExpression(PropertyKeys.filteredValue.toString());
         
         if(ve != null) {
             ve.setValue(context.getELContext(), value);
@@ -1158,4 +1318,112 @@ import org.primefaces.util.SharedStringBuilder;
         return super.saveState(context);
     }
     
-   
+    @Override
+    protected void preDecode(FacesContext context) {
+        resetDynamicColumns();
+        super.preDecode(context);
+    }
+    
+    @Override
+    protected void preValidate(FacesContext context) {
+        resetDynamicColumns();
+        super.preValidate(context);
+    }
+    
+    @Override
+    protected void preUpdate(FacesContext context) {
+        resetDynamicColumns();
+        super.preUpdate(context);
+    }
+    
+    @Override
+    protected void preEncode(FacesContext context) {
+        resetDynamicColumns();
+        super.preEncode(context);
+    }
+    
+    private void resetDynamicColumns() {
+        Columns dynamicCols = this.getDynamicColumns();
+        if(dynamicCols != null && isNestedWithinIterator()) {
+            dynamicCols.setRowIndex(-1);
+            this.setColumns(null);
+        }
+    }
+
+    public void restoreTableState() {
+        TableState ts = this.getTableState(false);
+        if(ts != null) {
+            if(this.isPaginator()) {
+                this.setFirst(ts.getFirst());
+                int rows = (ts.getRows() == 0) ? this.getRows() : ts.getRows();
+                this.setRows(rows);
+            }
+
+            this.setMultiSortMeta(ts.getMultiSortMeta());
+            this.setValueExpression("sortBy", ts.getSortBy());
+            this.setSortOrder(ts.getSortOrder());
+            this.setSortFunction(ts.getSortFunction());
+            this.setSortField(ts.getSortField());
+            this.setDefaultSort(false);
+            this.setDefaultSortByVE(ts.getDefaultSortBy());
+            this.setDefaultSortOrder(ts.getDefaultSortOrder());
+            this.setDefaultSortFunction(ts.getDefaultSortFunction());
+
+            if(this.isSelectionEnabled()) {
+                this.selectedRowKeys = ts.getRowKeys();
+                this.isRowKeyRestored = true;
+            }
+
+            this.setFilterBy(ts.getFilters());
+            this.setGlobalFilter(ts.getGlobalFilterValue());
+        }
+    }
+
+    public TableState getTableState(boolean create) {
+        FacesContext fc = this.getFacesContext();
+        Map<String,Object> sessionMap = fc.getExternalContext().getSessionMap();
+        Map<String,TableState> dtState = (Map) sessionMap.get(Constants.TABLE_STATE);
+        String viewId = fc.getViewRoot().getViewId().replaceFirst("^/*", "");
+        String stateKey = viewId + "_" + this.getClientId(fc);
+        TableState ts;
+
+        if(dtState == null) {
+            dtState = new HashMap<String,TableState>();
+            sessionMap.put(Constants.TABLE_STATE, dtState);
+        }
+
+        ts = dtState.get(stateKey);
+        if(ts == null && create) {
+            ts = new TableState();
+            dtState.put(stateKey, ts);
+        }
+
+        return ts;
+    }
+
+    public String getGroupedColumnIndexes() {
+        List<UIColumn> columns = this.getColumns();
+        int size = columns.size();
+        boolean hasIndex = false;
+        if(size > 0) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            for(int i = 0; i < size; i++) {
+                UIColumn column = columns.get(i);
+                if(column.isGroupRow()) {
+                    if(hasIndex) {
+                       sb.append(",");
+                    }
+
+                    sb.append(i);
+                    hasIndex = true;
+                }
+            }
+            sb.append("]");
+
+            return sb.toString();
+        }
+        return null;
+    }
+
+

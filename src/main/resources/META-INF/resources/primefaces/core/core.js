@@ -1,10 +1,10 @@
 (function(window) {
-    
+
     if(window.PrimeFaces) {
-        PrimeFaces.debug("PrimeFaces already loaded, ignoring duplicate execution.");
+        window.PrimeFaces.debug("PrimeFaces already loaded, ignoring duplicate execution.");
         return;
     }
-    
+
     var PrimeFaces = {
 
         escapeClientId : function(id) {
@@ -19,6 +19,18 @@
             $.watermark.showAll();
         },
 
+        getWidgetById : function(id) {
+
+            for (var widgetVar in PrimeFaces.widgets) {
+                var widget = PrimeFaces.widgets[widgetVar];
+                if (widget && widget.id === id) {
+                    return widget;
+                }
+            }
+
+            return null;
+        },
+
         addSubmitParam : function(parent, params) {
             var form = $(this.escapeClientId(parent));
 
@@ -31,14 +43,35 @@
 
         /**
          * Submits a form and clears ui-submit-param after that to prevent dom caching issues
-         */ 
+         */
         submit : function(formId, target) {
             var form = $(this.escapeClientId(formId));
-            if(target) {
+            var prevTarget;
+
+            if (target) {
+                prevTarget = form.attr('target');
                 form.attr('target', target);
             }
-            
-            form.submit().children('input.ui-submit-param').remove();
+
+            form.submit();
+            form.children('input.ui-submit-param').remove();
+
+            if (target) {
+                if (prevTarget !== undefined) {
+                    form.attr('target', prevTarget);
+                } else {
+                    form.removeAttr('target');
+                }
+            }
+        },
+
+        onPost : function() {
+            this.nonAjaxPosted = true;
+            this.abortXHRs();
+        },
+
+        abortXHRs : function() {
+            PrimeFaces.ajax.Queue.abortAll();
         },
 
         attachBehaviors : function(element, behaviors) {
@@ -56,19 +89,19 @@
         setCookie : function(name, value, cfg) {
             $.cookie(name, value, cfg);
         },
-        
+
         deleteCookie: function(name, cfg) {
             $.removeCookie(name, cfg);
         },
-                
+
         cookiesEnabled: function() {
             var cookieEnabled = (navigator.cookieEnabled) ? true : false;
 
-            if(typeof navigator.cookieEnabled === 'undefined' && !cookieEnabled) { 
+            if(typeof navigator.cookieEnabled === 'undefined' && !cookieEnabled) {
                 document.cookie="testcookie";
                 cookieEnabled = (document.cookie.indexOf("testcookie") !== -1) ? true : false;
             }
-            
+
             return (cookieEnabled);
         },
 
@@ -90,7 +123,7 @@
             input.attr('role', 'textbox')
                     .attr('aria-disabled', input.is(':disabled'))
                     .attr('aria-readonly', input.prop('readonly'));
-    
+
             if(input.is('textarea')) {
                 input.attr('aria-multiline', true);
             }
@@ -118,7 +151,7 @@
             }).blur(function() {
                 $(this).removeClass('ui-state-focus ui-state-active');
             }).keydown(function(e) {
-                if(e.keyCode === $.ui.keyCode.SPACE || e.keyCode === $.ui.keyCode.ENTER || e.keyCode === $.ui.keyCode.NUMPAD_ENTER) {
+                if(e.which === $.ui.keyCode.SPACE || e.which === $.ui.keyCode.ENTER || e.which === $.ui.keyCode.NUMPAD_ENTER) {
                     $(this).addClass('ui-state-active');
                 }
             }).keyup(function() {
@@ -139,21 +172,16 @@
             select.mouseover(function() {
                 var el = $(this);
                 if(!el.hasClass('ui-state-focus'))
-                    el.addClass('ui-state-hover'); 
+                    el.addClass('ui-state-hover');
             }).mouseout(function() {
-                $(this).removeClass('ui-state-hover'); 
+                $(this).removeClass('ui-state-hover');
             }).focus(function() {
                 $(this).addClass('ui-state-focus').removeClass('ui-state-hover');
             }).blur(function() {
-                $(this).removeClass('ui-state-focus ui-state-hover'); 
+                $(this).removeClass('ui-state-focus ui-state-hover');
             });
 
             return this;
-        },
-
-        //Deprecated, use PrimeFaces.env.isIE instead
-        isIE: function(version) {
-            return PrimeFaces.env.isIE(version);
         },
 
         info: function(log) {
@@ -172,7 +200,7 @@
             if(this.logger) {
                 this.logger.warn(log);
             }
-            
+
             if (PrimeFaces.isDevelopmentProjectStage() && window.console) {
                 console.log(log);
             }
@@ -182,12 +210,12 @@
             if(this.logger) {
                 this.logger.error(log);
             }
-            
+
             if (PrimeFaces.isDevelopmentProjectStage() && window.console) {
                 console.log(log);
             }
         },
-        
+
         isDevelopmentProjectStage: function() {
             return PrimeFaces.settings.projectStage === 'Development';
         },
@@ -200,7 +228,7 @@
                 if(length > 0) {
                     if(element.setSelectionRange) {
                         element.setSelectionRange(0, length);
-                    } 
+                    }
                     else if (element.createTextRange) {
                       var range = element.createTextRange();
                       range.collapse(true);
@@ -214,10 +242,10 @@
 
         changeTheme: function(newTheme) {
             if(newTheme && newTheme !== '') {
-                var themeLink = $('link[href*="javax.faces.resource/theme.css"]');
+                var themeLink = $('link[href*="' + PrimeFaces.RESOURCE_IDENTIFIER + '/theme.css"]');
                 // portlet
                 if (themeLink.length === 0) {
-                    themeLink = $('link[href*="javax.faces.resource=theme.css"]');
+                    themeLink = $('link[href*="' + PrimeFaces.RESOURCE_IDENTIFIER + '=theme.css"]');
                 }
 
                 var themeURL = themeLink.attr('href'),
@@ -230,7 +258,7 @@
         },
 
         escapeRegExp: function(text) {
-            return text.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+            return this.escapeHTML(text.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"));
         },
 
         escapeHTML: function(value) {
@@ -241,10 +269,10 @@
             if(window.getSelection) {
                 if(window.getSelection().empty) {
                     window.getSelection().empty();
-                } else if(window.getSelection().removeAllRanges) {
+                } else if(window.getSelection().removeAllRanges && window.getSelection().rangeCount > 0 && window.getSelection().getRangeAt(0).getClientRects().length > 0) {
                     window.getSelection().removeAllRanges();
                 }
-            } 
+            }
             else if(document.selection && document.selection.empty) {
                 try {
                     document.selection.empty();
@@ -253,7 +281,7 @@
                 }
             }
         },
-        
+
         getSelection: function() {
             var text = '';
             if (window.getSelection) {
@@ -263,68 +291,66 @@
             } else if (document.selection) {
                 text = document.selection.createRange().text;
             }
-            
+
             return text;
         },
-        
+
         hasSelection: function() {
             return this.getSelection().length > 0;
         },
 
-        cw : function(widgetConstructor, widgetVar, cfg, resource) {
-            PrimeFaces.createWidget(widgetConstructor, widgetVar, cfg, resource);
+        cw : function(widgetName, widgetVar, cfg) {
+            this.createWidget(widgetName, widgetVar, cfg);
         },
 
-        createWidget : function(widgetConstructor, widgetVar, cfg, resource) { 
-            if(PrimeFaces.widget[widgetConstructor]) {
-                var widget = PrimeFaces.widgets[widgetVar];
-                
+        createWidget : function(widgetName, widgetVar, cfg) {
+            cfg.widgetVar = widgetVar;
+
+            if(this.widget[widgetName]) {
+                var widget = this.widgets[widgetVar];
+
                 //ajax update
-                if(widget && (widget.constructor === PrimeFaces.widget[widgetConstructor])) {
+                if(widget && (widget.constructor === this.widget[widgetName])) {
                     widget.refresh(cfg);
                 }
                 //page init
                 else {
-                    PrimeFaces.widgets[widgetVar] = new PrimeFaces.widget[widgetConstructor](cfg);  
-                    if(PrimeFaces.settings.legacyWidgetNamespace) {
-                        window[widgetVar] = PrimeFaces.widgets[widgetVar]; 
+                    this.widgets[widgetVar] = new this.widget[widgetName](cfg);
+                    if(this.settings.legacyWidgetNamespace) {
+                        window[widgetVar] = this.widgets[widgetVar];
                     }
                 }
             }
-            // widget script not loaded -> lazy load script + stylesheet
+            // widget script not loaded
             else {
-                var scriptURI = PrimeFaces.getFacesResource(resource + '/' + resource + '.js', 'primefaces');
-                var cssURI = PrimeFaces.getFacesResource(resource + '/' + resource + '.css', 'primefaces');
-
-                //load css
-                var cssResource = '<link type="text/css" rel="stylesheet" href="' + cssURI + '" />';      
-                $('head').append(cssResource);
-
-                //load script and initialize widget
-                PrimeFaces.getScript(scriptURI, function() {
-                    setTimeout(function() {
-                        PrimeFaces.widgets[widgetVar] = new PrimeFaces.widget[widgetConstructor](cfg);
-                    }, 100);
-                });
+                // should be loaded by our dynamic resource handling, log a error
+                PrimeFaces.error("Widget not available: " + widgetName);
             }
         },
 
         /**
          * Builds a resource URL for given parameters.
-         * 
+         *
          * @param {string} name The name of the resource. For example: primefaces.js
          * @param {string} library The library of the resource. For example: primefaces
          * @param {string} version The version of the library. For example: 5.1
          * @returns {string} The resource URL.
          */
         getFacesResource : function(name, library, version) {
-            var scriptURI = $('script[src*="/javax.faces.resource/' + PrimeFaces.getCoreScriptName() + '"]').attr('src');
+
+            // just get sure - name shoudln't start with a slash
+            if (name.indexOf('/') === 0)
+            {
+                name = name.substring(1, name.length);
+            }
+
+            var scriptURI = $('script[src*="/' + PrimeFaces.RESOURCE_IDENTIFIER + '/core.js"]').attr('src');
             // portlet
             if (!scriptURI) {
-                scriptURI = $('script[src*="javax.faces.resource=' + PrimeFaces.getCoreScriptName() + '"]').attr('src');
+                scriptURI = $('script[src*="' + PrimeFaces.RESOURCE_IDENTIFIER + '=core.js"]').attr('src');
             }
-        
-            scriptURI = scriptURI.replace(PrimeFaces.getCoreScriptName(), name);
+
+            scriptURI = scriptURI.replace('core.js', name);
             scriptURI = scriptURI.replace('ln=primefaces', 'ln=' + library);
 
             if (version) {
@@ -334,10 +360,6 @@
 
             var prefix = window.location.protocol + '//' + window.location.host;
             return scriptURI.indexOf(prefix) >= 0 ? scriptURI : prefix + scriptURI;
-        },
-        
-        getCoreScriptName: function() {
-            return 'primefaces.js';
         },
 
         inArray: function(arr, item) {
@@ -360,11 +382,12 @@
                 url: url,
                 success: callback,
                 dataType: "script",
-                cache: true
+                cache: true,
+                async: true
             });
         },
 
-        focus : function(id, context) {
+        focus: function(id, context) {
             var selector = ':not(:submit):not(:button):input:visible:enabled[name]';
 
             setTimeout(function() {
@@ -373,41 +396,64 @@
 
                     if(jq.is(selector)) {
                         jq.focus();
-                    } 
+                    }
                     else {
-                        jq.find(selector).eq(0).focus();
+                        var firstElement = jq.find(selector).eq(0);
+                        PrimeFaces.focusElement(firstElement);
                     }
                 }
                 else if(context) {
-                    $(PrimeFaces.escapeClientId(context)).find(selector).eq(0).focus();
+                    var firstElement = $(PrimeFaces.escapeClientId(context)).find(selector).eq(0);
+                    PrimeFaces.focusElement(firstElement);
                 }
                 else {
-                    $(selector).eq(0).focus();
+                    var elements = $(selector),
+                    firstElement = elements.eq(0);
+                    if(firstElement.is(':radio')) {
+                        var checkedRadio = $(':radio[name="' + firstElement.attr('name') + '"]').filter(':checked');
+                        if(checkedRadio.length)
+                            PrimeFaces.focusElement(checkedRadio);
+                        else
+                            PrimeFaces.focusElement(firstElement);
+                    }
+                    else {
+                        firstElement.focus();
+                    }
                 }
-            }, 250);
+            }, 50);
 
             // remember that a custom focus has been rendered
             // this avoids to retain the last focus after ajax update
             PrimeFaces.customFocus = true;
         },
 
-        monitorDownload: function(start, complete) {
+        focusElement: function(el) {
+            if(el.is(':radio') && el.hasClass('ui-helper-hidden-accessible')) {
+                el.parent().focus();
+            }
+            else {
+                el.focus();
+            }
+        },
+
+        monitorDownload: function(start, complete, monitorKey) {
             if(this.cookiesEnabled()) {
                 if(start) {
                     start();
                 }
 
+                var cookieName = monitorKey ? 'primefaces.download_' + monitorKey : 'primefaces.download';
                 window.downloadMonitor = setInterval(function() {
-                    var downloadComplete = PrimeFaces.getCookie('primefaces.download');
+                    var downloadComplete = PrimeFaces.getCookie(cookieName);
 
                     if(downloadComplete === 'true') {
                         if(complete) {
                             complete();
                         }
                         clearInterval(window.downloadMonitor);
-                        PrimeFaces.setCookie('primefaces.download', null);
+                        PrimeFaces.setCookie(cookieName, null);
                     }
-                }, 250);
+                }, 1000);
             }
         },
 
@@ -430,7 +476,7 @@
         /**
          *  Aligns container scrollbar to keep item in container viewport, algorithm copied from jquery-ui menu widget
          */
-        scrollInView: function(container, item) { 
+        scrollInView: function(container, item) {
             if(item.length === 0) {
                 return;
             }
@@ -449,7 +495,7 @@
                 container.scrollTop(scroll + offset - elementHeight + itemHeight);
             }
         },
-        
+
         calculateScrollbarWidth: function() {
             if(!this.scrollbarWidth) {
                 if(PrimeFaces.env.browser.msie) {
@@ -459,7 +505,7 @@
                             .css({ position: 'absolute', top: -1000, left: -1000 }).appendTo('body');
                     this.scrollbarWidth = $textarea1.width() - $textarea2.width();
                     $textarea1.add($textarea2).remove();
-                } 
+                }
                 else {
                     var $div = $('<div />')
                         .css({ width: 100, height: 100, overflow: 'auto', position: 'absolute', top: -1000, left: -1000 })
@@ -487,21 +533,21 @@
 
                         break;
                     }
-                } 
+                }
             }
         },
-          
-        bcnu: function(ext, fns) {
+
+        bcnu: function(ext, event, fns) {
             if(fns) {
                 for(var i = 0; i < fns.length; i++) {
-                    var retVal = fns[i].call(ext);
+                    var retVal = fns[i].call(this, ext, event);
                     if(retVal === false) {
                         break;
                     }
-                } 
+                }
             }
         },
-        
+
     	/**
     	 * moved to core.dialog.js
     	 */
@@ -510,35 +556,35 @@
         },
         closeDialog: function(cfg) {
         	PrimeFaces.dialog.DialogHandler.closeDialog(cfg);
-        },      
+        },
         showMessageInDialog: function(msg) {
         	PrimeFaces.dialog.DialogHandler.showMessageInDialog(msg);
-        },        
+        },
         confirm: function(msg) {
         	PrimeFaces.dialog.DialogHandler.confirm(msg);
         },
-        
+
         deferredRenders: [],
 
         addDeferredRender: function(widgetId, containerId, fn) {
             this.deferredRenders.push({widget: widgetId, container: containerId, callback: fn});
         },
-        
+
         removeDeferredRenders: function(widgetId) {
             for(var i = (this.deferredRenders.length - 1); i >= 0; i--) {
                 var deferredRender = this.deferredRenders[i];
-                
+
                 if(deferredRender.widget === widgetId) {
                     this.deferredRenders.splice(i, 1);
                 }
             }
         },
-        
+
         invokeDeferredRenders: function(containerId) {
             var widgetsToRemove = [];
             for(var i = 0; i < this.deferredRenders.length; i++) {
                 var deferredRender = this.deferredRenders[i];
-                
+
                 if(deferredRender.container === containerId) {
                     var rendered = deferredRender.callback.call();
                     if(rendered) {
@@ -546,16 +592,39 @@
                     }
                 }
             }
-            
+
             for(var j = 0; j < widgetsToRemove.length; j++) {
                 this.removeDeferredRenders(widgetsToRemove[j]);
             }
         },
-    	
+
+        getLocaleSettings: function() {
+            if(!this.localeSettings) {
+                var localeKey = PrimeFaces.settings.locale;
+                this.localeSettings = PrimeFaces.locales[localeKey];
+
+                if(!this.localeSettings) {
+                    if(localeKey) {
+                       this.localeSettings = PrimeFaces.locales[localeKey.split('_')[0]];
+                    }
+
+                    if(!this.localeSettings)
+                        this.localeSettings = PrimeFaces.locales['en_US'];
+                }
+            }
+
+            return this.localeSettings;
+        },
+
+        getAriaLabel: function(key) {
+            var ariaLocaleSettings = this.getLocaleSettings()['aria'];
+            return (ariaLocaleSettings&&ariaLocaleSettings[key]) ? ariaLocaleSettings[key] : PrimeFaces.locales['en_US']['aria'][key];
+        },
+
         zindex : 1000,
-        
+
         customFocus : false,
-        
+
         detachedWidgets : [],
 
         PARTIAL_REQUEST_PARAM : "javax.faces.partial.ajax",
@@ -569,32 +638,38 @@
         BEHAVIOR_EVENT_PARAM : "javax.faces.behavior.event",
 
         PARTIAL_EVENT_PARAM : "javax.faces.partial.event",
-        
+
         RESET_VALUES_PARAM : "primefaces.resetvalues",
-        
+
         IGNORE_AUTO_UPDATE_PARAM : "primefaces.ignoreautoupdate",
 
+        SKIP_CHILDREN_PARAM : "primefaces.skipchildren",
+
         VIEW_STATE : "javax.faces.ViewState",
-        
+
         CLIENT_WINDOW : "javax.faces.ClientWindow",
 
         VIEW_ROOT : "javax.faces.ViewRoot",
 
-        CLIENT_ID_DATA : "primefaces.clientid"
+        CLIENT_ID_DATA : "primefaces.clientid",
+
+        RESOURCE_IDENTIFIER: 'javax.faces.resource',
+
+        VERSION: '${project.version}'
     };
-    
+
     /**
      * PrimeFaces Namespaces
      */
     PrimeFaces.settings = {};
     PrimeFaces.util = {};
     PrimeFaces.widgets = {};
-    
+
     /**
      * Locales
      */
     PrimeFaces.locales = {
-        
+
         'en_US': {
             closeText: 'Close',
             prevText: 'Previous',
@@ -617,20 +692,29 @@
             currentText: 'Current Date',
             ampm: false,
             month: 'Month',
-            week: 'week',
+            week: 'Week',
             day: 'Day',
-            allDayText: 'All Day'
+            allDayText: 'All Day',
+            aria: {
+                'paginator.PAGE': 'Page {0}',
+                'calendar.BUTTON': 'Show Calendar',
+                'datatable.sort.ASC': 'activate to sort column ascending',
+                'datatable.sort.DESC': 'activate to sort column descending',
+                'columntoggler.CLOSE': 'Close'
+            }
         }
-        
+
     };
-    
-    PF = function(widgetVar) {    	
+
+    PrimeFaces.locales['en'] = PrimeFaces.locales['en_US'];
+
+    PF = function(widgetVar) {
     	var widgetInstance = PrimeFaces.widgets[widgetVar];
-    	
+
     	if (!widgetInstance) {
 	        PrimeFaces.error("Widget for var '" + widgetVar + "' not available!");
     	}
-    	
+
         return widgetInstance;
     };
 

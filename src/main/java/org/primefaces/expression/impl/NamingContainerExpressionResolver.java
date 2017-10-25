@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2014 PrimeTek.
+/**
+ * Copyright 2009-2017 PrimeTek.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,17 @@
 package org.primefaces.expression.impl;
 
 import javax.faces.component.NamingContainer;
-import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
 
 import org.primefaces.expression.SearchExpressionResolver;
+import org.primefaces.expression.impl.base.AbstractClosestExpressionResolver;
 
 /**
  * {@link SearchExpressionResolver} for the "@namingcontainer" keyword.
  */
-public class NamingContainerExpressionResolver implements SearchExpressionResolver {
+public class NamingContainerExpressionResolver extends AbstractClosestExpressionResolver implements SearchExpressionResolver {
 
-	public UIComponent resolveComponent(FacesContext context, UIComponent source, UIComponent last, String expression) {
-		UIComponent parent = last.getParent();
-
-		while (parent != null) {
-			if (parent instanceof NamingContainer) {
-				return parent;
-			}
-
-			parent = parent.getParent();
-		}
-
-		return null;
-	}
+    @Override
+    public Class<?> getType() {
+        return NamingContainer.class;
+    }
 }

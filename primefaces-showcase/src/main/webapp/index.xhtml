@@ -1,0 +1,246 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/WEB-INF/template-landing.xhtml">
+
+    <ui:define name="implementation">
+        <div class="landing-page">
+
+            <!-- ═══ HERO ═══════════════════════════════════════════════════════ -->
+            <section class="landing-hero">
+                <div class="landing-hero-inner">
+                    <a href="https://github.com/primefaces/primefaces/releases" target="_blank" rel="noopener noreferrer" class="landing-version-badge">
+                        <i class="pi pi-box"></i>
+                        primefaces@#{app.primeFacesVersion}
+                    </a>
+
+                    <h1 class="landing-hero-title">
+                        UI Suite for&#160;<span class="landing-hero-annotated">
+                            <span class="landing-hero-annotated-box"></span>
+                            <span class="landing-hero-annotated-label">.p-component</span>
+                            <span class="landing-hero-highlight">Jakarta Faces</span>
+                        </span>
+                    </h1>
+
+                    <p class="landing-hero-subtitle">
+                        Build complete business UIs in Java. #{tagLibProvider.componentCount} components for Jakarta EE, Quarkus and Spring Boot &#8211;
+                        no npm, no REST layer, no second stack.
+                    </p>
+
+                    <div class="landing-hero-actions">
+                        <h:link styleClass="landing-btn landing-btn-primary" outcome="/getstarted">
+                            Get Started
+                        </h:link>
+                        <a href="#why" class="landing-btn landing-btn-secondary">Why PrimeFaces</a>
+                    </div>
+                </div>
+
+                <!-- ═══ LOGO STRIP (inside hero) ════════════════════════════════ -->
+                <div class="landing-logos">
+                    <div class="landing-logos-track">
+                        <!-- customer logos [file, name, width, height]: white SVGs, drawn as a mask in the text color -->
+                        <ui:param name="customerLogos" value="#{[['fox', 'Fox', 92, 40], ['airbus', 'Airbus', 109, 19], ['nike', 'Nike', 118, 42],
+                                ['mercedes', 'Mercedes', 37, 38], ['ebay', 'eBay', 85, 35], ['ford', 'Ford', 77, 32], ['vw', 'VW', 39, 40],
+                                ['unicredit', 'UniCredit', 116, 27], ['lufthansa', 'Lufthansa', 115, 21], ['nvidia', 'Nvidia', 86, 17],
+                                ['verizon', 'Verizon', 102, 17], ['sap', 'SAP', 90, 45]]}"/>
+                        <div class="landing-logos-inner">
+                            <ui:repeat value="#{customerLogos}" var="logo">
+                                <span class="landing-logo" role="img" aria-label="#{logo[1]}"
+                                      style="--logo: url('#{resource['showcase:images/whouses/'.concat(logo[0]).concat('.svg')]}'); aspect-ratio: #{logo[2]} / #{logo[3]}"></span>
+                            </ui:repeat>
+                            <!-- duplicate for seamless scroll -->
+                            <ui:repeat value="#{customerLogos}" var="logo">
+                                <span class="landing-logo" aria-hidden="true"
+                                      style="--logo: url('#{resource['showcase:images/whouses/'.concat(logo[0]).concat('.svg')]}'); aspect-ratio: #{logo[2]} / #{logo[3]}"></span>
+                            </ui:repeat>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ COMPONENT SHOWCASE DECK ═══════════════════════════════ -->
+                <div class="landing-hero-deck-outer" aria-hidden="true">
+                    <h:form id="landing-deck-form" styleClass="landing-hero-deck">
+
+                        <!-- ── INVITE CARD: p:inputText, p:selectOneMenu, p:commandButton, p:growl ─── -->
+                        <div class="landing-deck-card ldeck-form">
+                            <p:growl id="invite-growl" showDetail="true" life="4000"/>
+                            <div class="ldeck-title">
+                                <i class="pi pi-user-plus"></i> Invite Member
+                            </div>
+                            <div class="ldeck-field">
+                                <p:inputText styleClass="w-full" placeholder="colleague@company.com"/>
+                            </div>
+                            <div class="ldeck-field">
+                                <p:selectOneMenu styleClass="w-full">
+                                    <f:selectItem itemValue="view"  itemLabel="Can view"/>
+                                    <f:selectItem itemValue="edit"  itemLabel="Can edit" itemSelected="true"/>
+                                    <f:selectItem itemValue="admin" itemLabel="Admin"/>
+                                </p:selectOneMenu>
+                            </div>
+                            <p:commandButton value="Send Invite" styleClass="w-full"
+                                             action="#{landingData.sendInvite}"
+                                             update="invite-growl" process="@this"/>
+                        </div>
+
+                        <!-- ── RATING CARD: p:rating ─── -->
+                        <div class="landing-deck-card ldeck-eq">
+                            <div class="ldeck-title">
+                                <i class="pi pi-star"></i> p:rating
+                            </div>
+                            <div class="ldeck-rating-list">
+                                <div class="ldeck-rating-row">
+                                    <span class="ldeck-rating-label">Flat White</span>
+                                    <p:rating value="5" readonly="true"/>
+                                </div>
+                                <div class="ldeck-rating-row">
+                                    <span class="ldeck-rating-label">Croissant</span>
+                                    <p:rating value="4" readonly="true"/>
+                                </div>
+                                <div class="ldeck-rating-row">
+                                    <span class="ldeck-rating-label">Banana Bread</span>
+                                    <p:rating value="3" readonly="true"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── PROGRESS CARD: p:progressBar ─── -->
+                        <div class="landing-deck-card ldeck-stats">
+                            <div class="ldeck-title">
+                                <i class="pi pi-chart-bar"></i> p:progressBar
+                            </div>
+                            <div class="ldeck-progress-item">
+                                <div class="ldeck-progress-row"><span>Applications</span><span>65%</span></div>
+                                <p:progressBar value="65" displayOnly="true" styleClass="ldeck-pbar"/>
+                            </div>
+                            <div class="ldeck-progress-item">
+                                <div class="ldeck-progress-row"><span>Media</span><span>42%</span></div>
+                                <p:progressBar value="42" displayOnly="true" styleClass="ldeck-pbar"/>
+                            </div>
+                            <div class="ldeck-progress-item">
+                                <div class="ldeck-progress-row"><span>System</span><span>28%</span></div>
+                                <p:progressBar value="28" displayOnly="true" styleClass="ldeck-pbar"/>
+                            </div>
+                        </div>
+
+                        <!-- ── MEMBERS CARD: p:avatar, p:tag ─── -->
+                        <div class="landing-deck-card ldeck-members">
+                            <div class="ldeck-title">
+                                <i class="pi pi-users"></i> Team
+                                <span class="ldeck-badge">3 members</span>
+                            </div>
+                            <div class="ldeck-members-list">
+                                <div class="ldeck-member">
+                                    <p:avatar label="AW" styleClass="ldeck-av ldeck-av-indigo" shape="circle"/>
+                                    <span class="ldeck-member-name">Alice Williams</span>
+                                    <p:tag value="Admin"  severity="info"    styleClass="ldeck-role-tag"/>
+                                </div>
+                                <div class="ldeck-member">
+                                    <p:avatar label="BM" styleClass="ldeck-av ldeck-av-green"  shape="circle"/>
+                                    <span class="ldeck-member-name">Bob Martinez</span>
+                                    <p:tag value="Editor" severity="success" styleClass="ldeck-role-tag"/>
+                                </div>
+                                <div class="ldeck-member">
+                                    <p:avatar label="CK" styleClass="ldeck-av ldeck-av-amber"  shape="circle"/>
+                                    <span class="ldeck-member-name">Carol Kim</span>
+                                    <p:tag value="Viewer" styleClass="ldeck-role-tag"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── VIEW CARD: p:selectOneButton, p:slider ─── -->
+                        <div class="landing-deck-card ldeck-view">
+                            <div class="ldeck-title">
+                                <i class="pi pi-sliders-v"></i> p:selectOneButton
+                            </div>
+                            <p:selectOneButton value="week" styleClass="ldeck-segment">
+                                <f:selectItem itemValue="day"   itemLabel="Day"/>
+                                <f:selectItem itemValue="week"  itemLabel="Week"/>
+                                <f:selectItem itemValue="month" itemLabel="Month"/>
+                            </p:selectOneButton>
+                            <div class="ldeck-progress-row ldeck-slider-row"><span>Zoom</span><h:outputText id="deck-zoom-out" value="60%"/></div>
+                            <h:inputHidden id="deck-zoom" value="60"/>
+                            <p:slider for="deck-zoom" display="deck-zoom-out" displayTemplate="{value}%"/>
+                        </div>
+
+                        <!-- ── TOGGLE CARD: p:toggleSwitch ─── -->
+                        <div class="landing-deck-card ldeck-filter">
+                            <div class="ldeck-title">
+                                <i class="pi pi-sliders-h"></i> p:toggleSwitch
+                            </div>
+                            <div class="ldeck-switch-list">
+                                <div class="ldeck-switch-row">
+                                    <span class="ldeck-switch-label">AJAX built in</span>
+                                    <p:toggleSwitch value="#{true}"  disabled="true"/>
+                                </div>
+                                <div class="ldeck-switch-row">
+                                    <span class="ldeck-switch-label">Dark mode</span>
+                                    <p:toggleSwitch value="#{true}"  disabled="true"/>
+                                </div>
+                                <div class="ldeck-switch-row">
+                                    <span class="ldeck-switch-label">Needs a build step</span>
+                                    <p:toggleSwitch value="#{false}" disabled="true"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── CHART CARD: p:chart doughnut ─── -->
+                        <div class="landing-deck-card ldeck-calendar">
+                            <div class="ldeck-title">
+                                <i class="pi pi-chart-pie"></i> p:chart
+                            </div>
+                            <p:chart type="doughnut" value="#{landingData.componentChart}"
+                                     style="width:100%;height:170px;" styleClass="ldeck-chart"/>
+                        </div>
+
+                        <!-- ── DATA TABLE CARD: p:dataTable ─── -->
+                        <div class="landing-deck-card ldeck-table">
+                            <div class="ldeck-title">
+                                <i class="pi pi-table"></i> p:dataTable
+                                <span class="ldeck-badge">#{tagLibProvider.componentCount} components</span>
+                            </div>
+                            <p:dataTable value="#{landingData.components}" var="comp"
+                                         styleClass="ldeck-datatable" rowHover="true">
+                                <p:column headerText="Component" styleClass="ldeck-col-name">
+                                    <h:outputText value="#{comp.name}"/>
+                                </p:column>
+                                <p:column headerText="Category">
+                                    <p:tag value="#{comp.category}" styleClass="ldeck-cat-tag"/>
+                                </p:column>
+                                <p:column headerText="Status">
+                                    <p:tag value="#{comp.status}" severity="#{comp.statusSeverity}"/>
+                                </p:column>
+                                <p:column headerText="Since" styleClass="ldeck-col-since">
+                                    <h:outputText value="#{comp.since}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+
+                    </h:form>
+                </div>
+
+            </section>
+
+            <ui:include src="/WEB-INF/landing/why.xhtml"/>
+
+            <!-- ═══ FINAL CTA ═══════════════════════════════════════════════════ -->
+            <section class="landing-section landing-cta">
+                <div class="landing-container landing-cta-inner">
+                    <h2>Ready to build something amazing?</h2>
+                    <p>Join thousands of developers who trust PrimeFaces for their Jakarta Faces applications.</p>
+                    <div class="landing-hero-actions">
+                        <h:link styleClass="landing-btn landing-btn-primary" outcome="/getstarted">
+                            Get Started
+                        </h:link>
+                        <a href="https://github.com/primefaces/primefaces" target="_blank" rel="noopener noreferrer" class="landing-btn landing-btn-ghost">
+                            <i class="pi pi-github mr-2"></i>View on GitHub
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </ui:define>
+
+</ui:composition>

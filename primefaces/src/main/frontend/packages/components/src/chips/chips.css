@@ -1,0 +1,155 @@
+/*
+ * Chips: p:chips (PrimeUIX: inputchips)
+ *
+ * The container is a .p-inputfield (forms/inputfield.css: hover, focus, error, disabled, filled), only the chips live here.
+ * Supported classes: p-state-hover / p-state-focus / p-state-error / p-state-disabled (on .p-chips-container),
+ *                    p-inputwrapper-focus (on .p-chips, float label)
+ */
+.p-chips {
+    /* the container (.p-inputfield) reads the inputtext tokens: point them to the inputchips tokens */
+    --p-inputtext-background: var(--p-inputchips-background);
+    --p-inputtext-disabled-background: var(--p-inputchips-disabled-background);
+    --p-inputtext-filled-background: var(--p-inputchips-filled-background);
+    --p-inputtext-filled-focus-background: var(--p-inputchips-filled-focus-background);
+    --p-inputtext-border-color: var(--p-inputchips-border-color);
+    --p-inputtext-hover-border-color: var(--p-inputchips-hover-border-color);
+    --p-inputtext-focus-border-color: var(--p-inputchips-focus-border-color);
+    --p-inputtext-invalid-border-color: var(--p-inputchips-invalid-border-color);
+    --p-inputtext-color: var(--p-inputchips-color);
+    --p-inputtext-disabled-color: var(--p-inputchips-disabled-color);
+    --p-inputtext-placeholder-color: var(--p-inputchips-placeholder-color);
+    --p-inputtext-shadow: var(--p-inputchips-shadow);
+    --p-inputtext-padding-x: var(--p-inputchips-padding-x);
+    --p-inputtext-padding-y: var(--p-inputchips-padding-y);
+    --p-inputtext-border-radius: var(--p-inputchips-border-radius);
+    --p-inputtext-focus-ring-width: var(--p-inputchips-focus-ring-width);
+    --p-inputtext-focus-ring-style: var(--p-inputchips-focus-ring-style);
+    --p-inputtext-focus-ring-color: var(--p-inputchips-focus-ring-color);
+    --p-inputtext-focus-ring-offset: var(--p-inputchips-focus-ring-offset);
+    --p-inputtext-focus-ring-shadow: var(--p-inputchips-focus-ring-shadow);
+    --p-inputtext-transition-duration: var(--p-inputchips-transition-duration);
+
+    box-shadow: none;
+    cursor: pointer;
+    display: inline-flex;
+    position: relative;
+
+    .p-chips-container {
+        padding: calc(var(--p-inputchips-padding-y) / 2) var(--p-inputchips-padding-x);
+        gap: calc(var(--p-inputchips-padding-y) / 2);
+
+        .p-chips-token {
+            padding: calc(var(--p-inputchips-padding-y) / 2) 0;
+            margin: 0;
+            background: var(--p-chip-background);
+            color: var(--p-inputchips-chip-color);
+            border-radius: var(--p-inputchips-chip-border-radius);
+            transition: background var(--p-inputchips-transition-duration), color var(--p-inputchips-transition-duration);
+
+            .p-chips-token-label {
+                padding-block: 0;
+                padding-inline: var(--p-chip-padding-x) calc(var(--p-chip-padding-x) + var(--p-chip-gap) + var(--p-chip-remove-icon-size));
+                font-size: var(--p-chip-label-font-size);
+                font-weight: var(--p-chip-label-font-weight);
+            }
+
+            .p-chips-chip-remove-icon {
+                --_icon: var(--p-inputchips-chip-remove-icon);
+            }
+
+            .p-chips-token-icon {
+                inset-inline-end: var(--p-chip-padding-x);
+                margin-top: calc(-1 * var(--p-chip-remove-icon-size) / 2);
+                font-size: var(--p-chip-remove-icon-size);
+                color: var(--p-chip-remove-icon-color);
+            }
+        }
+
+        .p-chips-input-token {
+            margin: 0;
+            padding: calc(var(--p-inputchips-padding-y) / 2) 0;
+
+            /* same line height as an input: padding-y / 2 (container) + padding-y / 2 (here) + line = input height */
+            input {
+                font-family: inherit;
+                font-size: var(--p-form-field-font-size);
+                font-weight: var(--p-form-field-font-weight);
+                line-height: var(--p-typography-line-height);
+                color: var(--p-inputchips-color);
+                appearance: none;
+            }
+
+            input::placeholder {
+                color: var(--p-inputchips-placeholder-color);
+            }
+        }
+
+        &.p-state-error .p-chips-input-token input::placeholder {
+            color: var(--p-form-field-invalid-placeholder-color);
+        }
+
+        &.p-state-disabled .p-chips-input-token input {
+            color: var(--p-inputchips-disabled-color);
+        }
+    }
+}
+
+.p-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    clear: left;
+    cursor: text;
+    list-style-type: none;
+    margin: 0;
+    min-height: 1px;
+    overflow: hidden;
+}
+
+.p-chips-token {
+    cursor: default;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    overflow: hidden;
+    position: relative;
+
+    .p-chips-token-label {
+        display: block;
+    }
+
+    .p-chips-token-icon {
+        cursor: pointer;
+        position: absolute;
+        top: 50%;
+    }
+}
+
+.p-chips-input-token {
+    display: inline-flex;
+    align-items: center;
+    /* fills the rest of the line, wraps only below 4rem (not at the intrinsic width of the input) */
+    flex: 1 1 4rem;
+    min-width: 4rem;
+
+    input {
+        min-width: 0;
+        background-color: transparent;
+        border: 0 none;
+        outline: 0 none;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        border-radius: 0;
+        width: 100%;
+    }
+}
+
+.p-fluid .p-chips {
+    display: flex;
+    flex: 1 1 auto;
+
+    .p-chips-container {
+        width: 100%;
+    }
+}

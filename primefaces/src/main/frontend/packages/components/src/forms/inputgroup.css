@@ -1,0 +1,245 @@
+/*
+ * InputGroup (shared): .p-inputgroup with .p-inputgroup-addon / .p-inputgroup-addon-checkbox
+ *
+ * Only the outer corners are rounded, inner borders are square and collapsed; a focused input is lifted above its
+ * neighbours. Addons may contain text, icons, buttons or a p:selectBooleanCheckbox / p:selectOneRadio.
+ */
+.p-inputgroup {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+
+    .p-inputgroup-addon + .p-inputgroup-addon {
+        border-inline-start: 0 none;
+    }
+
+    > .p-password:not(.p-inputfield) {
+        padding-inline-start: 0;
+    }
+
+    /* inner borders: collapse the border between two neighbours */
+    > .p-inputtext:not(:first-child),
+    > .p-inputtextarea:not(:first-child),
+    > .p-password:not(:first-child),
+    > .p-password:not(:first-child) > .p-inputfield,
+    > .p-inputnumber:not(:first-child) > .p-inputtext,
+    > .p-inputmask:not(:first-child),
+    > .p-calendar:not(:first-child) > .p-inputfield,
+    > .p-chips:not(:first-child) > .p-chips-container,
+    > .p-selectonemenu:not(:first-child),
+    > .p-selectonebutton:not(:first-child) > .p-button,
+    > .p-autocomplete:not(:first-child) > .p-autocomplete-input,
+    > .p-spinner:not(:first-child),
+    > .p-spinner:not(:first-child) > .p-spinner-input {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+        border-inline-start: 0 none;
+    }
+
+    > .p-inputtext:not(:last-child),
+    > .p-inputtextarea:not(:last-child),
+    > .p-password:not(:last-child),
+    > .p-password:not(:last-child) > .p-inputfield,
+    > .p-inputnumber:not(:last-child) > .p-inputtext,
+    > .p-inputmask:not(:last-child),
+    > .p-selectonemenu:not(:last-child),
+    > .p-calendar:not(:last-child) > .p-inputfield,
+    > .p-chips:not(:last-child) > .p-chips-container,
+    > .p-selectonebutton:not(:last-child) > .p-button,
+    > .p-autocomplete:not(:last-child) > .p-autocomplete-input,
+    > .p-spinner:not(:last-child),
+    > .p-spinner:not(:last-child) > .p-spinner-input,
+    > .p-spinner:not(:last-child) > .p-spinner-button {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+        border-inline-end: 0 none;
+    }
+
+    /* the trailing buttons of composite fields: their own rules (autocomplete.css, spinner.css, datepicker.css) are
+       bundled later or stronger, so these need the higher specificity */
+    > .p-autocomplete:not(:last-child) > .p-autocomplete-dropdown.p-button,
+    > .p-calendar:not(:last-child) > .p-button.p-button-icon-only,
+    > .p-spinner.p-spinner-horizontal:not(:last-child) > .p-spinner-button.p-spinner-up {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    .p-button {
+        margin-inline-end: 0;
+        border-radius: 0;
+    }
+
+    /* inputs grow, addons and buttons keep their size */
+    > .p-inputfield,
+    > .p-inputwrapper,
+    > .p-inputnumber,
+    > .p-autocomplete,
+    > .p-chips,
+    > .p-spinner,
+    > .p-float-label {
+        flex: 1 1 auto;
+        width: 1%;
+    }
+
+    > .p-inputwrapper > .p-inputfield,
+    > .p-inputnumber > .p-inputfield,
+    > .p-autocomplete > .p-inputfield,
+    > .p-float-label > .p-inputfield {
+        width: 100%;
+    }
+
+    > .p-button,
+    .p-inputgroup-addon,
+    .p-inputgroup-addon-checkbox {
+        flex: 0 0 auto;
+    }
+
+    .p-fluid & {
+        .p-button {
+            width: auto;
+        }
+
+        .p-button-icon-only {
+            width: var(--p-button-icon-only-width);
+        }
+    }
+
+    .p-inputgroup-addon,
+    .p-inputgroup-addon-checkbox {
+        text-align: center;
+        border-width: 1px;
+        border-style: solid;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--p-inputgroup-addon-padding);
+        min-width: var(--p-inputgroup-addon-min-width);
+        background: var(--p-inputgroup-addon-background);
+        color: var(--p-inputgroup-addon-color);
+        border-color: var(--p-inputgroup-addon-border-color);
+        font-size: var(--p-inputgroup-addon-font-size);
+        font-weight: var(--p-inputgroup-addon-font-weight);
+
+        &:first-child {
+            border-start-start-radius: var(--p-inputgroup-addon-border-radius);
+            border-end-start-radius: var(--p-inputgroup-addon-border-radius);
+        }
+
+        &:last-child {
+            border-start-end-radius: var(--p-inputgroup-addon-border-radius);
+            border-end-end-radius: var(--p-inputgroup-addon-border-radius);
+        }
+    }
+
+    > .p-widget,
+    > .p-float-label > .p-widget {
+        border-radius: 0;
+    }
+
+    /* outer corners of widgets that are not a plain input / button (p:selectOneMenu, p:selectCheckboxMenu, ...), like PrimeUIX */
+    > .p-widget:first-child,
+    > .p-float-label:first-child > .p-widget {
+        border-start-start-radius: var(--p-inputgroup-addon-border-radius);
+        border-end-start-radius: var(--p-inputgroup-addon-border-radius);
+    }
+
+    > .p-widget:last-child,
+    > .p-float-label:last-child > .p-widget {
+        border-start-end-radius: var(--p-inputgroup-addon-border-radius);
+        border-end-end-radius: var(--p-inputgroup-addon-border-radius);
+    }
+
+    button:first-child,
+    input:first-child,
+    textarea:first-child {
+        border-start-start-radius: var(--p-inputgroup-addon-border-radius);
+        border-end-start-radius: var(--p-inputgroup-addon-border-radius);
+    }
+
+    .p-float-label:first-child {
+        input,
+        textarea {
+            border-inline-end-width: 0;
+            border-start-start-radius: var(--p-inputgroup-addon-border-radius);
+            border-end-start-radius: var(--p-inputgroup-addon-border-radius);
+        }
+    }
+
+    button:last-child,
+    input:last-child,
+    textarea:last-child {
+        border-start-end-radius: var(--p-inputgroup-addon-border-radius);
+        border-end-end-radius: var(--p-inputgroup-addon-border-radius);
+    }
+
+    .p-float-label:last-child {
+        input,
+        textarea {
+            border-inline-start-width: 0;
+            border-start-end-radius: var(--p-inputgroup-addon-border-radius);
+            border-end-end-radius: var(--p-inputgroup-addon-border-radius);
+        }
+    }
+
+    > .p-widget.p-state-focus,
+    > .p-widget:focus,
+    > .p-float-label > .p-widget.p-state-focus,
+    > .p-float-label > .p-widget:focus {
+        z-index: 1;
+    }
+
+    > .p-widget.p-state-focus ~ label,
+    > .p-widget:focus ~ label,
+    > .p-float-label > .p-widget.p-state-focus ~ label,
+    > .p-float-label > .p-widget:focus ~ label {
+        z-index: 1;
+    }
+
+    /* checkbox / radio addon: the control is centered in the addon box */
+    .p-inputgroup-addon-checkbox {
+        padding: 0;
+        position: relative;
+
+        .p-chkbox {
+            margin: 0;
+            vertical-align: baseline;
+            position: absolute;
+            top: 50%;
+            inset-inline-start: 50%;
+            margin-top: calc(-1 * var(--p-checkbox-height) / 2);
+            margin-inline-start: calc(-1 * var(--p-checkbox-width) / 2);
+        }
+
+        .p-radiobutton {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            inset-inline-start: 50%;
+            margin-top: calc(-1 * var(--p-radiobutton-height) / 2);
+            margin-inline-start: calc(-1 * var(--p-radiobutton-width) / 2);
+        }
+    }
+}
+
+/* filled (forms/inputfield.css): the addons like the fields (filled background, frame with
+   --p-form-field-filled-border-opacity, the bottom border as line) and the bottom corners of the outer parts */
+.p-input-filled .p-inputgroup {
+    .p-inputgroup-addon,
+    .p-inputgroup-addon-checkbox {
+        background: var(--p-inputgroup-addon-filled-background);
+        border-block-start-color: color-mix(in srgb, var(--p-inputgroup-addon-border-color) var(--p-form-field-filled-border-opacity),
+            transparent);
+        border-inline-color: color-mix(in srgb, var(--p-inputgroup-addon-border-color) var(--p-form-field-filled-border-opacity),
+            transparent);
+    }
+
+    > :first-child,
+    > :first-child > :is(.p-inputfield, .p-widget, input, textarea):first-child {
+        border-end-start-radius: var(--p-form-field-filled-bottom-border-radius);
+    }
+
+    > :last-child,
+    > :last-child > :is(.p-inputfield, .p-widget, input, textarea):last-child {
+        border-end-end-radius: var(--p-form-field-filled-bottom-border-radius);
+    }
+}

@@ -1,0 +1,142 @@
+/*
+ * Slider: p:slider
+ *
+ * Supported classes: p-slider-horizontal, p-slider-vertical, p-state-disabled, p-slider-animate (while the
+ *                    handle moves to a clicked / set value), range (two handles + .p-slider-range), range="min" / "max"
+ */
+.p-slider {
+    position: relative;
+    text-align: start;
+    background: var(--p-slider-track-background);
+    border: 0 none;
+    border-radius: var(--p-slider-track-border-radius);
+
+    .p-slider-handle {
+        position: absolute;
+        z-index: 2;
+        cursor: grab;
+        touch-action: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: var(--p-slider-handle-width);
+        height: var(--p-slider-handle-height);
+        background: var(--p-slider-handle-background);
+        border: 0 none;
+        border-radius: var(--p-slider-handle-border-radius);
+        outline-color: transparent;
+        transition: background var(--p-slider-transition-duration), color var(--p-slider-transition-duration),
+            border-color var(--p-slider-transition-duration), box-shadow var(--p-slider-transition-duration),
+            outline-color var(--p-slider-transition-duration);
+
+        /* inner knob */
+        &::before {
+            content: "";
+            display: block;
+            width: var(--p-slider-handle-content-width);
+            height: var(--p-slider-handle-content-height);
+            background: var(--p-slider-handle-content-background);
+            border-radius: var(--p-slider-handle-content-border-radius);
+            box-shadow: var(--p-slider-handle-content-shadow);
+            transition: background var(--p-slider-transition-duration);
+        }
+
+        &:active {
+            cursor: grabbing;
+        }
+
+        &:focus-visible {
+            outline: var(--p-slider-handle-focus-ring-width) var(--p-slider-handle-focus-ring-style) var(--p-slider-handle-focus-ring-color);
+            outline-offset: var(--p-slider-handle-focus-ring-offset);
+            box-shadow: var(--p-slider-handle-focus-ring-shadow);
+        }
+    }
+
+    &.p-state-disabled .p-slider-handle {
+        cursor: default;
+    }
+
+    &:not(.p-state-disabled) .p-slider-handle:hover {
+        background: var(--p-slider-handle-hover-background);
+    }
+
+    &:not(.p-state-disabled) .p-slider-handle:hover::before {
+        background: var(--p-slider-handle-content-hover-background);
+    }
+
+    &.p-slider-horizontal {
+        height: var(--p-slider-track-size);
+        /* room for the handle, which is taller than the track: it does not overlap the neighbors */
+        margin-block: calc((var(--p-slider-handle-height) - var(--p-slider-track-size)) / 2);
+        touch-action: pan-y;
+
+        .p-slider-range {
+            top: 0;
+            height: 100%;
+        }
+
+        .p-slider-range-min {
+            left: 0;
+        }
+
+        .p-slider-range-max {
+            right: 0;
+        }
+
+        .p-slider-handle {
+            top: calc(var(--p-slider-track-size) / 2 - var(--p-slider-handle-height) / 2);
+            margin-left: calc(-1 * var(--p-slider-handle-width) / 2);
+        }
+    }
+
+    &.p-slider-vertical {
+        width: var(--p-slider-track-size);
+        height: 100px;
+        margin-inline: calc((var(--p-slider-handle-width) - var(--p-slider-track-size)) / 2);
+        touch-action: pan-x;
+
+        .p-slider-range {
+            left: 0;
+            width: 100%;
+        }
+
+        .p-slider-range-min {
+            bottom: 0;
+        }
+
+        .p-slider-range-max {
+            top: 0;
+        }
+
+        /* the vertical handle is positioned with bottom, so the centering offset goes to margin-bottom */
+        .p-slider-handle {
+            left: calc(var(--p-slider-track-size) / 2 - var(--p-slider-handle-width) / 2);
+            margin-left: 0;
+            margin-top: 0;
+            margin-bottom: calc(-1 * var(--p-slider-handle-height) / 2);
+        }
+    }
+
+    .p-slider-range {
+        position: absolute;
+        z-index: 1;
+        display: block;
+        border: 0;
+        background: var(--p-slider-range-background);
+        border-radius: var(--p-slider-track-border-radius);
+    }
+}
+
+/* moves the handle / range to a clicked or set value; keeps the transitions of the handle states */
+.p-slider.p-slider-animate {
+    .p-slider-handle,
+    .p-slider-range {
+        transition-property: left, bottom, width, height, background, color, border-color, box-shadow, outline-color;
+        transition-duration: var(--p-slider-transition-duration);
+    }
+}
+
+/* p:slider below its display input; no token for the old inline spacing, at least the room for the handle */
+.p-inputtext + .p-slider-horizontal {
+    margin-bottom: max(var(--p-form-field-padding-y), calc((var(--p-slider-handle-height) - var(--p-slider-track-size)) / 2));
+}

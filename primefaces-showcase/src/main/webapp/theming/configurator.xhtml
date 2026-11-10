@@ -1,0 +1,74 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets" xmlns:p="primefaces"
+                xmlns:pc="jakarta.faces.composite/primefaces"
+                template="/WEB-INF/template.xhtml">
+
+    <ui:define name="title">
+        Theme Configurator
+    </ui:define>
+
+    <ui:define name="description">
+        ThemeConfigurator lets the user change the theme at runtime: preset, color scheme, input style, density, direction,
+        primary color and the main tokens. The settings are kept in the browser and applied before the first paint of every
+        page, so nothing flickers on load.
+    </ui:define>
+
+    <ui:define name="implementation">
+        <div class="card">
+            <h5>Inline</h5>
+            <p>In the page, e.g. a settings page. The overlay of this showcase (palette button at the right edge) is the same
+                component with <code>mode="overlay"</code>, both stay in sync.</p>
+            <pc:themeConfigurator id="inlineConfigurator" mode="inline" export="false"/>
+        </div>
+
+        <div class="card">
+            <h5>Opened by another button</h5>
+            <p>A button with <code>data-tc-toggle</code> and the client id of an overlay configurator opens it.</p>
+            <button type="button" class="p-button p-widget p-button-text-icon-left" data-tc-toggle="themeConfigurator"
+                    aria-controls="themeConfigurator_panel">
+                <span class="p-button-icon-left p-c pi pi-palette"></span><span class="p-button-text p-c">Open theme configurator</span>
+            </button>
+        </div>
+    </ui:define>
+
+    <ui:define name="static-documentation">
+        <h2>Setup</h2>
+        <div class="card">
+            <p>1. Enable it in the <code>web.xml</code>: the head renders a small script that applies the stored settings
+                before the first paint, preset and direction are read from cookies on the server.</p>
+            <pre><code class="language-xml">
+&lt;context-param&gt;
+    &lt;param-name&gt;primefaces.THEME_CONFIGURATOR&lt;/param-name&gt;
+    &lt;param-value&gt;true&lt;/param-value&gt;
+&lt;/context-param&gt;
+            </code></pre>
+
+            <p>2. Add the composite component, e.g. in the template (overlay) or on a settings page (inline). It needs no form.</p>
+            <pre><code class="language-xml">
+&lt;html xmlns:pc="jakarta.faces.composite/primefaces" dir="\#{p:dir()}"&gt;
+    ...
+    &lt;pc:themeConfigurator/&gt;
+    &lt;pc:themeConfigurator mode="inline" presets="aura,lara" direction="false" export="false"/&gt;
+            </code></pre>
+
+            <p><code>\#{p:theme()}</code> and <code>\#{p:dir()}</code> return the preset and the direction of the request
+                (chosen by the user or <code>primefaces.THEME</code> / <code>primefaces.DIR</code>).</p>
+        </div>
+
+        <h2>Attributes</h2>
+        <div class="card">
+            <p:dataTable var="a" value="#{[
+                    ['mode', 'overlay', 'overlay: a button at the edge of the window opens the panel; inline: the panel in the page.'],
+                    ['presets', 'aura,lara,nora,material,metal,glass', 'The presets to choose from, comma separated (custom themes too); empty: no preset choice.'],
+                    ['direction', 'true', 'Whether the user can choose the direction.'],
+                    ['export', 'true', 'Whether the CSS of the changes is shown to copy.'],
+                    ['style', 'null', 'Inline style of the container.'],
+                    ['styleClass', 'null', 'Style class of the container.']]}">
+                <p:column headerText="Name">#{a[0]}</p:column>
+                <p:column headerText="Default">#{a[1]}</p:column>
+                <p:column headerText="Description">#{a[2]}</p:column>
+            </p:dataTable>
+        </div>
+    </ui:define>
+
+</ui:composition>

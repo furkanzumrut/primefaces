@@ -1,0 +1,187 @@
+/*
+ * ColorPicker: p:colorPicker (Coloris), mode="popup" (input .p-colorpicker.p-inputfield inside .clr-field)
+ * and mode="inline" (div .p-colorpicker with an inline .clr-picker).
+ *
+ * coloris.css is in the vendor layer; these rules adjust it and apply the tokens.
+ * Supported classes: clr-rtl, p-state-error, clr-dark (set by the widget, the tokens already follow the color scheme),
+ *                    .thumbnail (swatch only)
+ */
+.clr-field {
+    /* the swatch is positioned at the end of the field: the field wraps its input, also as a stretched flex / grid item */
+    width: fit-content;
+    max-width: 100%;
+
+    /* the popup input leaves room for the swatch; not wider than the field (e.g. a narrow grid cell), the swatch is
+       positioned at the end of the field */
+    .p-colorpicker.p-inputfield {
+        max-width: 100%;
+        padding-inline-end: calc(var(--p-colorpicker-swatch-width) + var(--p-form-field-padding-x));
+    }
+
+    /* swatch of the popup input: Coloris paints the selected color as currentColor (inherited from .clr-field); also with
+       p-state-error, whose color would win over the vendor layer.
+       A chip inset from the border of the field (concentric radius): the border, also the invalid one, stays visible all
+       around and no border width or radius of a preset can leave a gap or an overlap at the corners. */
+    button {
+        --_inset: 0.25rem;
+        color: inherit;
+        width: calc(var(--p-colorpicker-swatch-width) - var(--_inset));
+        height: calc(100% - 2 * var(--_inset));
+        right: var(--_inset);
+        border-radius: max(0px, calc(var(--p-colorpicker-preview-border-radius) - var(--_inset)));
+    }
+
+    &.clr-rtl button {
+        right: unset;
+        left: var(--_inset);
+    }
+}
+
+.field .clr-field {
+    display: block;
+    width: auto;
+}
+
+.p-float-label .clr-field.clr-rtl + label {
+    left: unset;
+    margin-left: unset;
+    margin-right: var(--p-floatlabel-position-x);
+    right: 0;
+}
+
+.thumbnail .clr-field button {
+    width: 100%;
+    height: 100%;
+    inset-inline: 0;
+    border-radius: var(--p-colorpicker-preview-border-radius);
+}
+
+.p-fluid .clr-field {
+    display: block;
+    width: auto;
+
+    .p-colorpicker.p-inputfield {
+        width: 100%;
+    }
+}
+
+/* picker overlay (popup) and inline picker */
+.clr-picker {
+    width: 240px;
+    background: var(--p-colorpicker-overlay-background);
+    color: var(--p-colorpicker-overlay-color);
+    border: 1px solid var(--p-colorpicker-overlay-border-color);
+    border-radius: var(--p-colorpicker-overlay-border-radius);
+    box-shadow: var(--p-colorpicker-overlay-shadow);
+    font-family: inherit;
+
+    &.clr-pill {
+        width: 420px;
+    }
+
+    &[data-inline=true] {
+        box-shadow: none;
+    }
+
+    .clr-gradient {
+        border-radius: var(--p-colorpicker-overlay-border-radius) var(--p-colorpicker-overlay-border-radius) 0 0;
+    }
+
+    .clr-hue div,
+    .clr-alpha div,
+    .clr-marker {
+        border-color: var(--p-colorpicker-handle-color);
+    }
+
+    /* the hex / rgb / hsl text input */
+    input.clr-color {
+        font-family: inherit;
+        font-size: var(--p-form-field-sm-font-size);
+        color: var(--p-form-field-color);
+        background: var(--p-form-field-background);
+        border: 1px solid var(--p-form-field-border-color);
+        border-radius: var(--p-form-field-border-radius);
+        outline-color: transparent;
+        transition: border-color var(--p-form-field-transition-duration), box-shadow var(--p-form-field-transition-duration),
+            outline-color var(--p-form-field-transition-duration);
+
+        &:hover {
+            border-color: var(--p-form-field-hover-border-color);
+        }
+
+        &:focus {
+            border-color: var(--p-form-field-focus-border-color);
+            outline: var(--p-form-field-focus-ring-width) var(--p-form-field-focus-ring-style) var(--p-form-field-focus-ring-color);
+            outline-offset: var(--p-form-field-focus-ring-offset);
+            box-shadow: var(--p-form-field-focus-ring-shadow);
+        }
+    }
+
+    /* format switch (hex / rgb / hsl) */
+    .clr-segmented {
+        color: var(--p-text-muted-color);
+        border-color: var(--p-form-field-border-color);
+        border-radius: var(--p-form-field-border-radius);
+        font-size: var(--p-form-field-sm-font-size);
+
+        label:first-of-type {
+            border-radius: var(--p-form-field-border-radius) 0 0 var(--p-form-field-border-radius);
+        }
+
+        label:last-of-type {
+            border-radius: 0 var(--p-form-field-border-radius) var(--p-form-field-border-radius) 0;
+        }
+
+        input:checked + label {
+            color: var(--p-highlight-color);
+            background: var(--p-highlight-background);
+        }
+    }
+
+    /* close / clear buttons */
+    .clr-close,
+    .clr-clear {
+        font-family: inherit;
+        font-size: var(--p-button-sm-font-size);
+        font-weight: var(--p-button-label-font-weight);
+        border-radius: var(--p-button-border-radius);
+        transition: background var(--p-button-transition-duration), color var(--p-button-transition-duration);
+    }
+
+    .clr-close {
+        color: var(--p-button-primary-color);
+        background: var(--p-button-primary-background);
+
+        &:hover {
+            color: var(--p-button-primary-hover-color);
+            background: var(--p-button-primary-hover-background);
+        }
+    }
+
+    .clr-clear {
+        color: var(--p-button-secondary-color);
+        background: var(--p-button-secondary-background);
+
+        &:hover {
+            color: var(--p-button-secondary-hover-color);
+            background: var(--p-button-secondary-hover-background);
+        }
+    }
+
+    .clr-swatches button {
+        border-radius: var(--p-colorpicker-preview-border-radius);
+    }
+}
+
+/* keyboard focus inside the picker */
+.clr-keyboard-nav .clr-picker .clr-marker:focus,
+.clr-keyboard-nav .clr-picker .clr-hue input:focus + div,
+.clr-keyboard-nav .clr-picker .clr-alpha input:focus + div,
+.clr-keyboard-nav .clr-picker .clr-segmented input:focus + label,
+.clr-picker .clr-swatches button:focus-visible,
+.clr-picker .clr-close:focus-visible,
+.clr-picker .clr-clear:focus-visible {
+    outline: var(--p-colorpicker-preview-focus-ring-width) var(--p-colorpicker-preview-focus-ring-style) var(--p-colorpicker-preview-focus-ring-color);
+    outline-offset: var(--p-colorpicker-preview-focus-ring-offset);
+    box-shadow: var(--p-colorpicker-preview-focus-ring-shadow);
+}

@@ -1,0 +1,172 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.integrationtests.datatable;
+
+import org.primefaces.selenium.AbstractPrimePage;
+import org.primefaces.selenium.PrimeExpectedConditions;
+import org.primefaces.selenium.PrimeSelenium;
+import org.primefaces.selenium.component.CommandButton;
+import org.primefaces.selenium.component.DataTable;
+import org.primefaces.selenium.component.Messages;
+
+import org.json.JSONObject;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.support.FindBy;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@Tag("DataTable-selection")
+@Tag("DataTable-paginator")
+@Tag("DataTable-filter")
+class DataTable010Test extends AbstractDataTableTest {
+
+    @Test
+    @Order(1)
+    @DisplayName("DataTable: selection - multiple with paging")
+    void selectionMultipleWithPaging(Page page) {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertNotNull(dataTable);
+        PrimeSelenium.waitGui().until(PrimeExpectedConditions.visibleAndAnimationComplete(dataTable));
+
+        // Act
+        dataTable.getCell(0, 0).getWebElement().click();
+        page.buttonSubmit.click();
+
+        // Assert
+        assertTrue(page.messages.getMessage(0).getSummary().contains("Selected ProgrammingLanguage(s)"));
+        assertEquals("1", page.messages.getMessage(0).getDetail());
+
+        // Act
+        dataTable.selectPage(2);
+        dataTable.getRow(1).toggleSelection();
+        page.buttonSubmit.click();
+
+        // Assert
+        assertTrue(page.messages.getMessage(0).getSummary().contains("Selected ProgrammingLanguage(s)"));
+        assertEquals("1,5", page.messages.getMessage(0).getDetail());
+
+        // Act
+        dataTable.selectPage(1);
+        dataTable.getRow(1).toggleSelection();
+        page.buttonSubmit.click();
+
+        // Assert
+        assertTrue(page.messages.getMessage(0).getSummary().contains("Selected ProgrammingLanguage(s)"));
+        assertEquals("1,2,5", page.messages.getMessage(0).getDetail());
+        assertConfiguration(page.dataTable.getWidgetConfiguration());
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("DataTable: selection - multiple with paging and filtering")
+    void selectionMultipleWithPagingAndFiltering(Page page) {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertNotNull(dataTable);
+
+        // Act
+        dataTable.getCell(0, 0).getWebElement().click();
+        page.buttonSubmit.click();
+
+        // Assert
+        assertTrue(page.messages.getMessage(0).getSummary().contains("Selected ProgrammingLanguage(s)"));
+        assertEquals("1", page.messages.getMessage(0).getDetail());
+
+        // Act
+        dataTable.selectPage(2);
+        dataTable.getRow(1).toggleSelection();
+        page.buttonSubmit.click();
+
+        // Assert
+        assertTrue(page.messages.getMessage(0).getSummary().contains("Selected ProgrammingLanguage(s)"));
+        assertEquals("1,5", page.messages.getMessage(0).getDetail());
+
+        // Act
+        dataTable.filter(1, "Java");
+        page.buttonSubmit.click();
+
+        // Assert
+        assertTrue(page.messages.getMessage(0).getSummary().contains("Selected ProgrammingLanguage(s)"));
+        assertEquals("1,5", page.messages.getMessage(0).getDetail());
+
+        // Act
+        dataTable.getRow(1).toggleSelection();
+        page.buttonSubmit.click();
+
+        // Assert
+        assertTrue(page.messages.getMessage(0).getSummary().contains("Selected ProgrammingLanguage(s)"));
+        assertEquals("1,3,5", page.messages.getMessage(0).getDetail());
+        assertConfiguration(page.dataTable.getWidgetConfiguration());
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("DataTable: selection - multiple with paging, filtering and delete row")
+    void selectionMultipleWithPagingAndFilteringAndDelete(Page page) {
+        selectionMultipleWithPagingAndFiltering(page);
+
+        // Act
+        page.buttonDelete.click();
+
+        // Assert
+        assertEquals(1, page.dataTable.getRows().stream().count());
+        assertEquals("JavaScript", page.dataTable.getCell(0, 1).getText());
+
+        // Act
+        page.buttonSubmit.click();
+
+        // Assert
+        assertTrue(page.messages.getMessage(0).getSummary().contains("Selected ProgrammingLanguage(s)"));
+        assertEquals("3,5", page.messages.getMessage(0).getDetail()); // TODO: this is still kind of weird because we deleted Java (ID 3) before
+        assertConfiguration(page.dataTable.getWidgetConfiguration());
+    }
+
+    private void assertConfiguration(JSONObject cfg) {
+        assertNoJavascriptErrors();
+        assertTrue(cfg.has("selectionMode"));
+    }
+
+    public static class Page extends AbstractPrimePage {
+        @FindBy(id = "form:msgs")
+        Messages messages;
+
+        @FindBy(id = "form:datatable")
+        DataTable dataTable;
+
+        @FindBy(id = "form:buttonSubmit")
+        CommandButton buttonSubmit;
+
+        @FindBy(id = "form:buttonDelete")
+        CommandButton buttonDelete;
+
+        @Override
+        public String getLocation() {
+            return "datatable/dataTable010.xhtml";
+        }
+    }
+}

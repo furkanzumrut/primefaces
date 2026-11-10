@@ -1,0 +1,55 @@
+/*
+ * Skeleton: p:skeleton
+ *
+ * Supported classes: p-skeleton-circle, p-skeleton-animation-none
+ */
+
+.p-skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--p-skeleton-background);
+    border-radius: var(--p-skeleton-border-radius);
+
+    &:after {
+        content: "";
+        animation: p-skeleton-animation 1.2s infinite;
+        height: 100%;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transform: translateX(-100%);
+        z-index: 1;
+        background: linear-gradient(90deg, transparent, var(--p-skeleton-animation-background), transparent);
+    }
+
+    &:dir(rtl):after {
+        animation-name: p-skeleton-animation-rtl;
+    }
+
+    &.p-skeleton-animation-none:after {
+        animation: none;
+    }
+
+    &.p-skeleton-circle {
+        border-radius: 50%;
+    }
+}
+
+@keyframes p-skeleton-animation {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes p-skeleton-animation-rtl {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}

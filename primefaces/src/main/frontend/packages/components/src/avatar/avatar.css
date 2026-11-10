@@ -1,0 +1,95 @@
+/*
+ * Avatar: p:avatar, p:avatarGroup
+ *
+ * Supported classes: p-avatar-circle, p-avatar-lg, p-avatar-xl, p-avatar-dark / p-avatar-light (dynamicColor)
+ */
+
+.p-avatar {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--p-avatar-width);
+    height: var(--p-avatar-height);
+    font-size: var(--p-avatar-font-size);
+    font-weight: var(--p-avatar-font-weight);
+    background-color: var(--p-avatar-background);
+    color: var(--p-avatar-color);
+    border-radius: var(--p-avatar-border-radius);
+
+    /* image avatar: no background behind the picture */
+    &:has(> img) {
+        background-color: transparent;
+    }
+
+    > * {
+        position: absolute;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+    }
+
+    .p-avatar-icon {
+        font-size: var(--p-avatar-icon-size);
+    }
+
+    &.p-avatar-circle,
+    &.p-avatar-circle img {
+        border-radius: 50%;
+    }
+
+    &.p-avatar-lg {
+        width: var(--p-avatar-lg-width);
+        height: var(--p-avatar-lg-height);
+        font-size: var(--p-avatar-lg-font-size);
+
+        .p-avatar-icon {
+            font-size: var(--p-avatar-lg-icon-size);
+        }
+    }
+
+    &.p-avatar-xl {
+        width: var(--p-avatar-xl-width);
+        height: var(--p-avatar-xl-height);
+        font-size: var(--p-avatar-xl-font-size);
+
+        .p-avatar-icon {
+            font-size: var(--p-avatar-xl-icon-size);
+        }
+    }
+
+    /* dynamicColor: background comes inline from the renderer, text color depends on its lightness */
+    &.p-avatar-dark {
+        color: var(--p-avatar-dynamic-dark-color);
+    }
+
+    &.p-avatar-light {
+        color: var(--p-avatar-dynamic-light-color);
+    }
+}
+
+.p-avatar-group {
+    display: flex;
+    align-items: center;
+}
+
+/* group (the 2px ring width is fixed in PrimeUIX too) */
+.p-avatar-group .p-avatar {
+    border: 2px solid var(--p-avatar-group-border-color);
+
+    + .p-avatar {
+        margin-inline-start: var(--p-avatar-group-offset);
+    }
+
+    &.p-avatar-lg + .p-avatar.p-avatar-lg {
+        margin-inline-start: var(--p-avatar-lg-group-offset);
+    }
+
+    &.p-avatar-xl + .p-avatar.p-avatar-xl {
+        margin-inline-start: var(--p-avatar-xl-group-offset);
+    }
+}

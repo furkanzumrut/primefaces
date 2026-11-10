@@ -1,0 +1,250 @@
+/*
+ * SpeedDial: p:speedDial
+ *
+ * Markup: div[id] > .p-speeddial (.p-speeddial-linear|circle|semi-circle|quarter-circle, .p-speeddial-direction-*,
+ *         .p-speeddial-opened, .p-disabled)
+ *         > button.p-speeddial-button.p-button.p-button-icon-only.rounded-button (.p-speeddial-rotate, .p-speeddial-dual-icon)
+ *         + ul.p-speeddial-list > li.p-speeddial-item > a.p-speeddial-action (> .p-speeddial-action-icon + .p-menuitem-text)
+ *         + div.p-speeddial-mask (optional, .p-speeddial-mask-visible)
+ * Like PrimeUIX: the main button is a rounded button (button.css), the actions are small rounded secondary buttons.
+ * The item / mask / rotate animations keep their fixed timings, like PrimeUIX.
+ * Main button icon: the showIcon / hideIcon of the application, without showIcon span.p-icon.p-plus-icon.p-speeddial-show-icon
+ * (token --p-speeddial-show-icon, rotated by p-speeddial-rotate when opened).
+ */
+.p-speeddial {
+    position: absolute;
+    display: flex;
+    z-index: 1;
+
+    .p-speeddial-show-icon {
+        --_icon: var(--p-speeddial-show-icon);
+    }
+
+    .p-speeddial-rotate .p-button-icon-left + .p-button-icon-left {
+        transform: rotate(-90deg);
+    }
+
+    /* dual icon (showIcon / hideIcon): the second icon lies on top of the first one (centered by the flex button) */
+    .p-speeddial-button .p-button-icon-left + .p-button-icon-left {
+        position: absolute;
+        opacity: 0;
+    }
+}
+
+.p-speeddial-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: top 0s linear var(--p-speeddial-transition-duration);
+    pointer-events: none;
+}
+
+.p-speeddial-item {
+    transform: scale(0);
+    opacity: 0;
+    transition: transform var(--p-speeddial-transition-duration) var(--p-transition-easing), opacity var(--p-speeddial-item-fade-duration);
+    will-change: transform;
+}
+
+/* the main button (rounded icon only, incl. p-button-sm / -lg via buttonStyleClass) is sized by button.css */
+.p-speeddial-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    width: var(--p-button-sm-icon-only-width);
+    height: var(--p-button-sm-icon-only-width);
+    font-size: var(--p-button-sm-font-size);
+    background: var(--p-button-secondary-background);
+    color: var(--p-button-secondary-color);
+    border: 1px solid var(--p-button-secondary-border-color);
+    outline-color: transparent;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background var(--p-speeddial-transition-duration), color var(--p-speeddial-transition-duration),
+        border-color var(--p-speeddial-transition-duration), outline-color var(--p-speeddial-transition-duration),
+        box-shadow var(--p-speeddial-transition-duration);
+
+    .p-speeddial-action-icon {
+        font-size: var(--p-button-sm-font-size);
+    }
+
+    /* actions are icon only, an empty label must not take space */
+    .p-menuitem-text:empty {
+        display: none;
+    }
+
+    &:not(.p-disabled):hover {
+        background: var(--p-button-secondary-hover-background);
+        color: var(--p-button-secondary-hover-color);
+        border-color: var(--p-button-secondary-hover-border-color);
+    }
+
+    &:not(.p-disabled):active {
+        background: var(--p-button-secondary-active-background);
+        color: var(--p-button-secondary-active-color);
+        border-color: var(--p-button-secondary-active-border-color);
+    }
+
+    &:focus-visible {
+        outline: var(--p-button-focus-ring-width) var(--p-button-focus-ring-style) var(--p-button-secondary-focus-ring-color);
+        outline-offset: var(--p-button-focus-ring-offset);
+        box-shadow: var(--p-button-secondary-focus-ring-shadow);
+    }
+}
+
+/* disabled: the whole speeddial (disabled="true") or a single action (menuitem disabled) */
+.p-speeddial.p-disabled .p-speeddial-button,
+.p-speeddial-action.p-disabled {
+    opacity: var(--p-disabled-opacity);
+    cursor: default;
+}
+
+.p-speeddial-button.p-speeddial-rotate .p-button-icon-left {
+    transition-duration: var(--p-speeddial-rotate-duration);
+    transition-timing-function: var(--p-transition-easing);
+    transition-property: opacity, transform;
+}
+
+.p-speeddial-mask {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    background-color: var(--p-mask-background);
+    border-radius: var(--p-content-border-radius);
+    transition: opacity var(--p-speeddial-mask-hide-duration) var(--p-transition-easing-exit);
+}
+
+.p-speeddial-mask-visible {
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity var(--p-speeddial-mask-show-duration) var(--p-transition-easing-enter);
+}
+
+/* after the .p-speeddial rules: the opened state wins over them */
+.p-speeddial-opened {
+    &.p-speeddial {
+        z-index: 2;
+    }
+
+    .p-speeddial-list {
+        pointer-events: auto;
+    }
+
+    .p-speeddial-item {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .p-speeddial-rotate .p-button-icon-left {
+        transform: rotate(45deg);
+    }
+
+    .p-speeddial-dual-icon .p-button-icon-left {
+        opacity: 0;
+    }
+
+    .p-button-icon-left + .p-button-icon-left,
+    .p-speeddial-button .p-button-icon-left + .p-button-icon-left {
+        opacity: 1;
+    }
+
+    .p-speeddial-rotate.p-speeddial-dual-icon .p-button-icon-left {
+        transform: rotate(90deg);
+    }
+
+    .p-speeddial-rotate .p-button-icon-left + .p-button-icon-left {
+        transform: rotate(0deg);
+    }
+}
+
+/* direction */
+.p-speeddial-direction-up {
+    align-items: center;
+    flex-direction: column-reverse;
+
+    .p-speeddial-list {
+        flex-direction: column-reverse;
+    }
+
+    .p-speeddial-item {
+        margin: calc(var(--p-speeddial-gap) / 2) 0;
+
+        &:first-child {
+            margin-bottom: var(--p-speeddial-gap);
+        }
+    }
+}
+
+.p-speeddial-direction-down {
+    align-items: center;
+    flex-direction: column;
+
+    .p-speeddial-list {
+        flex-direction: column;
+    }
+
+    .p-speeddial-item {
+        margin: calc(var(--p-speeddial-gap) / 2) 0;
+
+        &:first-child {
+            margin-top: var(--p-speeddial-gap);
+        }
+    }
+}
+
+.p-speeddial-direction-left {
+    justify-content: center;
+    flex-direction: row-reverse;
+
+    .p-speeddial-list {
+        flex-direction: row-reverse;
+    }
+
+    .p-speeddial-item {
+        margin: 0 calc(var(--p-speeddial-gap) / 2);
+
+        &:first-child {
+            margin-right: var(--p-speeddial-gap);
+        }
+    }
+}
+
+.p-speeddial-direction-right {
+    justify-content: center;
+    flex-direction: row;
+
+    .p-speeddial-list {
+        flex-direction: row;
+    }
+
+    .p-speeddial-item {
+        margin: 0 calc(var(--p-speeddial-gap) / 2);
+
+        &:first-child {
+            margin-left: var(--p-speeddial-gap);
+        }
+    }
+}
+
+/* circle types: the widget positions the items, after the direction margins */
+.p-speeddial-circle,
+.p-speeddial-semi-circle,
+.p-speeddial-quarter-circle {
+    .p-speeddial-item {
+        position: absolute;
+        margin: 0;
+    }
+
+    .p-speeddial-item:first-child {
+        margin: 0;
+    }
+}

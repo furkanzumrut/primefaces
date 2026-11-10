@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app
+        xmlns="https://jakarta.ee/xml/ns/jakartaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+        version="6.0">
+
+    <session-config>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+        <tracking-mode>COOKIE</tracking-mode>
+    </session-config>
+
+   <!-- Load custom tag into Faces web application -->
+    <context-param>
+        <param-name>jakarta.faces.FACELETS_LIBRARIES</param-name>
+        <param-value>/WEB-INF/showcase.taglib.xml</param-value>
+    </context-param>
+
+    <welcome-file-list>
+        <welcome-file>index</welcome-file>
+        <welcome-file>index.xhtml</welcome-file>
+    </welcome-file-list>
+
+    <context-param>
+        <param-name>jakarta.faces.STATE_SAVING_METHOD</param-name>
+        <param-value>server</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jakarta.faces.PROJECT_STAGE</param-name>
+        <param-value>${faces.project.stage}</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jakarta.faces.DATETIMECONVERTER_DEFAULT_TIMEZONE_IS_SYSTEM_TIMEZONE</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jakarta.faces.INTERPRET_EMPTY_STRING_SUBMITTED_VALUES_AS_NULL</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jakarta.faces.AUTOMATIC_EXTENSIONLESS_MAPPING</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>primefaces.PRIVATE_CAPTCHA_KEY</param-name>
+        <param-value>6Lf2XQkTAAAAAHsc1-7Mt_kMlmcmGqlxoMDJlp2K</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.PUBLIC_CAPTCHA_KEY</param-name>
+        <param-value>6Lf2XQkTAAAAANcvOwYqPxWL4iZDksFqHpS39GDA</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.CLIENT_SIDE_VALIDATION</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.THEME</param-name>
+        <param-value>glass</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.DIR</param-name>
+        <param-value>#{app.localeDir}</param-value>
+    </context-param>
+    <!-- preset and direction of the theme configurator (cookies), its other settings before the first paint -->
+    <context-param>
+        <param-name>primefaces.THEME_CONFIGURATOR</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.MOVE_SCRIPTS_TO_BOTTOM</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.CSP</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.TRANSFORM_METADATA</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.COOKIES_SAME_SITE</param-name>
+        <param-value>Strict</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.CACHE_PROVIDER</param-name>
+        <param-value>org.primefaces.showcase.util.EHCache3Provider</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.FLEX</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.MULTI_VIEW_STATE_STORE</param-name>
+        <param-value>client-window</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>com.sun.faces.numberOfViewsInSession</param-name>
+        <param-value>5</param-value>
+    </context-param>
+    <context-param>
+        <param-name>org.apache.myfaces.NUMBER_OF_VIEWS_IN_SESSION</param-name>
+        <param-value>5</param-value>
+    </context-param>
+    <context-param>
+        <param-name>org.apache.myfaces.NUMBER_OF_SEQUENTIAL_VIEWS_IN_SESSION</param-name>
+        <param-value>2</param-value>
+    </context-param>
+    <context-param>
+        <param-name>org.apache.myfaces.CHECK_ID_PRODUCTION_MODE</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    <context-param>
+        <param-name>org.apache.myfaces.EARLY_FLUSH_ENABLED</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+<!--    <listener>-->
+<!--        <listener-class>${cdiListener}</listener-class>-->
+<!--    </listener>-->
+    <listener>
+        <listener-class>${facesListener}</listener-class>
+    </listener>
+
+    <!--
+        Declared here instead of with @WebFilter, because the servlet spec leaves the order of annotated filters
+        undefined and these two have to run in this order: the statistics must also see the requests which the
+        BotFilter then rejects, otherwise the totals no longer show what the limiting saves.
+    -->
+    <filter>
+        <filter-name>Request Stats Filter</filter-name>
+        <filter-class>org.primefaces.showcase.util.RequestStatsFilter</filter-class>
+        <async-supported>true</async-supported>
+    </filter>
+    <filter-mapping>
+        <filter-name>Request Stats Filter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Bot Filter</filter-name>
+        <filter-class>org.primefaces.showcase.util.BotFilter</filter-class>
+        <async-supported>true</async-supported>
+    </filter>
+    <filter-mapping>
+        <filter-name>Bot Filter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Character Encoding Filter</filter-name>
+        <filter-class>org.primefaces.webapp.filter.CharacterEncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>Character Encoding Filter</filter-name>
+        <servlet-name>Faces Servlet</servlet-name>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>No Cache Filter</filter-name>
+        <filter-class>org.primefaces.webapp.filter.NoCacheFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>No Cache Filter</filter-name>
+        <servlet-name>Faces Servlet</servlet-name>
+    </filter-mapping>
+
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/error</location>
+    </error-page>
+    <error-page>
+        <exception-type>jakarta.faces.application.ViewExpiredException</exception-type>
+        <location>/viewExpired</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/error</location>
+    </error-page>
+
+    <servlet>
+        <servlet-name>Faces Servlet</servlet-name>
+        <servlet-class>jakarta.faces.webapp.FacesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FileUpload Resume Servlet</servlet-name>
+        <servlet-class>org.primefaces.webapp.FileUploadChunksServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FileUpload Resume Servlet</servlet-name>
+        <url-pattern>/file/resume/</url-pattern>
+    </servlet-mapping>
+</web-app>

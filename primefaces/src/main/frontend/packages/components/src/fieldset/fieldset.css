@@ -1,0 +1,80 @@
+/*
+ * Fieldset: p:fieldset
+ *
+ * States: p-fieldset-toggleable, p-state-hover on the legend (set by the widget)
+ */
+
+/* the toggleable legend is focusable (tabindex); keyboard focus ring below */
+.p-fieldset-toggleable .p-fieldset-legend {
+    outline: 0;
+}
+
+.p-fieldset {
+    margin: 0;
+    padding: var(--p-fieldset-padding);
+    background: var(--p-fieldset-background);
+    color: var(--p-fieldset-color);
+    border: 1px solid var(--p-fieldset-border-color);
+    border-radius: var(--p-fieldset-border-radius);
+
+    .p-fieldset-legend {
+        display: flex;
+        align-items: center;
+        gap: var(--p-fieldset-legend-gap);
+        padding: var(--p-fieldset-legend-padding);
+        font-size: var(--p-fieldset-legend-font-size);
+        font-weight: var(--p-fieldset-legend-font-weight);
+        background: var(--p-fieldset-legend-background);
+        color: var(--p-fieldset-legend-color);
+        border-style: solid;
+        border-width: var(--p-fieldset-legend-border-width);
+        border-color: var(--p-fieldset-legend-border-color);
+        border-radius: var(--p-fieldset-legend-border-radius);
+        -webkit-user-select: none;
+        user-select: none;
+        outline-color: transparent;
+        transition: background var(--p-fieldset-transition-duration), color var(--p-fieldset-transition-duration),
+            outline-color var(--p-fieldset-transition-duration), box-shadow var(--p-fieldset-transition-duration);
+    }
+
+    &.p-fieldset-toggleable .p-fieldset-legend {
+        cursor: pointer;
+    }
+
+    .p-fieldset-legend {
+        .p-fieldset-toggler {
+            color: var(--p-fieldset-toggle-icon-color);
+            transition: color var(--p-fieldset-transition-duration);
+        }
+
+        .p-fieldset-toggle-icon {
+            --_icon: var(--p-fieldset-toggle-expanded-icon);
+        }
+
+        &[aria-expanded="false"] .p-fieldset-toggle-icon {
+            --_icon: var(--p-fieldset-toggle-collapsed-icon);
+        }
+    }
+
+    .p-fieldset-legend.p-state-hover,
+    &.p-fieldset-toggleable .p-fieldset-legend:hover {
+        background: var(--p-fieldset-legend-hover-background);
+        color: var(--p-fieldset-legend-hover-color);
+    }
+
+    .p-fieldset-legend.p-state-hover .p-fieldset-toggler,
+    &.p-fieldset-toggleable .p-fieldset-legend:hover .p-fieldset-toggler {
+        color: var(--p-fieldset-toggle-icon-hover-color);
+    }
+
+    /* keyboard only (the widget also sets p-state-focus on mouse focus) */
+    .p-fieldset-legend:focus-visible {
+        outline: var(--p-fieldset-legend-focus-ring-width) var(--p-fieldset-legend-focus-ring-style) var(--p-fieldset-legend-focus-ring-color);
+        outline-offset: var(--p-fieldset-legend-focus-ring-offset);
+        box-shadow: var(--p-fieldset-legend-focus-ring-shadow);
+    }
+
+    .p-fieldset-content {
+        padding: var(--p-fieldset-content-padding);
+    }
+}

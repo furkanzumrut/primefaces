@@ -1,0 +1,150 @@
+/*
+ * MegaMenu: p:megaMenu (.p-megamenu, .p-megamenu-vertical)
+ *
+ * The megamenu also carries .p-menubar: the common .p-menu and .p-menubar rules are in menu/menu.base.css
+ * (bundled before this file, so the megamenu tokens below override the menubar ones).
+ * Submenu overlay: .p-menu-child > table > tbody > tr > td (column) > ul.p-menu-list > li.p-widget-header > span.
+ */
+.p-megamenu {
+    > .p-menu-list > .p-menuitem-selected > .p-menuitem-link {
+        text-decoration: underline;
+        text-underline-offset: 0.25em;
+        text-decoration-thickness: 0.125em;
+    }
+
+    td {
+        vertical-align: top;
+    }
+
+    .p-widget-header span {
+        display: block;
+    }
+}
+
+/* PrimeUIX min-width 12.5rem (only without an inline width, see menu/menu.base.css) */
+.p-megamenu-vertical {
+    width: fit-content;
+
+    &:not([style*="width"]) {
+        min-width: 12.5rem;
+    }
+
+    .p-menu-parent {
+        clear: both;
+        width: 100%;
+    }
+}
+
+.p-menu.p-megamenu {
+    --_bg: var(--p-megamenu-background);
+    --_border-color: var(--p-megamenu-border-color);
+    --_border-radius: var(--p-megamenu-border-radius);
+    --_color: var(--p-megamenu-color);
+    --_list-padding: var(--p-megamenu-submenu-padding);
+    --_list-gap: var(--p-megamenu-submenu-gap);
+    --_transition-duration: var(--p-megamenu-transition-duration);
+    --_item-border-radius: var(--p-megamenu-item-border-radius);
+    --_item-padding: var(--p-megamenu-item-padding);
+    --_item-gap: var(--p-megamenu-item-gap);
+    --_item-color: var(--p-megamenu-item-color);
+    --_item-focus-background: var(--p-megamenu-item-focus-background);
+    --_item-focus-color: var(--p-megamenu-item-focus-color);
+    --_item-active-background: var(--p-megamenu-item-active-background);
+    --_item-active-color: var(--p-megamenu-item-active-color);
+    --_item-icon-color: var(--p-megamenu-item-icon-color);
+    --_item-icon-focus-color: var(--p-megamenu-item-icon-focus-color);
+    --_item-icon-active-color: var(--p-megamenu-item-icon-active-color);
+    --_item-icon-size: var(--p-megamenu-item-icon-size);
+    --_item-label-font-size: var(--p-megamenu-item-label-font-size);
+    --_item-label-font-weight: var(--p-megamenu-item-label-font-weight);
+    --_submenu-icon-color: var(--p-megamenu-submenu-icon-color);
+    --_submenu-icon-focus-color: var(--p-megamenu-submenu-icon-focus-color);
+    --_submenu-icon-size: var(--p-megamenu-submenu-icon-size);
+    --_submenu-icon-active-color: var(--p-megamenu-submenu-icon-active-color);
+    --_separator-border-color: var(--p-megamenu-separator-border-color);
+    --_submenu-label-background: var(--p-megamenu-submenu-label-background);
+    --_submenu-label-color: var(--p-megamenu-submenu-label-color);
+    --_submenu-label-font-size: var(--p-megamenu-submenu-label-font-size);
+    --_submenu-label-font-weight: var(--p-megamenu-submenu-label-font-weight);
+    --_submenu-label-padding: var(--p-megamenu-submenu-label-padding);
+    --_submenu-background: var(--p-megamenu-overlay-background);
+    --_submenu-border-color: var(--p-megamenu-overlay-border-color);
+    --_submenu-border-radius: var(--p-megamenu-overlay-border-radius);
+    --_submenu-padding: var(--p-megamenu-overlay-padding);
+    --_submenu-shadow: var(--p-megamenu-overlay-shadow);
+    --_padding: var(--p-megamenu-horizontal-orientation-padding);
+    --_gap: var(--p-megamenu-horizontal-orientation-gap);
+    --_base-item-padding: var(--p-megamenu-base-item-padding);
+    --_base-item-border-radius: var(--p-megamenu-base-item-border-radius);
+
+    .p-widget-header {
+        margin: 0;
+        width: 100%;
+        background: var(--_submenu-label-background);
+        color: var(--_submenu-label-color);
+        float: none;
+        border: 0 none;
+        padding: var(--_submenu-label-padding);
+        font-weight: var(--_submenu-label-font-weight);
+        font-size: var(--_submenu-label-font-size);
+        border-radius: 0;
+        transition: background var(--_transition-duration), color var(--_transition-duration);
+    }
+
+    /* columns */
+    .p-menu-child .p-menu-list {
+        min-width: 12.5rem;
+    }
+
+    /* root list: no own padding, the container has the orientation padding (--_list-padding is for the columns) */
+    > .p-menu-list {
+        padding: 0;
+    }
+
+    /* overlay: PrimeUIX overlay color, the columns are separated by the overlay gap (padding of each column) */
+    .p-menu-child {
+        color: var(--p-megamenu-overlay-color);
+    }
+
+    .p-menu-list > table > tbody > tr > td {
+        padding: var(--p-megamenu-overlay-gap);
+    }
+
+    /* separator between the submenus of a column (an hr, see MegaMenuRenderer#encodeSubmenuSeparator) */
+    td > hr.p-divider {
+        margin: var(--_list-gap) 0;
+        border: 0 none;
+        border-block-start: 1px solid var(--_separator-border-color);
+    }
+
+    .p-menu-list .p-menuitem-link {
+        border-radius: var(--_item-border-radius);
+    }
+
+    &.p-megamenu-vertical {
+        background: var(--_bg);
+        padding: var(--p-megamenu-vertical-orientation-padding);
+
+        /* bar and root list: column instead of the menubar row */
+        &,
+        > .p-menu-list {
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            gap: var(--p-megamenu-vertical-orientation-gap);
+        }
+
+        > .p-menu-list .p-menuitem {
+            width: 100%;
+
+            > .p-menuitem-link {
+                border-radius: var(--_item-border-radius);
+            }
+        }
+
+        /* no auto margin of the menubar facets in the column (it would right-align them) */
+        > :is(.p-menubar-options, .p-menubar-end) {
+            margin-inline-start: 0;
+        }
+    }
+}

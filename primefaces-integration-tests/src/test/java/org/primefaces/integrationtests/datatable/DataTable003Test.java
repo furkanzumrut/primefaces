@@ -1,0 +1,120 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.integrationtests.datatable;
+
+import org.primefaces.selenium.AbstractPrimePage;
+import org.primefaces.selenium.component.DataTable;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.json.JSONObject;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@Tag("DataTable-sort")
+class DataTable003Test extends AbstractDataTableTest {
+
+    @Test
+    @Order(1)
+    @DisplayName("DataTable: multisort - firstAppeared desc, name asc")
+    void multiSort(Page page) {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertNotNull(dataTable);
+
+        // Act
+        WebElement eltSortFirstAppeared = dataTable.getHeader().getCell(2).getWebElement();
+        WebElement eltSortName = dataTable.getHeader().getCell(1).getWebElement();
+
+        // 1) sort by firstAppeared desc
+        dataTable.sort(2);
+        dataTable.sort(2);
+        assertHeaderSorted(eltSortFirstAppeared, "DESC", 0);
+
+        // 2) additional sort by name asc
+        dataTable.sort(1, true);
+
+        // Assert
+        assertConfiguration(dataTable.getWidgetConfiguration());
+        assertHeaderSorted(eltSortFirstAppeared, "DESC", 1);
+        assertHeaderSorted(eltSortName, "ASC", 2);
+
+        List<ProgrammingLanguage> langsSorted = languages.stream().sorted(new ProgrammingLanguageSorterFirstAppearedDescNameAsc()).collect(Collectors.toList());
+        assertRows(dataTable, langsSorted);
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("DataTable: multisort - firstAppeared desc, name desc")
+    void multiSort2(Page page) {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertNotNull(dataTable);
+
+        // Act
+        WebElement eltSortFirstAppeared = dataTable.getHeader().getCell(2).getWebElement();
+        WebElement eltSortName = dataTable.getHeader().getCell(1).getWebElement();
+
+        // 1) sort by firstAppeared desc
+        dataTable.sort(2);
+        dataTable.sort(2);
+        assertHeaderSorted(eltSortFirstAppeared, "DESC", 0);
+
+        // 2) additional sort by name desc
+        dataTable.sort(1, true);
+        dataTable.sort(1, true);
+
+        // Assert
+        assertConfiguration(dataTable.getWidgetConfiguration());
+        assertHeaderSorted(eltSortFirstAppeared, "DESC", 1);
+        assertHeaderSorted(eltSortName, "DESC", 2);
+
+        List<ProgrammingLanguage> langsSorted = languages.stream().sorted(new ProgrammingLanguageSorterFirstAppearedDescNameDesc())
+                    .collect(Collectors.toList());
+        assertRows(dataTable, langsSorted);
+    }
+
+    private void assertConfiguration(JSONObject cfg) {
+        assertNoJavascriptErrors();
+        assertTrue(cfg.getBoolean("multiSort"));
+        assertFalse(cfg.getBoolean("allowUnsorting"));
+    }
+
+    public static class Page extends AbstractPrimePage {
+        @FindBy(id = "form:datatable")
+        DataTable dataTable;
+
+        @Override
+        public String getLocation() {
+            return "datatable/dataTable003.xhtml";
+        }
+    }
+}

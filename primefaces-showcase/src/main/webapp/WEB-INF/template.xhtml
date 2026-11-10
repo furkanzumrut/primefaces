@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:p="primefaces"
+      xmlns:pc="jakarta.faces.composite/primefaces"
+      xmlns:sc="primefaces.showcase"
+      lang="#{p:language()}" xml:lang="#{p:language()}" data-preset="#{p:theme()}" dir="#{p:dir()}">
+
+    <h:head>
+        <f:facet name="first">
+            <ui:fragment rendered="#{facesContext.application.projectStage eq 'Production'}">
+                <script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-93461466-1"></script>
+                <script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-93461466-1');
+                </script>
+            </ui:fragment>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <meta name="mobile-web-app-capable" content="yes"/>
+            <link href="#{resource['showcase:images/favicon-32x32.png']}" rel="icon" type="image/png" sizes="32x32"/>
+            <link href="#{resource['showcase:images/favicon-16x16.png']}" rel="icon" type="image/png" sizes="16x16"/>
+        </f:facet>
+        <title>PrimeFaces Showcase</title>
+        <!-- data-dark for the code highlighting, before the first paint: not moved to the bottom -->
+        <script src="#{resource['theming:scheme.js']}" data-p-no-move="true"></script>
+
+        <h:outputStylesheet name="primeflex/4.0.0/primeflex.min.css" library="webjars" />
+        <h:outputStylesheet name="css/flags/flags.css" library="showcase"/>
+        <!-- maps the variables of the showcase layout to the tokens of the theme -->
+        <h:outputStylesheet name="theming/showcase.css"/>
+
+        <h:outputScript name="jquery/jquery.js" library="primefaces"/>
+        <h:outputScript name="locales/locale-#{app.locale.language}.js" library="primefaces"/>
+
+        <ui:insert name="head"/>
+        
+    </h:head>
+
+    <h:body>
+        <f:view locale="#{app.locale.locale}">
+        <div class="layout-wrapper">
+            <ui:fragment rendered="false">
+                <div class="layout-news">
+                    <div class="layout-news-container">
+                        <h:graphicImage name="showcase/images/news/topbar-newyear-logo.svg" alt="News" styleClass="layout-news-logo ml-2" />
+                        <h3 class="layout-news-header px-2"><span>UP TO 50% DISCOUNT AT PRIMESTORE</span></h3>
+                        <a href="https://www.primefaces.org/store" target="_blank" rel="noopener noreferrer" class="layout-news-button">
+                            VISIT STORE
+                        </a>
+                        <a tabindex="0" class="layout-news-close">
+                            <i class="pi pi-times"></i>
+                        </a>
+                    </div>
+                </div>
+            </ui:fragment>
+            
+            <ui:include src="./topbar.xhtml"></ui:include>
+            <!-- theme configurator of PrimeFaces: palette button at the right edge + overlay -->
+            <pc:themeConfigurator id="themeConfigurator"/>
+            <div class="layout-mask"></div>
+
+            <div class="layout-shell">
+                <ui:include src="./menu.xhtml"></ui:include>
+
+                <div class="layout-content">
+                    <ui:insert name="content">
+                        <ui:insert name="introduction">
+                            <div class="content-section introduction">
+                                <div class="feature-intro">
+                                    <h1><ui:insert name="title"></ui:insert></h1>
+                                    <p><ui:insert name="description"></ui:insert></p>
+                                </div>
+                            </div>
+                        </ui:insert>
+
+                        <ui:include src="./submenu.xhtml">
+                            <ui:param name="documentationLink" value="#{documentationLink}" />
+                            <ui:param name="widgetLink" value="#{widgetLink}" />
+                            <ui:param name="tagName" value="#{tagName}" />
+                            <ui:param name="primefacesClientApiLink" value="#{primefacesClientApiLink}" />
+                        </ui:include>
+
+                        <div class="content-section implementation">
+                            <ui:insert name="implementation"></ui:insert>
+                        </div>
+                        <div class="content-section documentation">
+                            <ui:insert name="static-documentation"/>
+                            <ui:insert name="source">
+                                <h2>Usage</h2>
+                                <div class="card">
+                                    <sc:tabscode
+                                            value="#{sc:getFilesContent(facesContext.externalContext.requestServletPath, true)}">
+                                        <ui:insert name="more-source-tabs"/>
+                                    </sc:tabscode>
+                                </div>
+                            </ui:insert>
+                        </div>
+                    </ui:insert>
+                    <p:ajaxExceptionHandler type="jakarta.faces.application.ViewExpiredException" update="viewExpiredDialog" onexception="PF('viewExpiredDialog').show();" />
+                    <p:dialog id="viewExpiredDialog" header="Session expired" widgetVar="viewExpiredDialog" height="500px" onShow="document.location.href = document.location.href;">
+                        <h3>Reloading page</h3>
+                        Message: #{pfExceptionHandler.message} <br/>
+                        StackTrace: <h:outputText value="#{pfExceptionHandler.formattedStackTrace}" escape="false" />
+                    </p:dialog>
+                </div>
+            </div>
+
+            <ui:include src="./footer.xhtml"></ui:include>
+        </div>
+
+        <ui:insert name="status">
+            <p:ajaxStatus styleClass="status-indicator">
+                <f:facet name="start">
+                    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                </f:facet>
+
+                <f:facet name="complete">
+                    <h:outputText value=""/>
+                </f:facet>
+            </p:ajaxStatus>
+        </ui:insert>
+
+        <ui:insert name="body"></ui:insert>
+
+        <h:outputStylesheet name="css/layout/layout.css" library="showcase"/>
+        <h:outputScript name="script/layout.js" library="showcase" />
+        <h:outputScript name="script/marked.min.js" library="showcase" />
+        <h:outputScript name="script/purify.min.js" library="showcase" />
+        <h:outputScript name="script/shiki-highlight.js" library="showcase" />
+        </f:view>
+    </h:body>
+
+</html>

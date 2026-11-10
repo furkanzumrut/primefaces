@@ -1,0 +1,719 @@
+/*
+ * TreeTable: p:treeTable
+ *
+ * Supported classes: p-treetable-gridlines, p-treetable-striped, p-treetable-sm, p-treetable-lg, p-treetable-scrollable,
+ *                    p-treetable-resizable, p-treetable-reflow, p-treetable-checkbox-all
+ * States (set by the widget): th.p-state-hover / p-state-active (sorted) / p-state-focus,
+ *                             tr.p-state-hover / p-state-highlight (selected) / p-treetable-partialselected / p-row-editing,
+ *                             td.p-cell-editing
+ */
+.p-treetable {
+    /* header / footer facets */
+    .p-treetable-header {
+        background: var(--p-treetable-header-background);
+        color: var(--p-treetable-header-color);
+        border: 1px solid var(--p-treetable-header-border-color);
+        border-width: var(--p-treetable-header-border-width);
+        padding: var(--p-treetable-header-padding);
+        font-weight: var(--p-treetable-header-font-weight);
+        text-align: start;
+    }
+
+    .p-treetable-footer {
+        background: var(--p-treetable-footer-background);
+        color: var(--p-treetable-footer-color);
+        border: 1px solid var(--p-treetable-footer-border-color);
+        border-width: var(--p-treetable-footer-border-width);
+        padding: var(--p-treetable-footer-padding);
+        font-weight: var(--p-treetable-footer-font-weight);
+        text-align: start;
+    }
+
+    .p-paginator {
+        padding: var(--p-paginator-padding);
+
+        &.p-paginator-top {
+            border-style: solid;
+            border-color: var(--p-treetable-paginator-top-border-color);
+            border-width: var(--p-treetable-paginator-top-border-width);
+            border-radius: 0;
+        }
+
+        &.p-paginator-bottom {
+            border-style: solid;
+            border-color: var(--p-treetable-paginator-bottom-border-color);
+            border-width: var(--p-treetable-paginator-bottom-border-width);
+            border-radius: 0;
+        }
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    thead th,
+    tbody td,
+    tfoot td {
+        overflow: hidden;
+        white-space: nowrap;
+        border-style: solid;
+    }
+
+    /* column headers */
+    thead th {
+        background: var(--p-treetable-header-cell-background);
+        color: var(--p-treetable-header-cell-color);
+        padding: var(--p-treetable-header-cell-padding);
+        border: 1px solid var(--p-treetable-header-cell-border-color);
+        border-width: 0 0 1px 0;
+        font-weight: normal;
+        text-align: start;
+        box-sizing: content-box;
+        outline-color: transparent;
+        transition: background var(--p-treetable-transition-duration), color var(--p-treetable-transition-duration),
+            border-color var(--p-treetable-transition-duration), outline-color var(--p-treetable-transition-duration),
+            box-shadow var(--p-treetable-transition-duration);
+
+        .p-column-title {
+            font-weight: var(--p-treetable-column-title-font-weight);
+            font-size: var(--p-treetable-column-title-font-size);
+            vertical-align: middle;
+        }
+
+        .p-sortable-column-icon {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0;
+            margin-inline-start: var(--p-treetable-header-cell-gap);
+            color: var(--p-treetable-sort-icon-color);
+            font-size: var(--p-treetable-sort-icon-size);
+            transition: color var(--p-treetable-transition-duration);
+
+            /* the sort order is the state class of the icon (the widget reads it, aria-sort is on one column only) */
+            &.p-treetable-sort-icon {
+                --_icon: var(--p-treetable-sort-icon);
+            }
+
+            &.p-treetable-sort-asc-icon {
+                --_icon: var(--p-treetable-sort-asc-icon);
+            }
+
+            &.p-treetable-sort-desc-icon {
+                --_icon: var(--p-treetable-sort-desc-icon);
+            }
+        }
+
+        .p-sortable-column-badge {
+            border-radius: var(--p-badge-border-radius);
+            padding: var(--p-badge-padding);
+            height: var(--p-badge-height);
+            min-width: var(--p-badge-min-width);
+            line-height: var(--p-badge-height);
+            color: var(--p-badge-primary-color);
+            background: var(--p-badge-primary-background);
+            margin-inline-start: var(--p-treetable-header-cell-gap);
+            font-size: var(--p-badge-font-size);
+            font-weight: var(--p-badge-font-weight);
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        &.p-sortable-column.p-state-focus,
+        &.p-sortable-column:focus-visible {
+            outline: var(--p-treetable-header-cell-focus-ring-width) var(--p-treetable-header-cell-focus-ring-style) var(--p-treetable-header-cell-focus-ring-color);
+            outline-offset: var(--p-treetable-header-cell-focus-ring-offset);
+            box-shadow: var(--p-treetable-header-cell-focus-ring-shadow);
+        }
+
+        &.p-state-hover {
+            background: var(--p-treetable-header-cell-hover-background);
+            color: var(--p-treetable-header-cell-hover-color);
+
+            .p-sortable-column-icon {
+                color: var(--p-treetable-sort-icon-hover-color);
+            }
+        }
+    }
+
+    /* sorted column (PrimeUIX has no separate hover look for it) */
+    thead th.p-state-active {
+        &,
+        &.p-state-hover {
+            background: var(--p-treetable-header-cell-selected-background);
+            color: var(--p-treetable-header-cell-selected-color);
+        }
+
+        .p-sortable-column-icon {
+            color: var(--p-treetable-header-cell-selected-color);
+        }
+    }
+
+    .p-sortable-column {
+        cursor: pointer;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* multiple sort number badges */
+    .p-sortable-column-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
+
+        &.p-hidden {
+            display: none;
+        }
+    }
+
+    .p-column-filter {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        margin: var(--p-treetable-column-filter-gap) auto auto auto;
+    }
+
+    /* the default filter is the input itself; components of a filter facet fill the column like in p:dataTable */
+    .p-column-customfilter {
+        margin: var(--p-treetable-column-filter-gap) auto auto auto;
+
+        .p-inputfield,
+        .p-selectonemenu {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+    .p-treetable-data tr.p-state-hover {
+        cursor: pointer;
+    }
+
+    /* rows */
+    .p-treetable-data > tr {
+        background: var(--p-treetable-row-background);
+        color: var(--p-treetable-row-color);
+        outline-color: transparent;
+        transition: background var(--p-treetable-transition-duration), color var(--p-treetable-transition-duration),
+            border-color var(--p-treetable-transition-duration), outline-color var(--p-treetable-transition-duration),
+            box-shadow var(--p-treetable-transition-duration);
+
+        > td {
+            padding: var(--p-treetable-body-cell-padding);
+            border: 1px solid var(--p-treetable-body-cell-border-color);
+            border-width: 0 0 1px 0;
+            font-size: var(--p-treetable-body-cell-font-size);
+            font-weight: var(--p-treetable-body-cell-font-weight);
+            text-align: start;
+        }
+
+        &:focus-visible {
+            outline: var(--p-treetable-row-focus-ring-width) var(--p-treetable-row-focus-ring-style) var(--p-treetable-row-focus-ring-color);
+            outline-offset: var(--p-treetable-row-focus-ring-offset);
+            box-shadow: var(--p-treetable-row-focus-ring-shadow);
+        }
+
+        &.p-treetable-empty-message > td {
+            color: var(--p-treetable-empty-message-color);
+        }
+
+        /* node toggler (action icon) */
+        > td .p-treetable-toggler {
+            margin: 0;
+            margin-inline-end: var(--p-treetable-body-cell-gap);
+            width: var(--p-treetable-node-toggle-button-size);
+            height: var(--p-treetable-node-toggle-button-size);
+            background: transparent;
+            color: var(--p-treetable-node-toggle-button-color);
+            border: 0 none;
+            border-radius: var(--p-treetable-node-toggle-button-border-radius);
+            text-align: center;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+            outline-color: transparent;
+            transition: background var(--p-treetable-transition-duration), color var(--p-treetable-transition-duration),
+                outline-color var(--p-treetable-transition-duration), box-shadow var(--p-treetable-transition-duration);
+
+            &:hover {
+                background: var(--p-treetable-node-toggle-button-hover-background);
+                color: var(--p-treetable-node-toggle-button-hover-color);
+                border-color: transparent;
+            }
+
+            &:focus-visible {
+                outline: var(--p-treetable-node-toggle-button-focus-ring-width) var(--p-treetable-node-toggle-button-focus-ring-style) var(--p-treetable-node-toggle-button-focus-ring-color);
+                outline-offset: var(--p-treetable-node-toggle-button-focus-ring-offset);
+                box-shadow: var(--p-treetable-node-toggle-button-focus-ring-shadow);
+            }
+
+            &.p-treetable-toggle-icon {
+                --_icon: var(--p-treetable-toggle-expanded-icon);
+            }
+        }
+
+        /* the state is aria-expanded of the row */
+        &[aria-expanded="false"] > td > .p-treetable-toggle-icon {
+            --_icon: var(--p-treetable-toggle-collapsed-icon);
+
+            &:dir(rtl) {
+                transform: rotate(180deg);
+            }
+        }
+
+        > td .p-chkbox.p-selection {
+            vertical-align: middle;
+            margin: 0;
+            margin-inline-end: var(--p-treetable-body-cell-gap);
+        }
+
+        /* the label is bare text: middle centers on the x-height, the nudge centers on the text (no layout change) */
+        > td > :is(.p-treetable-toggler, .p-chkbox.p-selection) {
+            translate: 0 -0.15em;
+        }
+
+        &.p-state-hover {
+            background: var(--p-treetable-row-hover-background);
+            color: var(--p-treetable-row-hover-color);
+        }
+
+        &.p-state-highlight {
+            background: var(--p-treetable-row-selected-background);
+            color: var(--p-treetable-row-selected-color);
+            cursor: default;
+
+            .p-treetable-toggler {
+                color: inherit;
+            }
+
+            .p-treetable-toggler:hover {
+                background: var(--p-treetable-node-toggle-button-selected-hover-background);
+                color: var(--p-treetable-node-toggle-button-selected-hover-color);
+            }
+        }
+
+        &.p-state-highlight > td,
+        &:has(+ tr.p-state-highlight) > td {
+            border-bottom-color: var(--p-treetable-body-cell-selected-border-color);
+        }
+    }
+
+    .p-treetable-toggler {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .p-treetable-indent {
+        display: inline-block;
+        vertical-align: middle;
+        width: var(--p-treetable-node-indent);
+        height: var(--p-treetable-node-indent);
+    }
+
+    .p-chkbox.p-selection {
+        display: none;
+    }
+
+    .p-treetable-selectable-node .p-chkbox.p-selection {
+        display: inline-flex;
+    }
+
+    &.p-treetable-checkbox-all .p-chkbox.p-selection {
+        display: inline-flex;
+    }
+
+    /* in-cell editing */
+    .p-editable-column .p-cell-editor {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .p-cell-editor-input {
+        display: none;
+    }
+
+    .p-row-editing {
+        .p-cell-editor .p-cell-editor-output {
+            display: none;
+        }
+
+        .p-cell-editor .p-cell-editor-input {
+            display: block;
+        }
+
+        .p-row-editor .p-row-editor-pencil {
+            display: none;
+        }
+
+        .p-row-editor .p-row-editor-check,
+        .p-row-editor .p-row-editor-close {
+            display: inline-flex;
+        }
+    }
+
+    .p-row-editor {
+        span {
+            cursor: pointer;
+        }
+
+        .p-row-editor-pencil {
+            display: inline-flex;
+        }
+
+        .p-row-editor-check,
+        .p-row-editor-close {
+            display: none;
+        }
+    }
+
+    .p-treetable-data tr.p-row-editing td.p-editable-column,
+    .p-treetable-data td.p-cell-editing {
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    /* row editor: a.p-row-editor-pencil / -check / -close > span.p-icon (action icons) */
+    .p-row-editor {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+
+        > a {
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+    }
+
+    .p-treetable-data > tr {
+        .p-row-editor .p-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--p-treetable-node-toggle-button-size);
+            height: var(--p-treetable-node-toggle-button-size);
+            background: transparent;
+            color: var(--p-treetable-node-toggle-button-color);
+            border: 0 none;
+            border-radius: var(--p-treetable-node-toggle-button-border-radius);
+            text-align: center;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+            outline-color: transparent;
+            transition: background var(--p-treetable-transition-duration), color var(--p-treetable-transition-duration),
+                outline-color var(--p-treetable-transition-duration), box-shadow var(--p-treetable-transition-duration);
+        }
+
+        .p-row-editor .p-icon:hover {
+            background: var(--p-treetable-node-toggle-button-hover-background);
+            color: var(--p-treetable-node-toggle-button-hover-color);
+            border-color: transparent;
+        }
+
+        .p-row-editor .p-icon:focus-visible,
+        .p-row-editor a:focus-visible .p-icon {
+            outline: var(--p-treetable-node-toggle-button-focus-ring-width) var(--p-treetable-node-toggle-button-focus-ring-style) var(--p-treetable-node-toggle-button-focus-ring-color);
+            outline-offset: var(--p-treetable-node-toggle-button-focus-ring-offset);
+            box-shadow: var(--p-treetable-node-toggle-button-focus-ring-shadow);
+        }
+
+        .p-row-editor a:focus-visible {
+            outline: 0 none;
+        }
+
+        .p-row-editor .p-treetable-row-edit-icon {
+            --_icon: var(--p-treetable-row-edit-icon);
+        }
+
+        .p-row-editor .p-row-editor-check {
+            margin-inline-end: var(--p-treetable-body-cell-gap);
+        }
+
+        .p-row-editor .p-treetable-row-save-icon {
+            --_icon: var(--p-treetable-row-save-icon);
+        }
+
+        .p-row-editor .p-treetable-row-cancel-icon {
+            --_icon: var(--p-treetable-row-cancel-icon);
+        }
+
+        &.p-state-highlight .p-row-editor .p-icon {
+            color: var(--p-treetable-row-selected-color);
+        }
+
+        &.p-state-highlight .p-row-editor .p-icon:hover {
+            background: var(--p-treetable-node-toggle-button-selected-hover-background);
+            color: var(--p-treetable-node-toggle-button-selected-hover-color);
+        }
+    }
+
+    /* column footers */
+    tfoot td {
+        background: var(--p-treetable-footer-cell-background);
+        border: 1px solid var(--p-treetable-footer-cell-border-color);
+        border-width: 0 0 1px 0;
+        color: var(--p-treetable-footer-cell-color);
+        padding: var(--p-treetable-footer-cell-padding);
+        font-weight: var(--p-treetable-column-footer-font-weight);
+        font-size: var(--p-treetable-column-footer-font-size);
+        text-align: start;
+        box-sizing: content-box;
+    }
+
+    &.p-treetable-scrollable {
+        .p-treetable-scrollable-theadclone tr th > * {
+            display: none;
+        }
+    }
+
+    .p-treetable-scrollable-header {
+        background: var(--p-treetable-header-cell-background);
+    }
+
+    .p-treetable-scrollable-footer {
+        background: var(--p-treetable-footer-cell-background);
+    }
+
+    .p-column-resizer {
+        position: absolute;
+        top: 0;
+        inset-inline-end: 0;
+        width: var(--p-treetable-column-resizer-width);
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        cursor: col-resize;
+        border: 1px solid transparent;
+        box-sizing: border-box;
+    }
+
+    .p-column-resizer-helper {
+        width: var(--p-treetable-resize-indicator-width);
+        position: absolute;
+        z-index: 10;
+        display: none;
+        background: var(--p-treetable-resize-indicator-color);
+    }
+
+    /* striped: :nth-child because expanding / collapsing a node adds and removes rows on the client */
+    &.p-treetable-striped .p-treetable-data > tr:nth-child(even):not(.p-state-hover, .p-state-highlight) {
+        background: var(--p-treetable-row-striped-background);
+    }
+
+    /* sizes */
+    &.p-treetable-sm {
+        .p-treetable-header {
+            padding: var(--p-treetable-header-sm-padding);
+        }
+
+        thead > tr > th {
+            padding: var(--p-treetable-header-cell-sm-padding);
+        }
+
+        .p-treetable-data > tr > td {
+            padding: var(--p-treetable-body-cell-sm-padding);
+        }
+
+        tfoot > tr > td {
+            padding: var(--p-treetable-footer-cell-sm-padding);
+        }
+
+        .p-treetable-footer {
+            padding: var(--p-treetable-footer-sm-padding);
+        }
+    }
+
+    &.p-treetable-lg {
+        .p-treetable-header {
+            padding: var(--p-treetable-header-lg-padding);
+        }
+
+        thead > tr > th {
+            padding: var(--p-treetable-header-cell-lg-padding);
+        }
+
+        .p-treetable-data > tr > td {
+            padding: var(--p-treetable-body-cell-lg-padding);
+        }
+
+        tfoot > tr > td {
+            padding: var(--p-treetable-footer-cell-lg-padding);
+        }
+
+        .p-treetable-footer {
+            padding: var(--p-treetable-footer-lg-padding);
+        }
+    }
+
+    &.p-treetable-sm .p-treetable-scrollable-theadclone > tr > th,
+    &.p-treetable-lg .p-treetable-scrollable-theadclone > tr > th {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    &.p-treetable-gridlines {
+        .p-treetable-header {
+            border-width: 1px 1px 0 1px;
+        }
+
+        .p-treetable-footer {
+            border-width: 0 1px 1px 1px;
+        }
+
+        .p-paginator {
+            &.p-paginator-top {
+                border-width: 1px 1px 0 1px;
+            }
+
+            &.p-paginator-bottom {
+                border-width: 0 1px 1px 1px;
+            }
+        }
+
+        thead > tr > th,
+        .p-treetable-data > tr > td,
+        tfoot > tr > td {
+            border-width: 1px;
+        }
+
+        .p-treetable-scrollable-theadclone > tr > th {
+            padding-top: 0;
+            padding-bottom: 0;
+            border-bottom: 0 none;
+            border-top: 0 none;
+        }
+    }
+}
+
+.p-treetable-scrollable-body {
+    overflow: auto;
+}
+
+.p-treetable-scrollable-header,
+.p-treetable-scrollable-footer {
+    overflow: hidden;
+    border: 0 none;
+}
+
+.p-treetable-scrollable .p-treetable-scrollable-header,
+.p-treetable-scrollable .p-treetable-scrollable-footer {
+    position: relative;
+}
+
+.p-treetable-scrollable-theadclone {
+    height: 0;
+
+    tr {
+        height: 0;
+    }
+
+    th {
+        &.p-state-default {
+            height: 0;
+            border-bottom-width: 0;
+            border-top-width: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            outline: 0 none;
+        }
+
+        span {
+            display: block;
+            height: 0;
+        }
+    }
+}
+
+.p-treetable-resizable {
+    padding-bottom: 1px; /* fix for webkit overflow */
+    overflow: auto;
+
+    th.p-resizable-column {
+        background-clip: padding-box;
+        position: relative;
+    }
+}
+
+.p-treetable-reflow {
+    .p-treetable-data td .p-column-title {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .p-treetable-reflow thead th,
+    .p-treetable-reflow tfoot td {
+        display: none;
+    }
+
+    /* keep column filters usable in reflow mode: stack the filterable header cells instead of hiding the whole thead */
+    .p-treetable-reflow {
+        thead th.p-filter-column {
+            box-sizing: border-box;
+            display: block;
+            float: inline-start;
+            clear: inline-start;
+            width: 100% !important;
+            border: 0 none;
+            text-align: start;
+
+            .p-column-title {
+                display: block;
+                font-weight: var(--p-treetable-reflow-title-font-weight);
+                margin: 0 0 var(--p-treetable-reflow-gap) 0;
+                padding: 0;
+            }
+
+            .p-sortable-column-icon,
+            .p-sortable-column-badge,
+            .p-column-resizer {
+                display: none;
+            }
+
+            .p-column-filter,
+            .p-column-customfilter {
+                display: block;
+                box-sizing: border-box;
+                width: 100% !important;
+                margin: 0;
+            }
+        }
+
+        .p-treetable-data {
+            td {
+                text-align: start;
+                display: block;
+                border: 0 none;
+                width: 100%;
+                box-sizing: border-box;
+                float: inline-start;
+                clear: inline-start;
+            }
+
+            &.p-widget-content {
+                border: 0 none;
+            }
+
+            tr.p-widget-content {
+                border-left: 0 none;
+                border-right: 0 none;
+            }
+
+            td .p-column-title {
+                display: inline-block;
+                min-width: 30%;
+                margin: 0;
+                margin-inline-end: var(--p-treetable-reflow-gap);
+                padding: 0;
+                font-weight: var(--p-treetable-reflow-title-font-weight);
+            }
+        }
+    }
+}

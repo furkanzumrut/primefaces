@@ -1,0 +1,137 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.integrationtests.dataexporter;
+
+import org.primefaces.selenium.AbstractPrimePage;
+import org.primefaces.selenium.component.CommandButton;
+import org.primefaces.selenium.component.DataTable;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.support.FindBy;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class DataExporter001Test extends AbstractDataExporterTest {
+
+    @Test
+    @Order(1)
+    @DisplayName("Exporter: CSV download")
+    @Tag("SafariExclude")
+    @Tag("FirefoxExclude")
+    void csv(Page page) throws IOException {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertEquals(5, dataTable.getRows().size());
+
+        // Act & Assert
+        assertDownload("languages.csv", page.buttonCsv);
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Exporter: XML download")
+    @Tag("SafariExclude")
+    @Tag("FirefoxExclude")
+    void xml(Page page) throws IOException {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertEquals(5, dataTable.getRows().size());
+
+        // Act & Assert
+        assertDownload("languages.xml", page.buttonXml);
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Exporter: TXT download")
+    @Tag("SafariExclude")
+    @Tag("FirefoxExclude")
+    void txt(Page page) throws IOException {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertEquals(5, dataTable.getRows().size());
+
+        // Act & Assert
+        assertDownload("languages.txt", page.buttonTxt);
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Exporter: XLSX download")
+    @Tag("SafariExclude")
+    @Tag("FirefoxExclude")
+    void xlsx(Page page) throws IOException {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertEquals(5, dataTable.getRows().size());
+
+        // Act & Assert
+        assertDownload("languages.xlsx", page.buttonXlsx);
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Exporter: PDF download")
+    @Tag("SafariExclude")
+    @Tag("FirefoxExclude")
+    void pdf(Page page) throws IOException {
+        // Arrange
+        DataTable dataTable = page.dataTable;
+        assertEquals(5, dataTable.getRows().size());
+
+        // Act & Assert
+        assertDownload("languages.pdf", page.buttonPdf);
+    }
+
+    public static class Page extends AbstractPrimePage {
+
+        @FindBy(id = "form:datatable")
+        DataTable dataTable;
+
+        @FindBy(id = "form:buttonXlsx")
+        CommandButton buttonXlsx;
+
+        @FindBy(id = "form:buttonPdf")
+        CommandButton buttonPdf;
+
+        @FindBy(id = "form:buttonCsv")
+        CommandButton buttonCsv;
+
+        @FindBy(id = "form:buttonXml")
+        CommandButton buttonXml;
+
+        @FindBy(id = "form:buttonTxt")
+        CommandButton buttonTxt;
+
+        @Override
+        public String getLocation() {
+            return "dataexporter/dataExporter001.xhtml";
+        }
+    }
+}

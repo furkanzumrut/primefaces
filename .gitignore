@@ -1,1 +1,68 @@
 /target/
+**/target/**
+**/target-ide/**
+.settings/
+nbactions.xml
+**/dynamichart
+.DS_STORE
+/.idea/*
+!/.idea/codeStyles
+*.iml
+**/pom.xml.versionsBackup
+*~
+.classpath
+.
+.project
+.vscode
+.checkstyle
+.factorypath
+nb-configuration.xml
+faces-config.NavData
+dependency-reduced-pom.xml
+
+# Snapshots taken by photocam when running the showcase
+primefaces-showcase/src/main/webapp/resources/demo/images/photocam/*.jpg
+primefaces-showcase/src/main/webapp/resources/demo/images/photocam/*.jpeg
+primefaces-showcase/src/main/webapp/resources/demo/images/photocam/*.png
+
+# Selenium Drivers
+*.exe
+
+# Created by https://www.gitignore.io/api/node
+# Edit at https://www.gitignore.io/?templates=node
+
+### Node ###
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# End of https://www.gitignore.io/api/node
+/primefaces-showcase/target/
+/primefaces-cli/target/
+/primefaces/target/
+/primefaces-selenium/target/
+/primefaces-selenium/primefaces-selenium-core/target/
+/primefaces-selenium/primefaces-selenium-components/target/
+/primefaces-integration-tests/target/
+/primefaces-coverage/target/
+/primefaces-cdk/target/
+/.claude/launch.json

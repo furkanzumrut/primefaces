@@ -1,0 +1,238 @@
+/*
+ * PanelMenu: p:panelMenu
+ *
+ * Markup: .p-panelmenu > .p-panelmenu-panel
+ *           > h3.p-panelmenu-header (p-state-active when expanded, p-state-hover, p-menuitem-outline when focused)
+ *             > span.p-panelmenu-header-icon (toggle) + span.p-submenu-icon (submenu icon, optional) + a (label)
+ *           + .p-panelmenu-content (p-hidden when collapsed) > ul.p-menu-list
+ *             > li.p-menuitem > a.p-menuitem-link (p-state-hover) > span.p-menuitem-icon + span.p-menuitem-text
+ *               (p-menuitem-outline on the text = keyboard / click focus)
+ *             > li.p-menu-parent > a.p-menuitem-link > .p-panelmenu-submenu-icon (toggle) + span.p-submenu-icon
+ *               + span.p-menuitem-text[aria-expanded]
+ *               + ul.p-menu-list (p-hidden when collapsed)
+ * Like PrimeUIX: separate bordered panels with a gap, the headers look like items.
+ */
+.p-panelmenu {
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-panelmenu-gap);
+
+    .p-panelmenu-panel {
+        margin: 0;
+        background: var(--p-panelmenu-panel-background);
+        color: var(--p-panelmenu-panel-color);
+        border-style: solid;
+        border-width: var(--p-panelmenu-panel-border-width);
+        border-color: var(--p-panelmenu-panel-border-color);
+        border-radius: var(--p-panelmenu-panel-border-radius);
+        padding: var(--p-panelmenu-panel-padding);
+
+        &:first-child {
+            border-width: var(--p-panelmenu-panel-first-border-width);
+            border-start-start-radius: var(--p-panelmenu-panel-first-top-border-radius);
+            border-start-end-radius: var(--p-panelmenu-panel-first-top-border-radius);
+        }
+
+        &:last-child {
+            border-width: var(--p-panelmenu-panel-last-border-width);
+            border-end-start-radius: var(--p-panelmenu-panel-last-bottom-border-radius);
+            border-end-end-radius: var(--p-panelmenu-panel-last-bottom-border-radius);
+        }
+    }
+
+    .p-panelmenu-header {
+        cursor: pointer;
+        position: relative;
+        margin: 0;
+
+        &.p-state-disabled,
+        &.p-state-disabled a {
+            cursor: default;
+        }
+    }
+
+    /* header: looks like an item */
+    h3.p-panelmenu-header {
+        display: flex;
+        align-items: center;
+        gap: var(--p-panelmenu-item-gap);
+        padding: var(--p-panelmenu-item-padding);
+        background: transparent;
+        color: var(--p-panelmenu-item-color);
+        border: 0 none;
+        border-radius: var(--p-panelmenu-item-border-radius);
+        font-size: var(--p-panelmenu-item-label-font-size);
+        font-weight: var(--p-panelmenu-item-label-font-weight);
+        -webkit-user-select: none;
+        user-select: none;
+        /* also hides the p-menuitem-outline the widget sets on every focus (click too), :focus-visible marks keyboard focus */
+        outline: 0 none;
+        transition: background var(--p-panelmenu-transition-duration), color var(--p-panelmenu-transition-duration),
+            outline-color var(--p-panelmenu-transition-duration), box-shadow var(--p-panelmenu-transition-duration);
+
+        a {
+            display: block;
+            flex: 1 1 auto;
+            padding: 0;
+            outline: 0 none;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        :is(.p-menuitem-icon, .p-submenu-icon) {
+            color: var(--p-panelmenu-item-icon-color);
+            font-size: var(--p-panelmenu-item-icon-size);
+        }
+
+        /* toggle icon */
+        .p-panelmenu-header-icon {
+            --_icon: var(--p-panelmenu-header-collapsed-icon);
+            font-size: var(--p-panelmenu-item-icon-size);
+            color: var(--p-panelmenu-submenu-icon-color);
+        }
+
+        &.p-state-active .p-panelmenu-header-icon {
+            --_icon: var(--p-panelmenu-header-expanded-icon);
+        }
+
+        /* the collapsed icon points to the start */
+        &:not(.p-state-active) .p-panelmenu-header-icon:dir(rtl) {
+            scale: -1 1;
+        }
+
+        &:not(.p-state-disabled):hover,
+        &.p-state-hover,
+        &:not(.p-state-disabled):focus-visible,
+        &:not(.p-state-disabled):has(> a:focus-visible) {
+            background: var(--p-panelmenu-item-focus-background);
+            color: var(--p-panelmenu-item-focus-color);
+        }
+
+        &:not(.p-state-disabled):hover :is(.p-menuitem-icon, .p-submenu-icon),
+        &.p-state-hover :is(.p-menuitem-icon, .p-submenu-icon),
+        &:not(.p-state-disabled):focus-visible :is(.p-menuitem-icon, .p-submenu-icon),
+        &:not(.p-state-disabled):has(> a:focus-visible) :is(.p-menuitem-icon, .p-submenu-icon) {
+            color: var(--p-panelmenu-item-icon-focus-color);
+        }
+
+        &:not(.p-state-disabled):hover .p-panelmenu-header-icon,
+        &.p-state-hover .p-panelmenu-header-icon,
+        &:not(.p-state-disabled):focus-visible .p-panelmenu-header-icon,
+        &:not(.p-state-disabled):has(> a:focus-visible) .p-panelmenu-header-icon {
+            color: var(--p-panelmenu-submenu-icon-focus-color);
+        }
+    }
+
+    .p-panelmenu-content {
+        position: relative;
+        overflow: auto;
+        outline: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+        color: inherit;
+        border: 0 none;
+    }
+
+    .p-menu-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        .p-menu-list {
+            padding: 0;
+            padding-inline-start: var(--p-panelmenu-submenu-indent);
+            margin: 0;
+        }
+    }
+
+    .p-menuitem {
+        margin: 0;
+        padding: 0;
+    }
+
+    .p-menuitem-link {
+        outline: none;
+        text-decoration: none;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .p-panelmenu-content .p-menuitem-link {
+        display: flex;
+        align-items: center;
+        gap: var(--p-panelmenu-item-gap);
+        padding: var(--p-panelmenu-item-padding);
+        color: var(--p-panelmenu-item-color);
+        border: 0 none;
+        border-radius: var(--p-panelmenu-item-border-radius);
+        line-height: inherit;
+        -webkit-user-select: none;
+        user-select: none;
+        overflow: hidden;
+        outline-color: transparent;
+        transition: background var(--p-panelmenu-transition-duration), color var(--p-panelmenu-transition-duration),
+            outline-color var(--p-panelmenu-transition-duration), box-shadow var(--p-panelmenu-transition-duration);
+
+        > span:is(.p-menuitem-icon, .p-submenu-icon) {
+            color: var(--p-panelmenu-item-icon-color);
+            font-size: var(--p-panelmenu-item-icon-size);
+        }
+
+        /* submenu toggle icon, the state is the aria-expanded of the label (the focused element) */
+        > .p-panelmenu-submenu-icon {
+            --_icon: var(--p-panelmenu-submenu-collapsed-icon);
+            font-size: var(--p-panelmenu-item-icon-size);
+            color: var(--p-panelmenu-submenu-icon-color);
+        }
+
+        &:has(> .p-menuitem-text[aria-expanded="true"]) > .p-panelmenu-submenu-icon {
+            --_icon: var(--p-panelmenu-submenu-expanded-icon);
+        }
+
+        &:not(:has(> .p-menuitem-text[aria-expanded="true"])) > .p-panelmenu-submenu-icon:dir(rtl) {
+            scale: -1 1;
+        }
+
+        .p-menuitem-text {
+            display: inline-block;
+            font-size: var(--p-panelmenu-item-label-font-size);
+            font-weight: var(--p-panelmenu-item-label-font-weight);
+        }
+
+        /* hover and focused item (the widget puts p-menuitem-outline on the text of the focused item) */
+        &:not(.p-state-disabled):hover,
+        &.p-state-hover,
+        &:has(> .p-menuitem-outline),
+        &:not(.p-state-disabled):focus-visible {
+            background: var(--p-panelmenu-item-focus-background);
+            color: var(--p-panelmenu-item-focus-color);
+        }
+
+        .p-menuitem-text.p-menuitem-outline {
+            outline: 0 none;
+        }
+
+        &:not(.p-state-disabled):hover span:is(.p-menuitem-icon, .p-submenu-icon),
+        &.p-state-hover span:is(.p-menuitem-icon, .p-submenu-icon),
+        &:has(> .p-menuitem-outline) span:is(.p-menuitem-icon, .p-submenu-icon),
+        &:not(.p-state-disabled):focus-visible span:is(.p-menuitem-icon, .p-submenu-icon) {
+            color: var(--p-panelmenu-item-icon-focus-color);
+        }
+
+        &:not(.p-state-disabled):hover span.p-panelmenu-icon,
+        &.p-state-hover span.p-panelmenu-icon,
+        &:has(> .p-menuitem-outline) span.p-panelmenu-icon,
+        &:not(.p-state-disabled):focus-visible span.p-panelmenu-icon {
+            color: var(--p-panelmenu-submenu-icon-focus-color);
+        }
+
+        &:not(.p-state-disabled):hover .p-menuitem-text,
+        &.p-state-hover .p-menuitem-text,
+        &:has(> .p-menuitem-outline) .p-menuitem-text,
+        &:not(.p-state-disabled):focus-visible .p-menuitem-text {
+            color: var(--p-panelmenu-item-focus-color);
+        }
+    }
+}

@@ -1,0 +1,265 @@
+/*
+ * Paginator (shared): the paginator of p:dataTable, p:treeTable, p:dataView, p:dataGrid, p:dataList, ...
+ *
+ * Markup: .p-paginator > (left content | .p-paginator-center-content | right content), template elements in the center.
+ * Page links are also .p-button.p-button-flat, so their rules are written to beat button.css by specificity.
+ * Rows per page / jump to page dropdowns are native <select>s, jump to page input is a .p-inputfield.
+ * States (set by the widget): p-state-hover, p-state-focus, p-state-active (current page), p-state-disabled
+ */
+.p-paginator {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--p-paginator-gap);
+    margin: 0;
+    text-align: center;
+    background: var(--p-paginator-background);
+    color: var(--p-paginator-color);
+    border: 1px solid var(--p-content-border-color);
+    border-width: 0;
+    border-radius: var(--p-paginator-border-radius);
+    padding: var(--p-paginator-padding);
+}
+
+/* flat: the alternatives have different specificity */
+.p-paginator-center-content,
+.p-paginator.p-paginator-top .p-paginator-top-left-content,
+.p-paginator.p-paginator-top .p-paginator-top-right-content,
+.p-paginator.p-paginator-bottom .p-paginator-bottom-left-content,
+.p-paginator.p-paginator-bottom .p-paginator-bottom-right-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--p-paginator-gap);
+    margin: 0;
+    text-align: center;
+    min-width: 5em;
+}
+
+/* empty left/right facets must not take space, otherwise the page links are pushed off center or wrap */
+.p-paginator.p-paginator-top .p-paginator-top-left-content:empty,
+.p-paginator.p-paginator-top .p-paginator-top-right-content:empty,
+.p-paginator.p-paginator-bottom .p-paginator-bottom-left-content:empty,
+.p-paginator.p-paginator-bottom .p-paginator-bottom-right-content:empty {
+    min-width: 0;
+}
+
+.p-paginator-center-content {
+    justify-content: center;
+}
+
+.p-paginator {
+    &.p-paginator-top .p-paginator-top-right-content,
+    &.p-paginator-bottom .p-paginator-bottom-right-content {
+        justify-content: flex-end;
+    }
+
+    .p-paginator-page,
+    .p-paginator-pages,
+    .p-paginator-next,
+    .p-paginator-last,
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-current {
+        text-decoration: none;
+    }
+
+    .p-paginator-page,
+    .p-paginator-next,
+    .p-paginator-last,
+    .p-paginator-first,
+    .p-paginator-prev {
+        cursor: pointer;
+    }
+
+    /* first / prev / next / last */
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+        font-style: normal;
+        font-weight: normal;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        -webkit-user-select: none;
+        user-select: none;
+        background: var(--p-paginator-nav-button-background);
+        color: var(--p-paginator-nav-button-color);
+        min-width: var(--p-paginator-nav-button-width);
+        height: var(--p-paginator-nav-button-height);
+        margin: 0;
+        border: 0 none;
+        padding: 0;
+        border-radius: var(--p-paginator-nav-button-border-radius);
+        outline-color: transparent;
+        transition: background var(--p-paginator-transition-duration), color var(--p-paginator-transition-duration),
+            outline-color var(--p-paginator-transition-duration), box-shadow var(--p-paginator-transition-duration);
+
+        &.p-state-hover,
+        &:not(.p-state-disabled):hover {
+            background: var(--p-paginator-nav-button-hover-background);
+            color: var(--p-paginator-nav-button-hover-color);
+        }
+
+        &.p-state-focus,
+        &:focus-visible {
+            outline: var(--p-paginator-nav-button-focus-ring-width) var(--p-paginator-nav-button-focus-ring-style) var(--p-paginator-nav-button-focus-ring-color);
+            outline-offset: var(--p-paginator-nav-button-focus-ring-offset);
+            box-shadow: var(--p-paginator-nav-button-focus-ring-shadow);
+        }
+
+        &:dir(rtl) {
+            transform: rotate(180deg);
+        }
+    }
+
+    .p-paginator-first-icon {
+        --_icon: var(--p-paginator-first-icon);
+    }
+
+    .p-paginator-prev-icon {
+        --_icon: var(--p-paginator-prev-icon);
+    }
+
+    .p-paginator-next-icon {
+        --_icon: var(--p-paginator-next-icon);
+    }
+
+    .p-paginator-last-icon {
+        --_icon: var(--p-paginator-last-icon);
+    }
+
+    /* current page report */
+    .p-paginator-current {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        color: var(--p-paginator-current-page-report-color);
+        font-size: var(--p-paginator-current-page-report-font-size);
+        font-weight: var(--p-paginator-current-page-report-font-weight);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* page links */
+    .p-paginator-pages {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--p-paginator-gap);
+        margin: 0;
+        padding: 0;
+    }
+
+    .p-paginator-pages .p-paginator-page {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0 none;
+        min-width: var(--p-paginator-nav-button-width);
+        width: unset;
+        height: var(--p-paginator-nav-button-height);
+        background: var(--p-paginator-nav-button-background);
+        color: var(--p-paginator-nav-button-color);
+        /* native <button>s (no .p-widget) do not inherit the page font */
+        font-family: inherit;
+        font-size: var(--p-paginator-nav-button-font-size);
+        font-weight: var(--p-paginator-nav-button-font-weight);
+        /* equal width digits: the links do not shift when the page numbers change */
+        font-variant-numeric: tabular-nums;
+        margin: 0;
+        border-radius: var(--p-paginator-nav-button-border-radius);
+        box-shadow: none;
+        outline-color: transparent;
+        transition: background var(--p-paginator-transition-duration), color var(--p-paginator-transition-duration),
+            outline-color var(--p-paginator-transition-duration), box-shadow var(--p-paginator-transition-duration);
+
+        &.p-state-hover,
+        &:not(.p-state-disabled, .p-state-active):hover,
+        &:not(.p-state-disabled, .p-state-active):active {
+            background: var(--p-paginator-nav-button-hover-background);
+            color: var(--p-paginator-nav-button-hover-color);
+        }
+
+        &.p-state-active {
+            background: var(--p-paginator-nav-button-selected-background);
+            color: var(--p-paginator-nav-button-selected-color);
+        }
+
+        &.p-state-focus,
+        &:focus-visible {
+            outline: var(--p-paginator-nav-button-focus-ring-width) var(--p-paginator-nav-button-focus-ring-style) var(--p-paginator-nav-button-focus-ring-color);
+            outline-offset: var(--p-paginator-nav-button-focus-ring-offset);
+            box-shadow: var(--p-paginator-nav-button-focus-ring-shadow);
+        }
+    }
+
+    /* rows per page / jump to page dropdowns (native selects, skinned like p:selectOneMenu) */
+    .p-paginator-rpp-options,
+    .p-paginator-jtp-select {
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0;
+        font-family: inherit;
+        font-size: var(--p-select-font-size);
+        font-weight: var(--p-select-font-weight);
+        line-height: var(--p-typography-line-height);
+        padding-block: var(--p-select-padding-y);
+        padding-inline: var(--p-select-padding-x);
+        color: var(--p-select-color);
+        background: var(--p-select-background);
+        border: 1px solid var(--p-select-border-color);
+        border-radius: var(--p-select-border-radius);
+        box-shadow: var(--p-select-shadow);
+        cursor: pointer;
+        outline-color: transparent;
+        transition: background var(--p-select-transition-duration), color var(--p-select-transition-duration),
+            border-color var(--p-select-transition-duration), outline-color var(--p-select-transition-duration),
+            box-shadow var(--p-select-transition-duration);
+
+        &.p-state-hover,
+        &:not(:disabled, .p-state-disabled):hover {
+            border-color: var(--p-select-hover-border-color);
+        }
+
+        &.p-state-focus,
+        &:focus-visible {
+            border-color: var(--p-select-focus-border-color);
+            outline: var(--p-select-focus-ring-width) var(--p-select-focus-ring-style) var(--p-select-focus-ring-color);
+            outline-offset: var(--p-select-focus-ring-offset);
+            box-shadow: var(--p-select-focus-ring-shadow);
+        }
+
+        &:disabled,
+        &.p-state-disabled {
+            background: var(--p-select-disabled-background);
+            color: var(--p-select-disabled-color);
+            cursor: default;
+        }
+
+        option {
+            background: var(--p-select-overlay-background);
+            color: var(--p-select-option-color);
+            border: 0 none;
+            box-shadow: none;
+        }
+    }
+
+    .p-paginator-jtp-input {
+        /* fit the live page count (--p-jtp-digits is written inline by the renderer): one ch per digit plus padding and spinner room */
+        width: calc(var(--p-jtp-digits, 3) * 1ch + 2.5rem);
+        margin: 0;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    /* after the display of .p-paginator-pages (same specificity) */
+    @media (max-width: 640px) {
+        .p-paginator-pages {
+            display: none;
+        }
+    }
+}

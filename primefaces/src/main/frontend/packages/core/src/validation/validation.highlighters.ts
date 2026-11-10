@@ -1,0 +1,264 @@
+/**
+ * When an element is invalid due to a validation error, the user needs to be informed. This highlighter is
+ * responsible for changing the visual state of an element so that the user notices the invalid element.
+ */
+export class ValidationHighlighter {
+    /**
+     * A map between a widget type and the corresponding highlight handler for that type.
+     */
+    types: Record<string, PrimeFacesTypes.validation.Highlighter> = {};
+
+    /**
+     * When an element is invalid due to a validation error, the user needs to be informed. This method highlights
+     * the label for the given element by adding an appropriate CSS class.
+     * @param forElement Element with a label to highlight.
+     */
+    highlightLabel(forElement: JQuery): void {
+        var label = $("label[for='" + forElement.attr('id') + "']");
+        if (label.hasClass('p-outputlabel')) {
+            label.addClass('p-state-error');
+        }
+    }
+
+    /**
+     * When an element is invalid due to a validation error, the user needs to be informed. This method removes the
+     * highlighting on a label for the given element by removing the appropriate CSS class.
+     * @param forElement Element with a label to unhighlight.
+     */
+    unhighlightLabel(forElement: JQuery): void {
+        var label = $("label[for='" + forElement.attr('id') + "']");
+        if (label.hasClass('p-outputlabel')) {
+            label.removeClass('p-state-error');
+        }
+    }
+
+    /**
+     * Applies p-state-XXX - css-classes to an element (component).
+     * @param element Element to which apply the css-classes.
+     * @param valid Is the input of the element valid?
+     */
+    applyStateCssClasses(element: JQuery, valid: boolean): void {
+        if (valid) {
+            element.removeClass('p-state-error');
+            element.removeClass('p-state-csv-invalid').addClass('p-state-csv-valid');
+        }
+        else {
+            element.addClass('p-state-error');
+            element.addClass('p-state-csv-invalid').removeClass('p-state-csv-valid');
+        }
+    }
+};
+
+class DefaultHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        validationHighlighter.highlightLabel(element);
+        validationHighlighter.applyStateCssClasses(element, false);
+    }
+
+    unhighlight(element: JQuery): void {
+        validationHighlighter.unhighlightLabel(element);
+        validationHighlighter.applyStateCssClasses(element, true);
+    }
+}
+
+class BooleanCheckBoxHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        validationHighlighter.highlightLabel(element);
+        validationHighlighter.applyStateCssClasses(element.parent().next(), false);
+    }
+
+    unhighlight(element: JQuery): void {
+        validationHighlighter.unhighlightLabel(element);
+        validationHighlighter.applyStateCssClasses(element.parent().next(), true);
+    }
+}
+
+class ManyCheckBoxHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        const custom = element.hasClass('p-chkbox-clone');
+        let chkboxes: JQuery;
+        
+        if(custom) {
+            const groupedInputs = $('input[name="' + CSS.escape(element.attr('name') ?? "") + '"].p-chkbox-clone');
+            chkboxes = groupedInputs.parent().next();
+        }
+        else {
+            const container = element.closest('.p-selectmanycheckbox');
+            chkboxes = container.find('div.p-chkbox-box');
+        }
+
+        for(let i = 0; i < chkboxes.length; i++) {
+            validationHighlighter.applyStateCssClasses(chkboxes.eq(i), false);
+        }
+    }
+
+    unhighlight(element: JQuery): void {
+        const custom = element.hasClass('p-chkbox-clone');
+        let chkboxes: JQuery;
+        
+        if(custom) {
+            const groupedInputs = $('input[name="' + element.attr('name') + '"].p-chkbox-clone');
+            chkboxes = groupedInputs.parent().next();
+        }
+        else {
+            const container = element.closest('.p-selectmanycheckbox');
+            chkboxes = container.find('div.p-chkbox-box');
+        }
+
+        for(let i = 0; i < chkboxes.length; i++) {
+            validationHighlighter.applyStateCssClasses(chkboxes.eq(i), true);
+        }
+    }
+}
+
+class ListBoxHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        validationHighlighter.applyStateCssClasses(element.closest('.p-inputfield'), false);
+        validationHighlighter.highlightLabel(element.closest('.p-inputfield'));
+    }
+
+    unhighlight(element: JQuery): void {
+        validationHighlighter.applyStateCssClasses(element.closest('.p-inputfield'), true);
+        validationHighlighter.unhighlightLabel(element.closest('.p-inputfield'));
+    }
+}
+
+class OneMenuHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        var siblings = element.parent().siblings('.p-selectonemenu-trigger');
+        validationHighlighter.applyStateCssClasses(siblings, false);
+        validationHighlighter.applyStateCssClasses(siblings.parent(), false);
+        validationHighlighter.highlightLabel(this.getFocusElement(element));
+    }
+
+    unhighlight(element: JQuery): void {
+        var siblings = element.parent().siblings('.p-selectonemenu-trigger');
+        validationHighlighter.applyStateCssClasses(siblings, true);
+        validationHighlighter.applyStateCssClasses(siblings.parent(), true);
+        validationHighlighter.unhighlightLabel(this.getFocusElement(element));
+    }
+
+    private getFocusElement(element: JQuery): JQuery {
+        return element.closest('.p-selectonemenu').find('.p-hidden-accessible > input');
+    }
+}
+
+class SpinnerHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        validationHighlighter.applyStateCssClasses(element.parent(), false);
+        validationHighlighter.highlightLabel(element.parent());
+    }
+
+    unhighlight(element: JQuery): void {
+        validationHighlighter.applyStateCssClasses(element.parent(), true);
+        validationHighlighter.unhighlightLabel(element.parent());
+    }
+}
+
+class OneRadioHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        var container = element.closest('.p-selectoneradio'),
+        radios = container.find('div.p-radiobutton-box');
+
+        for(var i = 0; i < radios.length; i++) {
+            validationHighlighter.applyStateCssClasses(radios.eq(i), false);
+        }
+        validationHighlighter.highlightLabel(container);
+    }
+
+    unhighlight(element: JQuery): void {
+        var container = element.closest('.p-selectoneradio'),
+        radios = container.find('div.p-radiobutton-box');
+
+        for(var i = 0; i < radios.length; i++) {
+            validationHighlighter.applyStateCssClasses(radios.eq(i), true);
+        }
+        validationHighlighter.unhighlightLabel(container);
+    }
+}
+
+class BooleanButtonHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        validationHighlighter.applyStateCssClasses(element.parent().parent(), false);
+    }
+
+    unhighlight(element: JQuery): void {
+        validationHighlighter.applyStateCssClasses(element.parent().parent(), true);
+    }
+}
+
+class ToggleSwitchHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        validationHighlighter.applyStateCssClasses(element.parent().next(), false);
+    }
+
+    unhighlight(element: JQuery): void {
+        validationHighlighter.applyStateCssClasses(element.parent().next(), true);
+    }
+}
+
+class InputNumberHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        const orginalInput = element.prev('input');
+        validationHighlighter.highlightLabel(orginalInput);
+
+        // see #3706
+        orginalInput.parent().addClass('p-state-error');
+        validationHighlighter.applyStateCssClasses(orginalInput, false);
+        // orginalInput.parent().addClass('p-state-csv-invalid').removeClass('p-state-csv-valid'); // makes visual no sense
+    }
+
+    unhighlight(element: JQuery): void {
+        const orginalInput = element.prev('input');
+        validationHighlighter.unhighlightLabel(orginalInput);
+
+        // see #3706
+        orginalInput.parent().removeClass('p-state-error');
+        validationHighlighter.applyStateCssClasses(orginalInput, true);
+        // orginalInput.parent().removeClass('p-state-csv-invalid').addClass('p-state-csv-valid'); // makes visual no sense
+    }
+}
+
+/**
+ * Highlighter of components whose value is in a hidden input next to the inputs the user types into (p:inputOtp,
+ * p:inputPhone): the component and its inputs get the state classes, the label references the first input.
+ */
+class CompositeHighlighter implements PrimeFacesTypes.validation.Highlighter {
+    highlight(element: JQuery): void {
+        const inputs = element.siblings('input:not([type="hidden"])');
+        validationHighlighter.highlightLabel(inputs.first());
+        element.parent().addClass('p-state-error');
+        validationHighlighter.applyStateCssClasses(inputs, false);
+        // the inputs the user types into are invalid, not the hidden input that is validated
+        inputs.attr('aria-invalid', 'true');
+    }
+
+    unhighlight(element: JQuery): void {
+        const inputs = element.siblings('input:not([type="hidden"])');
+        validationHighlighter.unhighlightLabel(inputs.first());
+        element.parent().removeClass('p-state-error');
+        validationHighlighter.applyStateCssClasses(inputs, true);
+        inputs.removeAttr('aria-invalid');
+    }
+}
+
+export function registerCommonHighlighters(): void {
+    validationHighlighter.types["default"] = new DefaultHighlighter();
+    validationHighlighter.types["booleanchkbox"] = new BooleanCheckBoxHighlighter();
+    validationHighlighter.types["manychkbox"] = new ManyCheckBoxHighlighter();
+    validationHighlighter.types["listbox"] = new ListBoxHighlighter();
+    validationHighlighter.types["onemenu"] = new OneMenuHighlighter();
+    validationHighlighter.types["spinner"] = new SpinnerHighlighter();
+    validationHighlighter.types["oneradio"] = new OneRadioHighlighter();
+    validationHighlighter.types["booleanbutton"] = new BooleanButtonHighlighter();
+    validationHighlighter.types["toggleswitch"] = new ToggleSwitchHighlighter();
+    validationHighlighter.types["inputnumber"] = new InputNumberHighlighter();
+    validationHighlighter.types["inputotp"] = new CompositeHighlighter();
+    validationHighlighter.types["inputphone"] = new CompositeHighlighter();
+}
+
+/**
+ * When an element is invalid due to a validation error, the user needs to be informed. This highlighter is
+ * responsible for changing the visual state of an element so that the user notices the invalid element.
+ */
+export const validationHighlighter: ValidationHighlighter = new ValidationHighlighter();

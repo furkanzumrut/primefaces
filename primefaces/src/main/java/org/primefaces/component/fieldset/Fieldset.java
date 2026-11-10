@@ -1,0 +1,104 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.component.fieldset;
+
+import org.primefaces.cdk.api.FacesComponentInfo;
+import org.primefaces.event.ToggleEvent;
+import org.primefaces.model.Visibility;
+
+import java.util.Map;
+
+import jakarta.faces.application.ResourceDependency;
+import jakarta.faces.component.FacesComponent;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.event.AjaxBehaviorEvent;
+import jakarta.faces.event.FacesEvent;
+
+@FacesComponent(value = Fieldset.COMPONENT_TYPE, namespace = Fieldset.COMPONENT_FAMILY)
+@FacesComponentInfo(description = "Fieldset is a grouping component with a title and content.")
+@ResourceDependency(library = "primefaces", name = "components.css")
+@ResourceDependency(library = "primefaces", name = "jquery/jquery.js")
+@ResourceDependency(library = "primefaces", name = "core.js")
+@ResourceDependency(library = "primefaces", name = "components.js")
+public class Fieldset extends FieldsetBaseImpl {
+
+    public static final String COMPONENT_TYPE = "org.primefaces.component.Fieldset";
+
+    public static final String FIELDSET_CLASS = "p-fieldset p-widget p-widget-content p-hidden-container";
+    public static final String TOGGLEABLE_FIELDSET_CLASS = FIELDSET_CLASS + " p-fieldset-toggleable";
+    public static final String CONTENT_CLASS = "p-fieldset-content";
+    public static final String LEGEND_CLASS = "p-fieldset-legend p-state-default";
+    public static final String TOGGLER_CLASS = "p-fieldset-toggler p-icon p-toggle-icon p-fieldset-toggle-icon";
+
+    @Override
+    public void queueEvent(FacesEvent event) {
+        FacesContext context = event.getFacesContext();
+        Map<String, String> params = context.getExternalContext().getRequestParameterMap();
+        String clientId = getClientId(context);
+
+        if (isAjaxBehaviorEventSource(event)) {
+            AjaxBehaviorEvent behaviorEvent = (AjaxBehaviorEvent) event;
+
+            if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.toggle)) {
+                boolean collapsed = Boolean.parseBoolean(params.get(clientId + "_collapsed"));
+                Visibility visibility = collapsed ? Visibility.HIDDEN : Visibility.VISIBLE;
+
+                ToggleEvent eventToQueue = new ToggleEvent(this, behaviorEvent.getBehavior(), visibility);
+                eventToQueue.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(eventToQueue);
+            }
+        }
+        else {
+            super.queueEvent(event);
+        }
+    }
+
+    @Override
+    public void processDecodes(FacesContext context) {
+        if (isAjaxRequestSource(context)) {
+            decode(context);
+        }
+        else {
+            super.processDecodes(context);
+        }
+    }
+
+    @Override
+    public void processValidators(FacesContext context) {
+        if (!isAjaxRequestSource(context)) {
+            super.processValidators(context);
+        }
+    }
+
+    @Override
+    public void processUpdates(FacesContext context) {
+        if (!isAjaxRequestSource(context)) {
+            super.processUpdates(context);
+        }
+    }
+
+    public boolean isContentLoadRequest(FacesContext context) {
+        return context.getExternalContext().getRequestParameterMap().containsKey(getClientId(context) + "_contentLoad");
+    }
+}

@@ -1,0 +1,76 @@
+/*
+ * AjaxStatus: p:ajaxStatus + the inline ajax status of the components (PrimeFaces only tokens: the ajaxstatus block
+ * of presets/*.css)
+ *
+ * Markup: div#id (styleClass) > div#id_start | _success | _complete | _error (display:none, the widget shows the
+ *         facet of the current request phase) and div#id_default (always shown).
+ *
+ * Supported classes:
+ *   p-ajaxstatus-bar  an indeterminate progress bar fixed at the top of the viewport while a request runs. Either on
+ *                      an element in the start facet (<f:facet name="start"><div class="p-ajaxstatus-bar"/></f:facet>)
+ *                      or as styleClass of p:ajaxStatus itself, which then needs a start facet (its content is hidden).
+ *
+ * Inline ajax status: buttons (from the core), p:autoComplete and p:selectOneMenu get a spinner
+ * <span class="p-icon-loading p-icon p-loading-icon p-ajaxstatus-loading-icon"> while their request runs (the
+ * --p-ajaxstatus-loading-icon token, rotated by the p-spin animation below).
+ */
+
+/* the rotation of every spinner of the theme (blockUI, commandLink, dataScroller, outputPanel, inline ajax status);
+   prefers-reduced-motion stops it (base/document.css) */
+@keyframes p-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes p-ajaxstatus-bar-anim {
+    from {
+        inset-inline-start: -40%;
+    }
+
+    to {
+        inset-inline-start: 100%;
+    }
+}
+
+.p-icon-loading {
+    animation: p-spin var(--p-ajaxstatus-loading-icon-animation-duration) linear infinite;
+}
+
+.p-ajaxstatus-loading-icon {
+    --_icon: var(--p-ajaxstatus-loading-icon);
+}
+
+/* the bar: an element in the start facet, or the start facet of p:ajaxStatus styleClass="p-ajaxstatus-bar" */
+.p-ajaxstatus-bar:not(:has(> [id$="_start"])),
+.p-ajaxstatus-bar > [id$="_start"] {
+    position: fixed;
+    top: 0;
+    inset-inline: 0;
+    z-index: 9999;
+    height: var(--p-ajaxstatus-bar-height);
+    overflow: hidden;
+    font-size: 0;
+    pointer-events: none;
+    background: var(--p-ajaxstatus-bar-background);
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        inset-inline-start: -40%;
+        width: 40%;
+        background: var(--p-ajaxstatus-bar-value-background);
+        animation: p-ajaxstatus-bar-anim var(--p-ajaxstatus-bar-animation-duration) linear infinite;
+    }
+
+    /* the content of the start facet when the class is on p:ajaxStatus */
+    > * {
+        display: none;
+    }
+}

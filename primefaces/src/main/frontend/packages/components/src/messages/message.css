@@ -1,0 +1,271 @@
+/*
+ * Message: p:message (inline message of a single component), shared by p:staticMessage (see staticmessage.css)
+ *
+ * Markup p:message:       .p-message.p-message-<severity> > div > span.p-message-<severity>-icon.p-message-<severity>-icon
+ *                         + span.p-message-<severity>-summary + span.p-message-<severity>-detail
+ * Markup p:staticMessage: .p-message.p-staticmessage.p-message-<severity> > (a.p-messages-close) + span.icon + summary + detail
+ * Severity classes only switch the private --_* variables: p-message-info | -success | -warn | -error | -fatal,
+ * p-message-secondary | -contrast (p:staticMessage severity only), p-message-icon-only (display="icon").
+ * Variants (styleClass, also on p:messages, see messages.css): p-message-outlined | p-message-simple,
+ * sizes p-message-sm | p-message-lg.
+ * PF only tokens (fatal, secondary/contrast icon, summary/detail): the message block of presets/*.css
+ */
+
+.p-message {
+    --_bg: var(--p-message-info-background);
+    --_border-color: var(--p-message-info-border-color);
+    --_color: var(--p-message-info-color);
+    --_shadow: var(--p-message-info-shadow);
+    --_outlined-color: var(--p-message-info-outlined-color);
+    --_outlined-border-color: var(--p-message-info-outlined-border-color);
+    --_simple-color: var(--p-message-info-simple-color);
+    --_close-hover-bg: var(--p-message-info-close-button-hover-background);
+    --_close-focus-ring-color: var(--p-message-info-close-button-focus-ring-color);
+    --_close-focus-ring-shadow: var(--p-message-info-close-button-focus-ring-shadow);
+    --_border-width: var(--p-message-border-width);
+    --_padding: var(--p-message-content-padding);
+    --_font-size: var(--p-message-text-font-size);
+    --_icon-size: var(--p-message-icon-size);
+    --_close-icon-size: var(--p-message-close-icon-size);
+
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: var(--p-message-border-radius);
+    font-size: var(--_font-size);
+    font-weight: var(--p-message-text-font-weight);
+    outline-color: transparent;
+    transition: background var(--p-message-transition-duration), color var(--p-message-transition-duration),
+        border-color var(--p-message-transition-duration);
+
+    /* a new message (inserted by an ajax update or the client side validation) fades in, base/common.css */
+    &:not(.p-staticmessage) {
+        --_enter-offset: var(--p-message-enter-offset);
+        animation: p-enter var(--p-message-enter-duration) var(--p-transition-easing-enter);
+    }
+
+    /* an empty p:message (no message) has no severity class and stays invisible */
+    &.p-message-info,
+    &.p-message-success,
+    &.p-message-warn,
+    &.p-message-error,
+    &.p-message-fatal,
+    &.p-message-secondary,
+    &.p-message-contrast {
+        padding: var(--_padding);
+        background: var(--_bg);
+        border: var(--_border-width) solid var(--_border-color);
+        color: var(--_color);
+        box-shadow: var(--_shadow);
+    }
+
+    &.p-message-success {
+        --_bg: var(--p-message-success-background);
+        --_border-color: var(--p-message-success-border-color);
+        --_color: var(--p-message-success-color);
+        --_shadow: var(--p-message-success-shadow);
+        --_outlined-color: var(--p-message-success-outlined-color);
+        --_outlined-border-color: var(--p-message-success-outlined-border-color);
+        --_simple-color: var(--p-message-success-simple-color);
+        --_close-hover-bg: var(--p-message-success-close-button-hover-background);
+        --_close-focus-ring-color: var(--p-message-success-close-button-focus-ring-color);
+        --_close-focus-ring-shadow: var(--p-message-success-close-button-focus-ring-shadow);
+    }
+
+    &.p-message-warn {
+        --_bg: var(--p-message-warn-background);
+        --_border-color: var(--p-message-warn-border-color);
+        --_color: var(--p-message-warn-color);
+        --_shadow: var(--p-message-warn-shadow);
+        --_outlined-color: var(--p-message-warn-outlined-color);
+        --_outlined-border-color: var(--p-message-warn-outlined-border-color);
+        --_simple-color: var(--p-message-warn-simple-color);
+        --_close-hover-bg: var(--p-message-warn-close-button-hover-background);
+        --_close-focus-ring-color: var(--p-message-warn-close-button-focus-ring-color);
+        --_close-focus-ring-shadow: var(--p-message-warn-close-button-focus-ring-shadow);
+    }
+
+    &.p-message-error {
+        --_bg: var(--p-message-error-background);
+        --_border-color: var(--p-message-error-border-color);
+        --_color: var(--p-message-error-color);
+        --_shadow: var(--p-message-error-shadow);
+        --_outlined-color: var(--p-message-error-outlined-color);
+        --_outlined-border-color: var(--p-message-error-outlined-border-color);
+        --_simple-color: var(--p-message-error-simple-color);
+        --_close-hover-bg: var(--p-message-error-close-button-hover-background);
+        --_close-focus-ring-color: var(--p-message-error-close-button-focus-ring-color);
+        --_close-focus-ring-shadow: var(--p-message-error-close-button-focus-ring-shadow);
+    }
+
+    &.p-message-fatal {
+        --_bg: var(--p-message-fatal-background);
+        --_border-color: var(--p-message-fatal-border-color);
+        --_color: var(--p-message-fatal-color);
+        --_shadow: var(--p-message-fatal-shadow);
+        --_outlined-color: var(--p-message-fatal-outlined-color);
+        --_outlined-border-color: var(--p-message-fatal-outlined-border-color);
+        --_simple-color: var(--p-message-fatal-simple-color);
+        --_close-hover-bg: var(--p-message-fatal-close-button-hover-background);
+        --_close-focus-ring-color: var(--p-message-fatal-close-button-focus-ring-color);
+        --_close-focus-ring-shadow: var(--p-message-fatal-close-button-focus-ring-shadow);
+    }
+
+    /* p:staticMessage only (severity="secondary" / "contrast"), p:message gets its severity from the FacesMessage */
+    &.p-message-secondary {
+        --_bg: var(--p-message-secondary-background);
+        --_border-color: var(--p-message-secondary-border-color);
+        --_color: var(--p-message-secondary-color);
+        --_shadow: var(--p-message-secondary-shadow);
+        --_outlined-color: var(--p-message-secondary-outlined-color);
+        --_outlined-border-color: var(--p-message-secondary-outlined-border-color);
+        --_simple-color: var(--p-message-secondary-simple-color);
+        --_close-hover-bg: var(--p-message-secondary-close-button-hover-background);
+        --_close-focus-ring-color: var(--p-message-secondary-close-button-focus-ring-color);
+        --_close-focus-ring-shadow: var(--p-message-secondary-close-button-focus-ring-shadow);
+    }
+
+    &.p-message-contrast {
+        --_bg: var(--p-message-contrast-background);
+        --_border-color: var(--p-message-contrast-border-color);
+        --_color: var(--p-message-contrast-color);
+        --_shadow: var(--p-message-contrast-shadow);
+        --_outlined-color: var(--p-message-contrast-outlined-color);
+        --_outlined-border-color: var(--p-message-contrast-outlined-border-color);
+        --_simple-color: var(--p-message-contrast-simple-color);
+        --_close-hover-bg: var(--p-message-contrast-close-button-hover-background);
+        --_close-focus-ring-color: var(--p-message-contrast-close-button-focus-ring-color);
+        --_close-focus-ring-shadow: var(--p-message-contrast-close-button-focus-ring-shadow);
+    }
+
+    /* sizes (styleClass) */
+    &.p-message-sm {
+        --_padding: var(--p-message-content-sm-padding);
+        --_font-size: var(--p-message-text-sm-font-size);
+        --_icon-size: var(--p-message-icon-sm-size);
+        --_close-icon-size: var(--p-message-close-icon-sm-size);
+    }
+
+    &.p-message-lg {
+        --_padding: var(--p-message-content-lg-padding);
+        --_font-size: var(--p-message-text-lg-font-size);
+        --_icon-size: var(--p-message-icon-lg-size);
+        --_close-icon-size: var(--p-message-close-icon-lg-size);
+    }
+
+    /* variants (styleClass): after the severities and sizes, they only switch the private variables */
+    &.p-message-outlined {
+        --_bg: transparent;
+        --_border-width: var(--p-message-outlined-border-width);
+        --_border-color: var(--_outlined-border-color);
+        --_color: var(--_outlined-color);
+        --_shadow: none;
+    }
+
+    &.p-message-simple {
+        --_bg: transparent;
+        --_border-width: 0;
+        --_color: var(--_simple-color);
+        --_shadow: none;
+        --_padding: var(--p-message-simple-content-padding);
+    }
+
+    /* content row: icon, summary, detail */
+    > div {
+        display: flex;
+        align-items: center;
+        gap: var(--p-message-content-gap);
+        /* keeps the text line height (= input height) when only the icon is shown */
+        min-height: calc(var(--p-typography-line-height) * 1em);
+    }
+
+    /* icons */
+    .p-message-info-icon,
+    .p-message-success-icon,
+    .p-message-warn-icon,
+    .p-message-error-icon,
+    .p-message-fatal-icon,
+    .p-message-secondary-icon,
+    .p-message-contrast-icon {
+        flex-shrink: 0;
+        color: var(--_color);
+        font-size: var(--_icon-size);
+        line-height: 1;
+    }
+
+    .p-message-info-icon {
+        --_icon: var(--p-message-info-icon);
+    }
+
+    .p-message-success-icon {
+        --_icon: var(--p-message-success-icon);
+    }
+
+    .p-message-warn-icon {
+        --_icon: var(--p-message-warn-icon);
+    }
+
+    .p-message-error-icon {
+        --_icon: var(--p-message-error-icon);
+    }
+
+    .p-message-fatal-icon {
+        --_icon: var(--p-message-fatal-icon);
+    }
+
+    .p-message-secondary-icon {
+        --_icon: var(--p-message-secondary-icon);
+    }
+
+    .p-message-contrast-icon {
+        --_icon: var(--p-message-contrast-icon);
+    }
+
+    /* texts */
+    .p-message-info-summary,
+    .p-message-success-summary,
+    .p-message-warn-summary,
+    .p-message-error-summary,
+    .p-message-fatal-summary,
+    .p-message-secondary-summary,
+    .p-message-contrast-summary {
+        font-weight: var(--p-message-summary-font-weight);
+    }
+
+    .p-message-info-detail,
+    .p-message-success-detail,
+    .p-message-warn-detail,
+    .p-message-error-detail,
+    .p-message-fatal-detail,
+    .p-message-secondary-detail,
+    .p-message-contrast-detail {
+        font-weight: var(--p-message-detail-font-weight);
+        overflow-wrap: break-word;
+        text-wrap: pretty;
+    }
+
+    .p-message-info-summary:empty,
+    .p-message-success-summary:empty,
+    .p-message-warn-summary:empty,
+    .p-message-error-summary:empty,
+    .p-message-fatal-summary:empty,
+    .p-message-secondary-summary:empty,
+    .p-message-contrast-summary:empty,
+    .p-message-info-detail:empty,
+    .p-message-success-detail:empty,
+    .p-message-warn-detail:empty,
+    .p-message-error-detail:empty,
+    .p-message-fatal-detail:empty,
+    .p-message-secondary-detail:empty,
+    .p-message-contrast-detail:empty {
+        display: none;
+    }
+
+    &.p-hidden {
+        display: none;
+    }
+}
+
+/* inline p:message next to its input; p:staticMessage is a block of its own */
+.p-widget + .p-message:not(.p-staticmessage) {
+    margin-inline-start: var(--p-message-content-gap);
+}

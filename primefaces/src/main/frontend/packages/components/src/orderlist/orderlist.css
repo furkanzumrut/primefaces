@@ -1,0 +1,181 @@
+/*
+ * OrderList: p:orderList (PrimeUIX orderlist + listbox tokens, caption uses the panel header tokens)
+ *
+ * Supported classes: p-orderlist-controls-right, ui-grid-responsive, p-state-disabled
+ */
+.p-orderlist {
+    display: table;
+
+    /* the caption background is layered over the list background, as it is transparent in some presets */
+    .p-orderlist-caption {
+        width: 200px;
+        text-align: center;
+        background: linear-gradient(var(--p-orderlist-caption-background), var(--p-orderlist-caption-background)), var(--p-listbox-background);
+        border: 1px solid var(--p-orderlist-caption-border-color);
+        border-bottom: 0 none;
+        color: var(--p-orderlist-caption-color);
+        padding: var(--p-orderlist-caption-padding);
+        font-weight: var(--p-orderlist-caption-font-weight);
+        border-radius: var(--p-listbox-border-radius) var(--p-listbox-border-radius) 0 0;
+    }
+
+    .p-orderlist-list {
+        list-style-type: none;
+        margin: 0;
+        overflow: auto;
+        height: 200px;
+        width: 200px;
+        border: 1px solid var(--p-listbox-border-color);
+        background: var(--p-listbox-background);
+        color: var(--p-listbox-color);
+        padding: var(--p-listbox-list-padding);
+        box-shadow: var(--p-listbox-shadow);
+        border-radius: 0 0 var(--p-listbox-border-radius) var(--p-listbox-border-radius);
+
+        .p-orderlist-item {
+            padding: var(--p-listbox-option-padding);
+            margin: 0;
+            border: 0 none;
+            color: var(--p-listbox-option-color);
+            font-size: var(--p-listbox-option-font-size);
+            font-weight: var(--p-listbox-option-font-weight);
+            border-radius: var(--p-listbox-option-border-radius);
+            transition: background var(--p-listbox-transition-duration), color var(--p-listbox-transition-duration),
+                border-color var(--p-listbox-transition-duration), box-shadow var(--p-listbox-transition-duration);
+        }
+
+        .p-orderlist-item + .p-orderlist-item {
+            margin-top: var(--p-listbox-list-gap);
+        }
+
+        .p-orderlist-item:not(.p-state-highlight):hover,
+        .p-orderlist-item.p-state-hover {
+            background: var(--p-listbox-option-focus-background);
+            color: var(--p-listbox-option-focus-color);
+        }
+
+        .p-orderlist-item.p-state-highlight {
+            background: var(--p-listbox-option-selected-background);
+            color: var(--p-listbox-option-selected-color);
+            font-weight: var(--p-listbox-option-selected-font-weight);
+        }
+
+        .p-orderlist-item.p-state-highlight.p-sortable-placeholder {
+            background: var(--p-listbox-option-selected-focus-background);
+        }
+
+        /* without a caption the list has all corners rounded */
+        &:first-child {
+            border-radius: var(--p-listbox-border-radius);
+        }
+    }
+
+    /* flex: the (hidden) label of the icon only buttons is a block and would add a second line otherwise */
+    .p-button {
+        display: flex;
+    }
+
+    .p-orderlist-item {
+        cursor: pointer;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .p-orderlist-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        .p-button {
+            margin-bottom: var(--p-orderlist-controls-gap);
+        }
+
+        .p-orderlist-move-up-icon {
+            --_icon: var(--p-orderlist-move-up-icon);
+        }
+
+        .p-orderlist-move-top-icon {
+            --_icon: var(--p-orderlist-move-top-icon);
+        }
+
+        .p-orderlist-move-down-icon {
+            --_icon: var(--p-orderlist-move-down-icon);
+        }
+
+        .p-orderlist-move-bottom-icon {
+            --_icon: var(--p-orderlist-move-bottom-icon);
+        }
+    }
+
+    .ui-g > div {
+        padding: 0;
+
+        &.p-orderlist-controls {
+            padding: 0;
+            padding-inline-end: var(--p-orderlist-gap);
+        }
+    }
+
+    &.p-orderlist-controls-right .ui-g > div.p-orderlist-controls {
+        padding: 0;
+        padding-inline-start: var(--p-orderlist-gap);
+    }
+
+    &.p-state-disabled {
+        .p-orderlist-item,
+        .p-button {
+            cursor: default;
+        }
+
+        .p-orderlist-list {
+            overflow: hidden;
+            background: var(--p-listbox-disabled-background);
+            color: var(--p-listbox-disabled-color);
+        }
+    }
+
+    /* responsive: a block with full width lists and controls */
+    &.ui-grid-responsive {
+        display: block;
+        width: 100%;
+
+        .p-orderlist-list,
+        .p-orderlist-caption {
+            width: 100%;
+        }
+
+        .p-orderlist-controls .p-button {
+            width: 100%;
+        }
+    }
+}
+
+/*
+ * narrow viewport: controls in a row above / below the list, the ui-g-12 ui-md-2 / ui-md-10 columns full width
+ */
+@media (max-width: 640px) {
+    .p-orderlist.ui-grid-responsive .ui-g > div {
+        width: 100%;
+
+        &.p-orderlist-controls {
+            text-align: center;
+            padding: 0;
+            flex-direction: row;
+
+            .p-button {
+                display: inline-flex;
+                width: 20%;
+                margin-top: var(--p-orderlist-controls-gap);
+                margin-inline-end: var(--p-orderlist-controls-gap);
+            }
+
+            .p-button:last-child {
+                margin-inline-end: 0;
+            }
+        }
+    }
+}

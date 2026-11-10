@@ -1,0 +1,112 @@
+/*
+ * ScrollPanel: p:scrollPanel (themed bars and mode="native")
+ *
+ * The content scrolls natively with hidden browser scrollbars, the widget positions the bars of the tracks.
+ * Structure: div.p-scrollpanel > div.p-scrollpanel-content (tabindex 0 while it overflows)
+ *            + div.p-scrollpanel-track.p-scrollpanel-track-y > div.p-scrollpanel-bar
+ *            + div.p-scrollpanel-track.p-scrollpanel-track-x > div.p-scrollpanel-bar
+ * mode="native": div.p-scrollpanel.p-scrollpanel-native, the browser scrollbars styled with the same tokens.
+ * Supported classes: p-scrollpanel-scrollable-x / -y (on .p-scrollpanel, set by the widget),
+ *                    p-scrollpanel-bar-active (on .p-scrollpanel-bar while it is dragged)
+ */
+
+.p-scrollpanel {
+    position: relative;
+    overflow: hidden;
+    padding: var(--p-scrollpanel-padding);
+    background: var(--p-scrollpanel-background);
+    color: var(--p-scrollpanel-color);
+    border: 1px solid var(--p-scrollpanel-border-color);
+    border-radius: var(--p-scrollpanel-border-radius);
+
+    &.p-scrollpanel-native {
+        overflow: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--p-scrollpanel-bar-background) var(--p-scrollpanel-track-background);
+    }
+
+    /* the content fills the panel, also one with a max-height only, and scrolls up to the border */
+    &:not(.p-scrollpanel-native) {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+    }
+
+    /* keyboard scrolling: the content is focusable, the panel shows the focus (an outline is not clipped) */
+    &:has(> .p-scrollpanel-content:focus-visible) {
+        outline: var(--p-scrollpanel-bar-focus-ring-width) var(--p-scrollpanel-bar-focus-ring-style) var(--p-scrollpanel-bar-focus-ring-color);
+        outline-offset: var(--p-scrollpanel-bar-focus-ring-offset);
+        box-shadow: var(--p-scrollpanel-bar-focus-ring-shadow);
+    }
+}
+
+.p-scrollpanel-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    padding: var(--p-scrollpanel-padding);
+    overflow: auto;
+    outline: none;
+    /* the bars replace the browser scrollbars */
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* the tracks lie on the inner edge of the border, over the padding of the content */
+.p-scrollpanel-track {
+    position: absolute;
+    background: var(--p-scrollpanel-track-background);
+    border-radius: var(--p-scrollpanel-bar-border-radius);
+}
+
+.p-scrollpanel-track-y {
+    top: 0;
+    bottom: 0;
+    inset-inline-end: 0;
+    width: var(--p-scrollpanel-bar-size);
+}
+
+.p-scrollpanel-track-x {
+    bottom: 0;
+    inset-inline: 0;
+    height: var(--p-scrollpanel-bar-size);
+}
+
+/* both bars: they leave the corner free */
+.p-scrollpanel-scrollable-x > .p-scrollpanel-track-y {
+    bottom: var(--p-scrollpanel-bar-size);
+}
+
+.p-scrollpanel-scrollable-y > .p-scrollpanel-track-x {
+    inset-inline-end: var(--p-scrollpanel-bar-size);
+}
+
+.p-scrollpanel-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--p-scrollpanel-bar-background);
+    border-radius: var(--p-scrollpanel-bar-border-radius);
+    cursor: pointer;
+    touch-action: none;
+    transition: background var(--p-scrollpanel-transition-duration);
+
+    &:hover,
+    &.p-scrollpanel-bar-active {
+        background: var(--p-scrollpanel-bar-hover-background);
+    }
+}
+
+/* the widget sets the length and the offset of the bar along its track */
+.p-scrollpanel-track-y > .p-scrollpanel-bar {
+    height: auto;
+}
+
+.p-scrollpanel-track-x > .p-scrollpanel-bar {
+    width: auto;
+}

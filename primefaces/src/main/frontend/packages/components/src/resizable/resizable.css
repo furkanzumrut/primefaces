@@ -1,0 +1,34 @@
+/*
+ * Resizable: p:resizable; handle structure (size, cursor) comes from base/interactions.css.
+ * Handles: div.p-resizable-handle.p-resizable-(n|s|e|w|ne|nw|se|sw), the se handle shows the grip.
+ * Helpers: p-resizable-ghost (ghost="true"), div.p-resizable-proxy (animate="true").
+ * PrimeFaces only tokens: the resizable block of presets/*.css.
+ */
+
+/* diagonal grip drawn with gradients, inside the (rounded) corner; the edge handles stay outside to widen the hit area */
+.p-resizable-se {
+    right: var(--p-resizable-handle-inset);
+    bottom: var(--p-resizable-handle-inset);
+    background: linear-gradient(135deg,
+        transparent 0 55%, var(--p-resizable-handle-color) 55% 63%,
+        transparent 63% 75%, var(--p-resizable-handle-color) 75% 83%,
+        transparent 83%);
+
+    &:hover {
+        background: linear-gradient(135deg,
+            transparent 0 55%, var(--p-resizable-handle-hover-color) 55% 63%,
+            transparent 63% 75%, var(--p-resizable-handle-hover-color) 75% 83%,
+            transparent 83%);
+    }
+}
+
+.p-resizable-ghost {
+    opacity: var(--p-resizable-ghost-opacity);
+}
+
+.p-resizable-proxy,
+.p-resizable-helper {
+    border: 1px dashed var(--p-resizable-helper-border-color);
+    background: var(--p-resizable-helper-background);
+    border-radius: var(--p-resizable-helper-border-radius);
+}

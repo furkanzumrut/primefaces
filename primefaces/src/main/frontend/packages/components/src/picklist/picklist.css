@@ -1,0 +1,350 @@
+/*
+ * PickList: p:pickList (PrimeUIX picklist + listbox tokens, caption uses the panel header tokens)
+ *
+ * Supported classes: p-picklist-vertical, p-picklist-responsive, p-picklist-outline (keyboard focused item), p-state-disabled
+ */
+.p-picklist {
+    display: table;
+
+    > div {
+        float: none;
+        display: table-cell;
+        vertical-align: top;
+    }
+
+    .p-picklist-buttons {
+        height: 200px;
+        vertical-align: middle;
+        padding: 0 var(--p-picklist-gap);
+
+        button {
+            pointer-events: auto;
+        }
+
+        .p-button {
+            margin-bottom: var(--p-picklist-controls-gap);
+        }
+
+        .p-picklist-move-up-icon {
+            --_icon: var(--p-picklist-move-up-icon);
+        }
+
+        .p-picklist-move-top-icon {
+            --_icon: var(--p-picklist-move-top-icon);
+        }
+
+        .p-picklist-move-down-icon {
+            --_icon: var(--p-picklist-move-down-icon);
+        }
+
+        .p-picklist-move-bottom-icon {
+            --_icon: var(--p-picklist-move-bottom-icon);
+        }
+
+        .p-picklist-move-to-target-icon {
+            --_icon: var(--p-picklist-move-to-target-icon);
+        }
+
+        .p-picklist-move-all-to-target-icon {
+            --_icon: var(--p-picklist-move-all-to-target-icon);
+        }
+
+        .p-picklist-move-to-source-icon {
+            --_icon: var(--p-picklist-move-to-source-icon);
+        }
+
+        .p-picklist-move-all-to-source-icon {
+            --_icon: var(--p-picklist-move-all-to-source-icon);
+        }
+
+        /* orientation="vertical": the buttons between the lists point down / up */
+        .p-picklist-move-to-target-vertical-icon {
+            --_icon: var(--p-picklist-move-to-target-vertical-icon);
+        }
+
+        .p-picklist-move-all-to-target-vertical-icon {
+            --_icon: var(--p-picklist-move-all-to-target-vertical-icon);
+        }
+
+        .p-picklist-move-to-source-vertical-icon {
+            --_icon: var(--p-picklist-move-to-source-vertical-icon);
+        }
+
+        .p-picklist-move-all-to-source-vertical-icon {
+            --_icon: var(--p-picklist-move-all-to-source-vertical-icon);
+        }
+    }
+
+    /* flex: the (hidden) label of the icon only buttons is a block and would add a second line otherwise */
+    .p-button {
+        display: flex;
+    }
+
+    .p-button-text-icon-left {
+        width: 100%;
+    }
+
+    /* the caption background is layered over the list background, as it is transparent in some presets */
+    .p-picklist-caption {
+        text-align: center;
+        background: linear-gradient(var(--p-picklist-caption-background), var(--p-picklist-caption-background)), var(--p-listbox-background);
+        border: 1px solid var(--p-picklist-caption-border-color);
+        border-bottom: 0 none;
+        color: var(--p-picklist-caption-color);
+        padding: var(--p-picklist-caption-padding);
+        font-weight: var(--p-picklist-caption-font-weight);
+        border-radius: var(--p-listbox-border-radius) var(--p-listbox-border-radius) 0 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .p-picklist-filter {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* search icon inside the filter input, at the start */
+    .p-picklist-filter-container {
+        position: relative;
+        margin: 0;
+        padding: 0;
+
+        .p-picklist-filter {
+            padding-block: var(--p-inputtext-padding-y);
+            padding-inline: var(--p-inputtext-padding-x);
+            padding-inline-start: calc(2 * var(--p-inputtext-padding-x) + var(--p-icon-size));
+            margin-bottom: var(--p-picklist-controls-gap);
+        }
+
+        .p-picklist-filter-icon {
+            --_icon: var(--p-picklist-filter-icon);
+            position: absolute;
+            inset-inline-start: var(--p-inputtext-padding-x);
+            top: 50%;
+            margin-top: calc(-1 * var(--p-icon-size) / 2 - var(--p-picklist-controls-gap) / 2);
+            color: var(--p-form-field-icon-color);
+        }
+    }
+
+    .p-picklist-list {
+        list-style-type: none;
+        margin: 0;
+        overflow: auto;
+        height: 200px;
+        width: 200px;
+        border: 1px solid var(--p-listbox-border-color);
+        background: var(--p-listbox-background);
+        color: var(--p-listbox-color);
+        padding: var(--p-listbox-list-padding);
+        box-shadow: var(--p-listbox-shadow);
+        border-radius: var(--p-listbox-border-radius);
+
+        li {
+            overflow-wrap: break-word;
+        }
+    }
+
+    .p-picklist-caption + .p-picklist-list {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    .p-picklist-item {
+        cursor: pointer;
+    }
+
+    .p-picklist-list .p-picklist-item {
+        padding: var(--p-listbox-option-padding);
+        border: 0 none;
+        margin: 0;
+        color: var(--p-listbox-option-color);
+        font-size: var(--p-listbox-option-font-size);
+        font-weight: var(--p-listbox-option-font-weight);
+        border-radius: var(--p-listbox-option-border-radius);
+        transition: background var(--p-listbox-transition-duration), color var(--p-listbox-transition-duration),
+            border-color var(--p-listbox-transition-duration), box-shadow var(--p-listbox-transition-duration);
+
+        + .p-picklist-item {
+            margin-top: var(--p-listbox-list-gap);
+        }
+
+        &:not(.p-state-highlight, .p-state-disabled):hover,
+        &.p-state-hover {
+            background: var(--p-listbox-option-focus-background);
+            color: var(--p-listbox-option-focus-color);
+        }
+
+        &.p-state-highlight {
+            background: var(--p-listbox-option-selected-background);
+            color: var(--p-listbox-option-selected-color);
+            font-weight: var(--p-listbox-option-selected-font-weight);
+        }
+
+        &.p-state-highlight.p-sortable-placeholder {
+            background: var(--p-listbox-option-selected-focus-background);
+        }
+
+        /* keyboard focus */
+        &.p-picklist-outline {
+            outline: var(--p-focus-ring-width) var(--p-focus-ring-style) var(--p-focus-ring-color);
+            outline-offset: calc(-1 * var(--p-focus-ring-width));
+            box-shadow: var(--p-focus-ring-shadow);
+        }
+
+        .p-chkbox {
+            margin-inline-end: var(--p-listbox-checkmark-gutter-end);
+        }
+    }
+
+    &.p-picklist-vertical {
+        > div {
+            float: none;
+            display: table-row;
+            vertical-align: top;
+        }
+
+        .p-picklist-buttons {
+            text-align: center;
+            height: auto;
+            padding: var(--p-picklist-controls-gap) 0;
+
+            .p-button {
+                display: inline-flex;
+                margin: 0;
+                margin-inline-end: var(--p-picklist-controls-gap);
+            }
+        }
+    }
+
+    /*
+     * responsive: the pickList is a grid with the column widths
+     * the table had (lists 45% / buttons 10%; lists 35% next to reorder controls, which share the rest like auto table
+     * columns), and a block in the vertical layout (its table rows were full width already). Same layout as the table.
+     */
+    &.p-picklist-responsive {
+        width: 100%;
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .p-picklist-buttons button {
+            width: 100%;
+        }
+
+        .p-picklist-list {
+            width: auto;
+        }
+    }
+
+    &.p-picklist-responsive:not(.p-picklist-vertical) {
+        display: grid;
+        grid-template-columns: 45% 10% 45%;
+
+        &:has(> .p-picklist-source-controls) {
+            grid-template-columns: auto 35% 10% 45%;
+        }
+
+        &:has(> .p-picklist-target-controls) {
+            grid-template-columns: 45% 10% 35% auto;
+        }
+
+        &:has(> .p-picklist-source-controls):has(> .p-picklist-target-controls) {
+            grid-template-columns: auto 35% 10% 35% auto;
+        }
+
+        > div {
+            display: block;
+        }
+
+        /* buttons centered on the row height, like in the middle aligned table cell */
+        > .p-picklist-buttons {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: auto;
+        }
+    }
+
+    &.p-picklist-responsive.p-picklist-vertical {
+        display: block;
+
+        > div {
+            display: block;
+        }
+
+        /* table rows have no padding: keep the table layout (:where, so the narrow layout below still sets it) */
+        > :where(.p-picklist-buttons) {
+            padding: 0;
+        }
+    }
+}
+
+.p-picklist-list.p-picklist-source,
+.p-picklist-list.p-picklist-target {
+    outline: none;
+}
+
+.p-picklist-outline {
+    z-index: 1;
+}
+
+/* narrow viewport: lists and buttons stacked */
+@media (max-width: 640px) {
+    .p-picklist.p-picklist-responsive {
+        > div {
+            grid-column: 1 / -1;
+        }
+
+        > div.p-hidden-accessible {
+            display: none;
+        }
+
+        /* the buttons are in a row between the lists: the arrows point down / up */
+        .p-picklist-buttons {
+            text-align: center;
+            height: auto;
+            padding: var(--p-picklist-controls-gap) 0;
+
+            button {
+                display: inline-flex;
+                width: 20%;
+            }
+
+            .p-button {
+                margin-top: var(--p-picklist-controls-gap);
+                margin-inline-end: var(--p-picklist-controls-gap);
+            }
+
+            .p-button:last-child {
+                margin-inline-end: 0;
+            }
+
+            .p-button .p-picklist-move-to-target-icon {
+                --_icon: var(--p-picklist-move-to-target-vertical-icon);
+            }
+
+            .p-button .p-picklist-move-all-to-target-icon {
+                --_icon: var(--p-picklist-move-all-to-target-vertical-icon);
+            }
+
+            .p-button .p-picklist-move-to-source-icon {
+                --_icon: var(--p-picklist-move-to-source-vertical-icon);
+            }
+
+            .p-button .p-picklist-move-all-to-source-icon {
+                --_icon: var(--p-picklist-move-all-to-source-vertical-icon);
+            }
+        }
+    }
+}
+
+/* the lists are focusable (keyboard selection) */
+.p-picklist .p-picklist-list:focus-visible {
+    outline: var(--p-focus-ring-width) var(--p-focus-ring-style) var(--p-focus-ring-color);
+    outline-offset: calc(-1 * var(--p-focus-ring-width));
+    box-shadow: var(--p-focus-ring-shadow);
+}

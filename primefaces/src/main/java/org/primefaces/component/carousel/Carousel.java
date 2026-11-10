@@ -1,0 +1,86 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.component.carousel;
+
+import org.primefaces.cdk.api.FacesComponentInfo;
+import org.primefaces.event.PageChangeEvent;
+
+import java.util.Map;
+
+import jakarta.faces.application.ResourceDependency;
+import jakarta.faces.component.FacesComponent;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.event.AjaxBehaviorEvent;
+import jakarta.faces.event.FacesEvent;
+
+@FacesComponent(value = Carousel.COMPONENT_TYPE, namespace = Carousel.COMPONENT_FAMILY)
+@FacesComponentInfo(description = "Carousel is a content slider featuring various customization options.")
+@ResourceDependency(library = "primefaces", name = "components.css")
+@ResourceDependency(library = "primefaces", name = "jquery/jquery.js")
+@ResourceDependency(library = "primefaces", name = "core.js")
+@ResourceDependency(library = "primefaces", name = "components.js")
+@ResourceDependency(library = "primefaces", name = "touch/touchswipe.js")
+public class Carousel extends CarouselBaseImpl {
+
+    public static final String COMPONENT_TYPE = "org.primefaces.component.Carousel";
+
+    public static final String STYLE_CLASS = "p-carousel p-widget";
+    public static final String CONTENT_CLASS = "p-carousel-content";
+    public static final String CONTAINER_CLASS = "p-carousel-container";
+    public static final String INDICATORS_CONTENT_CLASS = "p-carousel-indicators p-reset";
+    public static final String HORIZONTAL_CLASS = "p-carousel-horizontal";
+    public static final String VERTICAL_CLASS = "p-carousel-vertical";
+    public static final String HEADER_CLASS = "p-carousel-header";
+    public static final String FOOTER_CLASS = "p-carousel-footer";
+    public static final String PREV_BUTTON_CLASS = "p-carousel-prev p-link";
+    public static final String PREV_BUTTON_ICON_CLASS = "p-icon p-prev-icon p-carousel-prev-icon";
+    public static final String PREV_BUTTON_VERTICAL_ICON_CLASS = "p-icon p-up-icon p-carousel-prev-vertical-icon";
+    public static final String NEXT_BUTTON_CLASS = "p-carousel-next p-link";
+    public static final String NEXT_BUTTON_ICON_CLASS = "p-icon p-next-icon p-carousel-next-icon";
+    public static final String NEXT_BUTTON_VERTICAL_ICON_CLASS = "p-icon p-down-icon p-carousel-next-vertical-icon";
+    public static final String ITEMS_CONTENT_CLASS = "p-carousel-items-content";
+    public static final String ITEMS_CONTAINER_CLASS = "p-carousel-items-container p-items-hidden";
+    public static final String ITEM_CLASS = "p-carousel-item";
+
+    @Override
+    public void queueEvent(FacesEvent event) {
+        FacesContext context = event.getFacesContext();
+
+        if (isAjaxBehaviorEventSource(event)) {
+            Map<String, String> params = context.getExternalContext().getRequestParameterMap();
+
+            if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.pageChange)) {
+                String clientId = getClientId(context);
+                AjaxBehaviorEvent behaviorEvent = (AjaxBehaviorEvent) event;
+                int pageValue = Integer.parseInt(params.get(clientId + "_pageValue"));
+                PageChangeEvent pageChangeEvent = new PageChangeEvent(this, behaviorEvent.getBehavior(), pageValue);
+                pageChangeEvent.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(pageChangeEvent);
+            }
+        }
+        else {
+            super.queueEvent(event);
+        }
+    }
+}

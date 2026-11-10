@@ -1,0 +1,55 @@
+/*
+ * Terminal: p:terminal
+ *
+ * Markup: .p-terminal > div (welcome), .p-terminal-content > div* (command: span + span.p-terminal-command,
+ *         response: div, autocomplete: div.p-terminal-autocomplete), div > span.p-terminal-prompt + input.p-terminal-input
+ */
+
+.p-terminal {
+    overflow: auto;
+    height: var(--p-terminal-height);
+    background: var(--p-terminal-background);
+    color: var(--p-terminal-color);
+    border: 1px solid var(--p-terminal-border-color);
+    border-radius: var(--p-terminal-border-radius);
+    padding: var(--p-terminal-padding);
+    font-size: var(--p-terminal-font-size);
+    font-weight: var(--p-terminal-font-weight);
+
+    .p-terminal-prompt {
+        margin-inline-end: var(--p-terminal-prompt-gap);
+    }
+
+    .p-terminal-command {
+        margin: 0;
+        margin-inline-start: var(--p-terminal-prompt-gap);
+    }
+
+    .p-terminal-input {
+        border: 0 none;
+        background-color: transparent;
+        color: inherit;
+        padding: 0;
+        margin: 0;
+        width: 75%;
+        outline: none;
+        box-shadow: none;
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: inherit;
+        border-radius: 0;
+    }
+
+    .p-terminal-content > div > div {
+        margin: var(--p-terminal-command-response-margin);
+    }
+
+    .p-terminal-autocomplete a {
+        color: var(--p-primary-color);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}

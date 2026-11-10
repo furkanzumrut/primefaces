@@ -1,0 +1,85 @@
+/*
+ * Wizard: p:wizard
+ *
+ * ul.p-wizard-step-titles (showStepStatus) is a segmented bar, the current step is li.p-state-highlight.
+ * The navbar holds two PF buttons (.p-wizard-nav-back left, .p-wizard-nav-next right, styled by button.css).
+ * PrimeFaces tokens, see the wizard block of presets/*.css.
+ */
+.p-wizard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-wizard-gap);
+
+    .p-wizard-step-titles {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+
+        .p-wizard-step-title {
+            flex: 1 1 0;
+            margin: 0;
+            padding: var(--p-wizard-step-padding);
+            list-style-type: none;
+            font-size: var(--p-wizard-step-font-size);
+            font-weight: var(--p-wizard-step-font-weight);
+            text-align: center;
+            background: var(--p-wizard-step-background);
+            color: var(--p-wizard-step-color);
+            border: 1px solid var(--p-wizard-step-border-color);
+            border-inline-end-width: 0;
+            border-radius: 0;
+            transition: background var(--p-wizard-transition-duration), color var(--p-wizard-transition-duration),
+                border-color var(--p-wizard-transition-duration);
+
+            &:first-child {
+                border-start-start-radius: var(--p-wizard-step-border-radius);
+                border-end-start-radius: var(--p-wizard-step-border-radius);
+            }
+
+            &:last-child {
+                border-inline-end-width: 1px;
+                border-start-end-radius: var(--p-wizard-step-border-radius);
+                border-end-end-radius: var(--p-wizard-step-border-radius);
+            }
+
+            &.p-state-highlight {
+                background: var(--p-wizard-step-active-background);
+                color: var(--p-wizard-step-active-color);
+                border-color: var(--p-wizard-step-active-border-color);
+            }
+        }
+    }
+
+    .p-wizard-content {
+        margin: 0;
+        padding: var(--p-wizard-content-padding);
+        background: var(--p-wizard-content-background);
+        color: var(--p-wizard-content-color);
+    }
+
+    .p-wizard-navbar {
+        display: flex;
+        align-items: center;
+        gap: var(--p-wizard-gap);
+
+        .p-wizard-nav-next {
+            margin-inline-start: auto;
+        }
+    }
+
+    .p-wizard-back-icon {
+        --_icon: var(--p-wizard-back-icon);
+    }
+
+    .p-wizard-next-icon {
+        --_icon: var(--p-wizard-next-icon);
+    }
+
+    /* RTL: the back button is at the right, the next button at the left */
+    .p-wizard-back-icon:dir(rtl),
+    .p-wizard-next-icon:dir(rtl) {
+        scale: -1 1;
+    }
+}

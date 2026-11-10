@@ -1,0 +1,95 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:c="jakarta.tags.core"
+                xmlns:p="primefaces"
+                template="/WEB-INF/template.xhtml">
+    <!-- a rough overview of the style: one section per component group (theming/sections), the theme is set in the configurator -->
+    <ui:param name="sections" value="#{[
+            ['buttons', 'Buttons / Menus'],
+            ['forms-text', 'Form'],
+            ['forms-select', 'Selection'],
+            ['states', 'States'],
+            ['datatable', 'DataTable'],
+            ['data', 'Data'],
+            ['panels', 'Panels'],
+            ['overlays', 'Overlays / Messages'],
+            ['misc', 'Misc'],
+            ['scoping', 'Scoping']]}"/>
+
+    <ui:define name="content">
+        <div class="theming-page">
+            <div class="content-section introduction">
+                <div class="feature-intro">
+                    <h1>Theming</h1>
+                    <p>
+                        The CSS variable based themes: presets Aura, Lara, Nora, Material, Metal and Glass, light
+                        and dark color scheme, density and design tokens. Configure the theme on the right, every component on this page
+                        follows.
+                    </p>
+                </div>
+            </div>
+
+            <nav class="demo-sections" aria-label="Sections">
+                <ui:repeat value="#{sections}" var="demoSection">
+                    <a href="##{demoSection[0]}">#{demoSection[1]}</a>
+                </ui:repeat>
+            </nav>
+            <script>
+                //<![CDATA[
+                // scroll spy: marks the link of the section at the top of the viewport
+                document.addEventListener('DOMContentLoaded', function () {
+                    var bar = document.querySelector('.demo-sections');
+                    var links = Array.prototype.slice.call(bar.querySelectorAll('a'));
+                    var sections = links.map(function (a) { return document.getElementById(a.hash.slice(1)); });
+                    var current = null;
+                    var update = function () {
+                        var offset = bar.getBoundingClientRect().bottom + 24;
+                        var active = sections[0];
+                        sections.forEach(function (s) {
+                            if (s && s.getBoundingClientRect().top - offset <= 0) {
+                                active = s;
+                            }
+                        });
+                        if (active !== current) {
+                            current = active;
+                            links.forEach(function (a, i) {
+                                var on = sections[i] === active;
+                                a.classList.toggle('active', on);
+                                if (on) {
+                                    a.setAttribute('aria-current', 'location');
+                                    bar.scrollLeft = a.offsetLeft - bar.clientWidth / 2 + a.offsetWidth / 2;
+                                }
+                                else {
+                                    a.removeAttribute('aria-current');
+                                }
+                            });
+                        }
+                    };
+                    var scheduled = false;
+                    window.addEventListener('scroll', function () {
+                        if (!scheduled) {
+                            scheduled = true;
+                            requestAnimationFrame(function () {
+                                scheduled = false;
+                                update();
+                            });
+                        }
+                    }, { passive: true });
+                    update();
+                });
+                //]]>
+            </script>
+
+            <div class="content-section implementation">
+                <c:forEach items="#{sections}" var="demoSection">
+                    <section id="#{demoSection[0]}" class="demo-section" aria-labelledby="#{demoSection[0]}-title">
+                        <h2 id="#{demoSection[0]}-title" class="demo-section-title">#{demoSection[1]}</h2>
+                        <ui:include src="/theming/sections/#{demoSection[0]}.xhtml"/>
+                    </section>
+                </c:forEach>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,399 @@
+/*
+ * SelectOneMenu: p:selectOneMenu (PrimeUIX: select)
+ *
+ * Supported classes: p-state-hover, p-state-focus, p-state-error, p-state-disabled, p-state-loading,
+ *                    p-selectonemenu-rtl, p-input-filled (on a parent), .p-fluid (on a parent),
+ *                    p-selectonemenu-sm, p-selectonemenu-lg (styleClass)
+ * Panel: p-select-checkmark (panelStyleClass, a check in front of the selected item)
+ * Panel items: p-state-hover (mouse and keyboard), p-state-focus (keyboard with selectOnFocus="false"),
+ *              p-state-highlight (selected)
+ * Variants: editable (input label), filter, groups, custom content (table with columns), footer facet
+ * Rows (panelStyleClass, base/rows.css): p-rows-striped; table mode (p:column children): p-rows-sm, p-rows-lg
+ *                                         (the cells always have gridlines, p-rows-gridlines has no effect)
+ */
+.p-selectonemenu {
+    display: inline-block;
+    width: auto;
+    cursor: pointer;
+    vertical-align: middle;
+    /* the states set --_border-color, the filled variant draws its line with it */
+    --_border-color: var(--p-select-border-color);
+    border: 1px solid var(--_border-color);
+    position: relative;
+    padding: 0;
+    background: var(--p-select-background);
+    border-radius: var(--p-select-border-radius);
+    box-shadow: var(--p-select-shadow);
+    outline-color: transparent;
+    transition: background var(--p-select-transition-duration), color var(--p-select-transition-duration),
+        border-color var(--p-select-transition-duration), outline-color var(--p-select-transition-duration),
+        box-shadow var(--p-select-transition-duration);
+
+    .p-selectonemenu-label {
+        display: block;
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: start;
+    }
+
+    /* the label is also a .p-inputfield: drop the field chrome of forms/inputfield.css, the container carries it */
+    .p-selectonemenu-label.p-inputfield {
+        background: transparent;
+        border: 0 none;
+        border-radius: 0;
+        box-shadow: none;
+        outline: 0 none;
+        color: var(--p-select-color);
+        font-size: var(--p-select-font-size);
+        font-weight: var(--p-select-font-weight);
+        padding-block: var(--p-select-padding-y);
+        padding-inline: var(--p-select-padding-x);
+        padding-inline-end: var(--p-select-dropdown-width);
+    }
+
+    .p-selectonemenu-label.p-selectonemenu-label-placeholder {
+        color: var(--p-select-placeholder-color);
+    }
+
+    &.p-state-error .p-selectonemenu-label.p-selectonemenu-label-placeholder {
+        color: var(--p-select-invalid-placeholder-color);
+    }
+
+    &.p-state-disabled .p-selectonemenu-trigger,
+    &.p-state-disabled .p-selectonemenu-label {
+        cursor: default;
+    }
+
+    label.p-selectonemenu-label {
+        cursor: pointer;
+    }
+
+    input.p-selectonemenu-label {
+        cursor: text;
+    }
+
+    .p-selectonemenu-trigger {
+        border: 0 none;
+        cursor: pointer;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        inset-inline-end: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--p-select-dropdown-width);
+        background: transparent;
+        color: var(--p-select-dropdown-color);
+        border-start-end-radius: var(--p-select-border-radius);
+        border-end-end-radius: var(--p-select-border-radius);
+
+        .p-selectonemenu-dropdown-icon {
+            --_icon: var(--p-select-dropdown-icon);
+            color: var(--p-select-dropdown-color);
+        }
+    }
+
+    /* loading (dynamic): the spinner is prepended to the trigger and shown in front of it */
+    .p-icon-loading {
+        position: absolute;
+        top: 50%;
+        inset-inline-end: 100%;
+        margin-top: calc(-1 * var(--p-icon-size) / 2);
+        margin-inline: 0;
+        color: var(--p-select-dropdown-color);
+    }
+
+    &.p-state-hover,
+    &:not(.p-state-disabled):hover {
+        --_border-color: var(--p-select-hover-border-color);
+    }
+
+    /* the widget sets p-state-focus; an editable label focused with tab does not get it */
+    &.p-state-focus,
+    &:has(> .p-selectonemenu-label:focus-visible) {
+        --_border-color: var(--p-select-focus-border-color);
+        outline: var(--p-select-focus-ring-width) var(--p-select-focus-ring-style) var(--p-select-focus-ring-color);
+        outline-offset: var(--p-select-focus-ring-offset);
+        box-shadow: var(--p-select-focus-ring-shadow);
+    }
+
+    /* invalid: the border also wins over hover and focus (same specificity, later), the focus ring stays */
+    &.p-state-error,
+    &.p-state-error:is(:hover, .p-state-focus, :focus-within) {
+        --_border-color: var(--p-select-invalid-border-color);
+    }
+
+    &.p-state-disabled {
+        opacity: 1;
+        background: var(--p-select-disabled-background);
+
+        .p-selectonemenu-label.p-inputfield {
+            color: var(--p-select-disabled-color);
+        }
+    }
+
+    /* sizes (styleClass): the size tokens replace the base ones (label, fluid and editable follow), the icon follows */
+    &.p-selectonemenu-sm {
+        --p-select-font-size: var(--p-select-sm-font-size);
+        --p-select-padding-x: var(--p-select-sm-padding-x);
+        --p-select-padding-y: var(--p-select-sm-padding-y);
+    }
+
+    &.p-selectonemenu-lg {
+        --p-select-font-size: var(--p-select-lg-font-size);
+        --p-select-padding-x: var(--p-select-lg-padding-x);
+        --p-select-padding-y: var(--p-select-lg-padding-y);
+    }
+
+    &.p-selectonemenu-sm .p-selectonemenu-trigger .p-selectonemenu-dropdown-icon,
+    &.p-selectonemenu-lg .p-selectonemenu-trigger .p-selectonemenu-dropdown-icon {
+        font-size: var(--p-select-font-size);
+    }
+}
+
+.p-selectonemenu-rtl {
+    direction: rtl;
+}
+
+/* filled variant (border, focus ring and line at the bottom: see forms/inputfield.css) */
+.p-input-filled .p-selectonemenu {
+    --_line-width: var(--p-form-field-filled-indicator-width);
+    --_line: linear-gradient(var(--_border-color), var(--_border-color)) bottom / 100% var(--_line-width) no-repeat
+        border-box;
+    background: var(--_line), var(--p-select-filled-background);
+    border-color: color-mix(in srgb, var(--_border-color) var(--p-form-field-filled-border-opacity), transparent);
+    border-end-start-radius: var(--p-form-field-filled-bottom-border-radius);
+    border-end-end-radius: var(--p-form-field-filled-bottom-border-radius);
+
+    &.p-state-hover,
+    &:not(.p-state-disabled):hover {
+        background: var(--_line), var(--p-select-filled-hover-background);
+    }
+
+    &.p-state-focus,
+    &:has(> .p-selectonemenu-label:focus-visible) {
+        --_line-width: var(--p-form-field-filled-focus-indicator-width);
+        background: var(--_line), var(--p-select-filled-focus-background);
+        outline-color: color-mix(in srgb, var(--p-select-focus-ring-color) var(--p-form-field-filled-border-opacity), transparent);
+    }
+
+    &.p-state-disabled {
+        background: var(--_line), var(--p-select-disabled-background);
+    }
+
+    /* keep the filled backgrounds of forms/inputfield.css off the inner label */
+    .p-selectonemenu-label.p-inputfield,
+    .p-selectonemenu-label.p-inputfield:hover,
+    .p-selectonemenu-label.p-inputfield:focus {
+        background: transparent;
+    }
+}
+
+/* fluid: the label leaves room for the trigger by its width instead of its end padding */
+.p-fluid .p-selectonemenu {
+    width: 100%;
+
+    .p-selectonemenu-label.p-inputfield {
+        width: calc(100% - var(--p-select-dropdown-width));
+        padding-inline: var(--p-select-padding-x);
+    }
+}
+
+/* panel */
+.p-selectonemenu-panel {
+    position: absolute;
+    height: auto;
+    background: var(--p-select-overlay-background);
+    color: var(--p-select-overlay-color);
+    border: 1px solid var(--p-select-overlay-border-color);
+    box-shadow: var(--p-select-overlay-shadow);
+    border-radius: var(--p-select-overlay-border-radius);
+
+    &.p-selectonemenu-panel-rtl {
+        direction: rtl;
+    }
+
+    .p-selectonemenu-items-wrapper {
+        overflow: auto;
+    }
+
+    .p-selectonemenu-filter-container {
+        position: relative;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding: var(--p-select-list-header-padding);
+        margin: 0;
+        border-bottom: 0 none;
+        background: transparent;
+        color: var(--p-select-overlay-color);
+
+        .p-selectonemenu-filter.p-inputfield {
+            width: 100%;
+            padding-block: var(--p-select-padding-y);
+            padding-inline: var(--p-select-padding-x);
+            padding-inline-start: calc(2 * var(--p-select-padding-x) + var(--p-icon-size));
+        }
+
+        /*
+         * No insets: the absolute icon stays at its static position, i.e. at the start of the container's content box
+         * and vertically centered by the flex container, so the header padding does not need to be known.
+         */
+        .p-selectonemenu-filter-icon {
+            --_icon: var(--p-select-filter-icon);
+            position: absolute;
+            margin: 0;
+            margin-inline-start: var(--p-select-padding-x);
+            color: var(--p-form-field-icon-color);
+        }
+    }
+
+    .p-selectonemenu-item {
+        cursor: pointer;
+    }
+
+    /* the server renders ul.p-selectonemenu-items.p-selectonemenu-list, the widget (dynamic / grouped options)
+       div.p-selectonemenu-items > ul.p-selectonemenu-list; the items padding below wins when both are one element */
+    .p-selectonemenu-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--p-select-list-gap);
+        border: 0 none;
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+
+    .p-selectonemenu-list-item {
+        border: 0 none;
+        text-align: start;
+        white-space: nowrap;
+    }
+
+    /* table (p:column children): the cells always have gridlines; the p-rows-* variants of base/rows.css set
+       --_table-(header-)cell-padding, the sizes are the DataTable ones */
+    .p-selectonemenu-table {
+        --_table-cell-sm-padding: var(--p-datatable-body-cell-sm-padding);
+        --_table-cell-lg-padding: var(--p-datatable-body-cell-lg-padding);
+        --_table-header-cell-sm-padding: var(--p-datatable-header-cell-sm-padding);
+        --_table-header-cell-lg-padding: var(--p-datatable-header-cell-lg-padding);
+        border-collapse: collapse;
+        width: 100%;
+
+        td {
+            border-color: inherit;
+        }
+
+        th,
+        td {
+            border-width: 1px;
+            border-style: solid;
+        }
+    }
+
+    .p-selectonemenu-items {
+        padding: var(--p-select-list-padding);
+
+        &.p-selectonemenu-table > thead tr th {
+            background: var(--p-datatable-header-cell-background);
+            border: 1px solid var(--p-datatable-header-cell-border-color);
+            color: var(--p-datatable-header-cell-color);
+            font-weight: var(--p-datatable-column-title-font-weight);
+            padding: var(--_table-header-cell-padding, var(--p-datatable-header-cell-padding));
+        }
+    }
+
+    .p-selectonemenu-items .p-selectonemenu-item {
+        margin: 0;
+        padding: var(--p-select-option-padding);
+        background: transparent;
+        color: var(--p-select-option-color);
+        font-size: var(--p-select-option-font-size);
+        font-weight: var(--p-select-option-font-weight);
+        outline: 0 none;
+        border-radius: var(--p-select-option-border-radius);
+        transition: background var(--p-list-option-transition-duration), color var(--p-list-option-transition-duration),
+            border-color var(--p-list-option-transition-duration), box-shadow var(--p-list-option-transition-duration),
+            outline-color var(--p-list-option-transition-duration);
+
+        &.p-selectonemenu-row {
+            background: var(--p-datatable-row-background);
+            color: var(--p-datatable-row-color);
+            border: 1px solid var(--p-datatable-body-cell-border-color);
+            border-radius: 0;
+        }
+
+        &.p-selectonemenu-row > td {
+            padding: var(--_table-cell-padding, var(--p-datatable-body-cell-padding));
+            border-color: var(--p-datatable-body-cell-border-color);
+        }
+
+        &.p-selectonemenu-row:first-child {
+            border-top-color: transparent;
+        }
+
+        &.p-state-hover,
+        &.p-state-focus {
+            background: var(--p-select-option-focus-background);
+            color: var(--p-select-option-focus-color);
+        }
+
+        &.p-state-highlight {
+            background: var(--p-select-option-selected-background);
+            color: var(--p-select-option-selected-color);
+            font-weight: var(--p-select-option-selected-font-weight);
+            overflow: auto;
+        }
+
+        &.p-state-highlight.p-state-hover,
+        &.p-state-highlight.p-state-focus {
+            background: var(--p-select-option-selected-focus-background);
+            color: var(--p-select-option-selected-focus-color);
+        }
+    }
+
+    .p-selectonemenu-items .p-selectonemenu-item-group {
+        margin: 0;
+        padding: var(--p-select-option-group-padding);
+        background: var(--p-select-option-group-background);
+        color: var(--p-select-option-group-color);
+        font-weight: var(--p-select-option-group-font-weight);
+        font-size: var(--p-select-option-group-font-size);
+    }
+
+    /*
+     * checkmark mode (panelStyleClass="p-select-checkmark"): a check in front of the selected option, the others keep
+     * the space of the icon (PrimeUIX blank icon). List items only, not the table of p:column children.
+     */
+    &.p-select-checkmark .p-selectonemenu-items li.p-selectonemenu-item {
+        display: flex;
+        align-items: center;
+
+        &::before {
+            content: "\2003";
+            flex-shrink: 0;
+            font-size: var(--p-icon-size);
+            line-height: 1;
+            margin-inline-start: var(--p-select-checkmark-gutter-start);
+            margin-inline-end: var(--p-select-checkmark-gutter-end);
+            color: var(--p-select-checkmark-color);
+            background: transparent;
+            forced-color-adjust: none;
+            mask: var(--p-select-checkmark-icon) center / contain no-repeat;
+        }
+
+        &.p-state-highlight::before {
+            background: currentColor;
+        }
+    }
+}
+
+.p-selectonemenu-footer {
+    border: 0 none;
+    margin: 0;
+    padding: var(--p-select-list-header-padding);
+}

@@ -1,0 +1,178 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.component.timeline;
+
+import org.primefaces.cdk.api.FacesComponentInfo;
+import org.primefaces.event.timeline.TimelineAddEvent;
+import org.primefaces.event.timeline.TimelineDragDropEvent;
+import org.primefaces.event.timeline.TimelineLazyLoadEvent;
+import org.primefaces.event.timeline.TimelineModificationEvent;
+import org.primefaces.event.timeline.TimelineRangeEvent;
+import org.primefaces.event.timeline.TimelineSelectEvent;
+import org.primefaces.model.timeline.TimelineEvent;
+import org.primefaces.util.CalendarUtils;
+import org.primefaces.util.LocaleUtils;
+import org.primefaces.visit.UIDataContextCallback;
+
+import java.time.ZoneId;
+import java.util.Locale;
+import java.util.Map;
+
+import jakarta.faces.application.ResourceDependency;
+import jakarta.faces.component.FacesComponent;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.event.AjaxBehaviorEvent;
+import jakarta.faces.event.FacesEvent;
+
+@FacesComponent(value = Timeline.COMPONENT_TYPE, namespace = Timeline.COMPONENT_FAMILY)
+@FacesComponentInfo(description = "Timeline is an interactive visualization chart to visualize events in time.")
+@ResourceDependency(library = "primefaces", name = "components.css")
+@ResourceDependency(library = "primefaces", name = "jquery/jquery.js")
+@ResourceDependency(library = "primefaces", name = "core.js")
+@ResourceDependency(library = "primefaces", name = "components.js")
+@ResourceDependency(library = "primefaces", name = "moment/moment.js")
+@ResourceDependency(library = "primefaces", name = "timeline/timeline.css")
+@ResourceDependency(library = "primefaces", name = "timeline/timeline.js")
+public class Timeline extends TimelineBaseImpl {
+
+    public static final String COMPONENT_TYPE = "org.primefaces.component.Timeline";
+
+    @Override
+    public void queueEvent(FacesEvent event) {
+        FacesContext context = FacesContext.getCurrentInstance();
+
+        if (isAjaxBehaviorEventSource(event)) {
+            Map<String, String> params = context.getExternalContext().getRequestParameterMap();
+            String clientId = getClientId(context);
+
+            AjaxBehaviorEvent behaviorEvent = (AjaxBehaviorEvent) event;
+            ZoneId zoneId = CalendarUtils.calculateZoneId(getTimeZone());
+
+            if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.add)) {
+                // preset start / end date and the group
+                TimelineAddEvent te =
+                        new TimelineAddEvent(this, behaviorEvent.getBehavior(),
+                                params.get(clientId + "_id"),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_startDate")),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_endDate")),
+                                params.get(clientId + "_group"));
+                te.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(te);
+
+                return;
+            }
+            else if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.change, ClientBehaviorEventKeys.changed)) {
+                TimelineEvent<Object> clonedEvent = null;
+                TimelineEvent<Object> timelineEvent = getValue().getEvent(params.get(clientId + "_eventId"));
+
+                if (timelineEvent != null) {
+                    clonedEvent = TimelineEvent.builder(timelineEvent)
+                        .startDate(CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_startDate")))
+                        .endDate(CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_endDate")))
+                        .group(params.get(clientId + "_group"))
+                        .build();
+                }
+
+                TimelineModificationEvent<Object> te = new TimelineModificationEvent<>(this, behaviorEvent.getBehavior(), clonedEvent);
+                te.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(te);
+
+                return;
+            }
+            else if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.edit, ClientBehaviorEventKeys.delete)) {
+                TimelineEvent<Object> clonedEvent = null;
+                TimelineEvent<Object> timelineEvent = getValue().getEvent(params.get(clientId + "_eventId"));
+
+                if (timelineEvent != null) {
+                    clonedEvent = TimelineEvent.builder(timelineEvent).build();
+                }
+
+                TimelineModificationEvent<Object> te = new TimelineModificationEvent<>(this, behaviorEvent.getBehavior(), clonedEvent);
+                te.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(te);
+
+                return;
+            }
+            else if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.select)) {
+                TimelineEvent<Object> timelineEvent = getValue().getEvent(params.get(clientId + "_eventId"));
+                TimelineSelectEvent<Object> te = new TimelineSelectEvent<>(this, behaviorEvent.getBehavior(), timelineEvent);
+                te.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(te);
+
+                return;
+            }
+            else if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.rangechange, ClientBehaviorEventKeys.rangechanged)) {
+                TimelineRangeEvent te =
+                        new TimelineRangeEvent(this, behaviorEvent.getBehavior(),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_startDate")),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_endDate")));
+                te.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(te);
+
+                return;
+            }
+            else if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.lazyload)) {
+                TimelineLazyLoadEvent te =
+                        new TimelineLazyLoadEvent(this, behaviorEvent.getBehavior(),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_startDateFirst")),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_endDateFirst")),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_startDateSecond")),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_endDateSecond")));
+                te.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(te);
+
+                return;
+            }
+            else if (isAjaxBehaviorEvent(event, ClientBehaviorEventKeys.drop)) {
+                Object data = null;
+                final String dragId = params.get(clientId + "_dragId");
+                final String uiDataId = params.get(clientId + "_uiDataId");
+
+                if (dragId != null && uiDataId != null) {
+                    // draggable is within a data iteration component
+                    UIDataContextCallback contextCallback = new UIDataContextCallback(dragId);
+                    context.getViewRoot().invokeOnComponent(context, uiDataId, contextCallback);
+                    data = contextCallback.getData();
+                }
+
+                // preset start / end date, group, dragId and data object
+                TimelineDragDropEvent<Object> te =
+                        new TimelineDragDropEvent<>(this, behaviorEvent.getBehavior(),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_startDate")),
+                                CalendarUtils.toLocalDateTime(zoneId, params.get(clientId + "_endDate")),
+                                params.get(clientId + "_group"), dragId, data);
+                te.setPhaseId(behaviorEvent.getPhaseId());
+                super.queueEvent(te);
+
+                return;
+            }
+        }
+
+        super.queueEvent(event);
+    }
+
+    public Locale calculateLocale(FacesContext facesContext) {
+        return LocaleUtils.resolveLocale(facesContext, getLocale(), getClientId(facesContext));
+    }
+}

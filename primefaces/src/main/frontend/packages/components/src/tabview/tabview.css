@@ -1,0 +1,375 @@
+/*
+ * TabView: p:tabView (.p-tabs)
+ *
+ * ul.p-tabs-nav = PrimeUIX tablist, li.p-tabs-header = tab, .p-tabs-panels = tabpanels.
+ * PF has no active bar element, the active bar is the ::after of the active tab and follows the orientation.
+ * The tablist is a flex container, so the li.p-tabs-actions (global and per tab) are flex items (order/margin, no floats).
+ * States: p-tabs-top | -bottom | -left | -right, p-tabs-scrollable,
+ *         p-state-active, p-state-hover, p-state-disabled, p-state-error on a tab,
+ *         p-tabs-rtl, p-tabs-outline (keyboard focus, set by the widget)
+ */
+.p-tabs {
+    /* containing block of the vertical actions and the scroller */
+    position: relative;
+
+    /* tablist */
+    .p-tabs-nav {
+        display: flex;
+        position: relative;
+        margin: 0;
+        padding: 0;
+        background: var(--p-tabs-tablist-background);
+        border-style: solid;
+        border-color: var(--p-tabs-tablist-border-color);
+        border-width: var(--p-tabs-tablist-border-width);
+        border-radius: 0;
+
+        li {
+            list-style: none;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: top;
+
+            /* GitHub #12338 menu inside tabs */
+            .p-menu-list {
+                white-space: initial;
+            }
+
+            a {
+                text-decoration: none;
+                outline: none;
+                cursor: pointer;
+            }
+
+            &.p-tabs-selected a,
+            &.p-state-disabled a {
+                cursor: text;
+            }
+
+            > .p-tabs-close-icon {
+                cursor: pointer;
+            }
+
+            /* tab */
+            &.p-tabs-header {
+                display: flex;
+                align-items: center;
+                gap: var(--p-tabs-tab-gap);
+                flex-shrink: 0;
+                margin: var(--p-tabs-tab-margin);
+                padding: var(--p-tabs-tab-padding);
+                cursor: pointer;
+                -webkit-user-select: none;
+                user-select: none;
+                font-size: var(--p-tabs-tab-font-size);
+                font-weight: var(--p-tabs-tab-font-weight);
+                background: var(--p-tabs-tab-background);
+                color: var(--p-tabs-tab-color);
+                border-style: solid;
+                border-width: var(--p-tabs-tab-border-width);
+                border-color: var(--p-tabs-tab-border-color);
+                border-radius: 0;
+                outline-color: transparent;
+                transition: background var(--p-tabs-transition-duration), border-color var(--p-tabs-transition-duration),
+                    color var(--p-tabs-transition-duration), outline-color var(--p-tabs-transition-duration),
+                    box-shadow var(--p-tabs-transition-duration);
+            }
+
+            &.p-tabs-header a {
+                display: block;
+                color: inherit;
+                font-weight: var(--p-tabs-tab-font-weight);
+                line-height: var(--p-typography-line-height);
+            }
+
+            &.p-tabs-header .p-tabs-close-icon {
+                --_icon: var(--p-tabs-close-icon);
+            }
+
+            /* active bar: horizontal at the bottom of the tab (top orientation) */
+            &.p-tabs-header::after {
+                content: "";
+                display: block;
+                position: absolute;
+                z-index: 1;
+                inset-inline: 0;
+                bottom: var(--p-tabs-active-bar-bottom);
+                height: var(--p-tabs-active-bar-height);
+                background: transparent;
+                pointer-events: none;
+                transition: background var(--p-tabs-transition-duration);
+            }
+
+            &.p-tabs-header.p-state-hover,
+            &.p-tabs-header:not(.p-state-active, .p-state-disabled):hover {
+                background: var(--p-tabs-tab-hover-background);
+                border-color: var(--p-tabs-tab-hover-border-color);
+                color: var(--p-tabs-tab-hover-color);
+            }
+
+            &.p-tabs-header.p-state-active {
+                background: var(--p-tabs-tab-active-background);
+                border-color: var(--p-tabs-tab-active-border-color);
+                color: var(--p-tabs-tab-active-color);
+            }
+
+            &.p-tabs-header.p-state-active::after {
+                background: var(--p-tabs-active-bar-background);
+            }
+
+            /* invalid: PrimeFaces tokens */
+            &.p-tabs-header.p-state-error,
+            &.p-tabs-header.p-state-error:not(.p-state-disabled):hover {
+                color: var(--p-tabs-tab-invalid-color);
+                border-color: var(--p-tabs-tab-invalid-border-color);
+            }
+
+            /* active: the invalid text color would sit on the active tab background (Nora: primary) */
+            &.p-tabs-header.p-state-error.p-state-active,
+            &.p-tabs-header.p-state-error.p-state-active:not(.p-state-disabled):hover {
+                color: var(--p-tabs-tab-active-invalid-color);
+            }
+
+            &.p-tabs-header.p-state-error.p-state-active::after {
+                background: var(--p-tabs-active-bar-invalid-background);
+            }
+
+            &.p-tabs-header:not(.p-state-disabled):has(> a:focus-visible) {
+                z-index: 1;
+                outline: var(--p-tabs-tab-focus-ring-width) var(--p-tabs-tab-focus-ring-style) var(--p-tabs-tab-focus-ring-color);
+                outline-offset: var(--p-tabs-tab-focus-ring-offset);
+                box-shadow: var(--p-tabs-tab-focus-ring-shadow);
+            }
+
+            /* actions facet */
+            &.p-tabs-actions {
+                order: 1;
+                margin-inline-start: auto;
+                align-self: center;
+            }
+        }
+    }
+
+    li.p-tabs-actions.p-hidden {
+        display: none;
+    }
+
+    /* footer facet */
+    .p-tabs-footer {
+        padding: var(--p-tabs-tabpanel-padding);
+        background: var(--p-tabs-tabpanel-background);
+        color: var(--p-tabs-tabpanel-color);
+    }
+
+    /* tabpanels */
+    .p-tabs-panels {
+        background: var(--p-tabs-tabpanel-background);
+        color: var(--p-tabs-tabpanel-color);
+
+        .p-tabs-panel {
+            padding: var(--p-tabs-tabpanel-padding);
+            outline-color: transparent;
+
+            &:focus-visible {
+                outline: var(--p-tabs-tabpanel-focus-ring-width) var(--p-tabs-tabpanel-focus-ring-style) var(--p-tabs-tabpanel-focus-ring-color);
+                outline-offset: var(--p-tabs-tabpanel-focus-ring-offset);
+                box-shadow: var(--p-tabs-tabpanel-focus-ring-shadow);
+            }
+        }
+    }
+
+    .p-tabs-panel {
+        border-width: 0;
+        background: none;
+    }
+
+    /* top / bottom */
+    &.p-tabs-top > .p-tabs-nav,
+    &.p-tabs-bottom > .p-tabs-nav {
+        flex-wrap: wrap;
+    }
+
+    &.p-tabs-bottom {
+        /* bottom: the tablist border and the active bar move to the top edge */
+        > .p-tabs-nav,
+        > .p-tabs-navscroller > .p-tabs-nav {
+            border-width: 0;
+            /* no token: the tablist border token only describes the bottom edge of a top tablist */
+            border-top: 1px solid var(--p-tabs-tablist-border-color);
+        }
+
+        > .p-tabs-nav > li.p-tabs-header::after,
+        > .p-tabs-navscroller > .p-tabs-nav > li.p-tabs-header::after {
+            top: var(--p-tabs-active-bar-bottom);
+            bottom: auto;
+        }
+    }
+
+    /* left / right: vertical tablist */
+    &.p-tabs-left > .p-tabs-nav,
+    &.p-tabs-right > .p-tabs-nav {
+        flex-direction: column;
+        width: 25%;
+        border-width: 0;
+    }
+
+    &.p-tabs-left > .p-tabs-nav li,
+    &.p-tabs-right > .p-tabs-nav li {
+        white-space: normal;
+    }
+
+    &.p-tabs-left > .p-tabs-nav li a,
+    &.p-tabs-right > .p-tabs-nav li a {
+        width: 90%;
+    }
+
+    &.p-tabs-left > .p-tabs-nav > li.p-tabs-header,
+    &.p-tabs-right > .p-tabs-nav > li.p-tabs-header {
+        width: 100%;
+    }
+
+    &.p-tabs-left > .p-tabs-panels,
+    &.p-tabs-right > .p-tabs-panels {
+        width: 75%;
+    }
+
+    &.p-tabs-left .p-tabs-actions,
+    &.p-tabs-right .p-tabs-actions {
+        position: absolute;
+        bottom: 0;
+    }
+
+    &.p-tabs-left > .p-tabs-nav {
+        /* no token: see bottom orientation */
+        border-right: 1px solid var(--p-tabs-tablist-border-color);
+    }
+
+    &.p-tabs-right {
+        > .p-tabs-nav {
+            float: right;
+            /* no token: see bottom orientation */
+            border-left: 1px solid var(--p-tabs-tablist-border-color);
+        }
+
+        > .p-tabs-panels {
+            float: left;
+        }
+    }
+
+    &.p-tabs-left > .p-tabs-nav > li.p-tabs-header::after,
+    &.p-tabs-right > .p-tabs-nav > li.p-tabs-header::after {
+        inset-block: 0;
+        width: var(--p-tabs-active-bar-height);
+        height: auto;
+    }
+
+    &.p-tabs-left > .p-tabs-nav > li.p-tabs-header::after {
+        inset-inline: auto var(--p-tabs-active-bar-bottom);
+    }
+
+    &.p-tabs-right > .p-tabs-nav > li.p-tabs-header::after {
+        inset-inline: var(--p-tabs-active-bar-bottom) auto;
+    }
+
+    /* scrollable: nav buttons */
+    .p-tabs-navscroller {
+        position: relative;
+        overflow: hidden;
+        padding-left: var(--p-tabs-nav-button-width);
+
+        &.p-tabs-navscroller-btn-hidden {
+            padding-left: 0;
+        }
+
+        .p-tabs-navscroller-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            top: 0;
+            height: 100%;
+            width: var(--p-tabs-nav-button-width);
+            background: var(--p-tabs-nav-button-background);
+            color: var(--p-tabs-nav-button-color);
+            border: 0 none;
+            box-shadow: var(--p-tabs-nav-button-shadow);
+            outline: 0 none;
+            outline-color: transparent;
+            transition: color var(--p-tabs-transition-duration), outline-color var(--p-tabs-transition-duration),
+                box-shadow var(--p-tabs-transition-duration);
+
+            &.p-tabs-navscroller-btn-left {
+                left: 0;
+            }
+
+            &.p-tabs-navscroller-btn-right {
+                right: 0;
+            }
+
+            .p-tabs-prev-icon {
+                --_icon: var(--p-tabs-prev-icon);
+            }
+
+            .p-tabs-next-icon {
+                --_icon: var(--p-tabs-next-icon);
+            }
+
+            &.p-state-hover,
+            &:not(.p-state-disabled):hover {
+                background: var(--p-tabs-nav-button-background);
+                color: var(--p-tabs-nav-button-hover-color);
+            }
+
+            &:focus-visible {
+                z-index: 3;
+                outline: var(--p-tabs-nav-button-focus-ring-width) var(--p-tabs-nav-button-focus-ring-style) var(--p-tabs-nav-button-focus-ring-color);
+                outline-offset: var(--p-tabs-nav-button-focus-ring-offset);
+                box-shadow: var(--p-tabs-nav-button-focus-ring-shadow);
+            }
+        }
+    }
+
+    .p-tabs-navscroller-btn {
+        position: absolute;
+        cursor: pointer;
+    }
+
+    .p-tabs-navscroller.p-tabs-navscroller-btn-hidden .p-tabs-navscroller-btn {
+        display: none;
+    }
+}
+
+/* vertical tablist: the nav floats next to the panels */
+.p-tabs-left::after,
+.p-tabs-right::after {
+    clear: both;
+    content: ".";
+    display: block;
+    height: 0;
+    visibility: hidden;
+}
+
+.p-tabs-left {
+    > .p-tabs-nav {
+        float: left;
+    }
+
+    > .p-tabs-panels {
+        overflow: hidden;
+    }
+}
+
+.p-tabs-rtl {
+    direction: rtl;
+}
+
+.p-tabs-scrollable > .p-tabs-navscroller > .p-tabs-nav {
+    width: 5000px;
+}
+
+.p-tabs-outline {
+    z-index: 1;
+}

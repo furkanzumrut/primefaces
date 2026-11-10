@@ -1,0 +1,146 @@
+# TreeTable
+
+Treetable is is used for displaying hierarchical data in tabular format.
+
+## Getting started with the TreeTable
+Similar to the Tree, TreeTable is populated with an _org.primefaces.model.TreeNode_ instance that
+corresponds to the root node. TreeNode API has a hierarchical data structure and represents the data
+to be populated in tree. For an example, model to be displayed is a collection of documents similar
+as in tree section.
+
+```java
+public class Document {
+    private String name;
+    private String size;
+    private String type;
+    //getters, setters
+}
+```
+
+```xhtml
+<p:treeTable value="#{bean.root}" var="document">
+    <p:column>
+        <f:facet name="header">
+            Name
+        </f:facet>
+        <h:outputText value="#{document.name}" />
+    </p:column>
+    //more columns
+</p:treeTable>
+```
+## Selection
+Node selection is a built-in feature of tree and it supports two different modes. Selection should be a
+TreeNode for single case and an array of TreeNodes for multiple case, tree finds the selected nodes
+and assign them to your selection model.
+
+_single_ : Only one at a time can be selected, selection should be a TreeNode reference.
+_multiple_ or _checkbox_ : Multiple nodes can be selected, selection should be a TreeNode[] reference.
+
+As checkbox selection have a special hierarchy, use _CheckboxTreeNode_ in checkbox mode.
+
+## Paginator
+Node hierarchy can be displayed as paged using paginator. Usage is similar to DataTable, DataList
+and DataGrid where paginator is enabled by setting paginator=”true” and defining a rows property
+to define the number of nodes to be displayed per page.
+
+## Client Side API
+Widget: _PrimeFaces.widget.TreeTable_
+
+| Method | Params | Return Type | Description |
+| --- | --- | --- | --- |
+| clearFilters() | - | void | Clears all column filters
+
+## Filtering
+Filtering hides the nodes which do not match, it does not change the tree: `value` always holds all nodes, so
+expanding, collapsing, selecting and editing work on the nodes of your model. A node is displayed when it matches,
+when one of its descendants matches or, by default, when one of its ancestors matches. The ancestors of the matching
+nodes are expanded when the user filters and when the page is loaded with a filter (`filterValue`, `multiViewState`),
+not when a filtered TreeTable is rendered for the first time by an AJAX update or after a POST navigation without
+redirect.
+
+The filters are applied again on every render, so nodes added, removed or changed in an action are filtered
+automatically. Call `filterAndSort()` on the component only if you need the result in the same action, e.g.
+`getFilteredNodes()` or `getRowCount()`.
+
+### Filtering prune mode
+Set `filterPrune="descendants"` to hide non-matching children of a matched node unless they (or their descendants) match the filter. Omit the attribute or use `none` to keep children of matched nodes visible.
+
+```xhtml
+<p:treeTable value="#{bean.root}"
+             var="node"
+             filterPrune="descendants">
+    <p:column headerText="Name" filterBy="#{node.name}" filterMatchMode="contains">
+        #{node.name}
+    </p:column>
+</p:treeTable>
+```
+
+## ContextMenu
+TreeTable has special integration with context menu, you can even match different context menus
+with different tree nodes using _nodeType_ option of context menu that matches the tree node type.
+
+## Scrolling
+Scrollable TreeTable implementation is same as DataTable Scrollable, refer to scrolling part in
+DataTable section for detailed information.
+
+## Dynamic Columns
+TreeTable supports dynamic columns via p:columns component, refer to dynamic columns in
+DataTable section for detailed information.
+
+## Column Order / Priorities
+Columns can be ordered via _displayPriority_. Lower value means higher priority.
+
+```xhtml
+<p:treeTable value="#{bean.root}" var="document">
+    <p:column displayPriority="4">
+        <h:outputText value="#{document.name}" />
+    </p:column>
+    <p:column displayPriority="0">
+        <h:outputText value="#{document.type}" />
+    </p:column>
+</p:treeTable>
+```
+
+## Responsive TreeTable
+In priority mode, responsiveness is based on column _responsivePriority_ that vary between 1 and 6. Lower value means higher priority.
+
+## Sorting
+Sorting is enabled by setting _sortBy_ expressions at column level.
+
+```xhtml
+<p:treeTable value="#{bean.root}" var="document">
+    <p:column sortBy="#{document.name}">
+        <h:outputText value="#{document.name}" />
+    </p:column>
+    //more columns
+</p:treeTable>
+```
+In case you'd like to display treeTable as sorted on page load use sortBy attribute of treeTable,
+optional _sortOrder_ and _sortFunction_ attributes are provided to define the default sort order
+(ascending or descinding) and a java method to do the actual sorting respectively. Refer to datatable
+sorting section for an example usage of _sortFunction_.
+
+## Editing
+Similar to DataTable, TreeTable supports row and cell based editing. Refer to datatable for more
+information.
+
+## Icons
+The icons the tree table draws itself are icon tokens of the theme (see [Theming](/core/theming.md?id=icons)): the node
+toggler `<span class="p-treetable-toggler p-icon p-toggle-icon p-treetable-toggle-icon">` (`--p-treetable-toggle-collapsed-icon`
+/ `--p-treetable-toggle-expanded-icon`, the state is `aria-expanded` of the row), the sort icon
+`p-icon p-sort-icon p-treetable-sort-icon` (state classes `p-treetable-sort-asc-icon` / `p-treetable-sort-desc-icon`) and
+the row editor icons `p-treetable-row-edit-icon`, `p-treetable-row-save-icon`, `p-treetable-row-cancel-icon`.
+
+## Skinning
+TreeTable content resides in a container element which style and styleClass attributes apply.
+Following is the list of structural style classes;
+
+| Class | Applies |
+| --- | --- |
+.p-treetable | Main container element.
+.p-treetable-header | Header of treetable.
+.p-treetable-data | Body element of the table containing data
+.p-treetable-gridlines | Main container element; when showGridlines is enabled.
+.p-treetable-striped | Main container element; when stripedRows is enabled.
+
+As skinning style classes are global, see the main theming section for more information.

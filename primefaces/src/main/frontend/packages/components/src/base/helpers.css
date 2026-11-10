@@ -1,0 +1,27 @@
+/*
+ * Helpers and overrides of the base rules in base/interactions.css (vendor layer: draggable, resizable, sortable).
+ */
+/*
+ * p-hidden-accessible: visually hidden, but still focusable and read by screen readers (the native inputs behind the
+ * checkbox, radio, select, ... widgets).
+ */
+.p-hidden-accessible {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+/* p:resizable: the resized content grows with the container. In :where(), so the display of every component wins */
+:where(.p-resizable) {
+    display: flex;
+    flex-direction: column;
+
+    > .p-widget-content {
+        flex-grow: 1;
+    }
+}

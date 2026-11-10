@@ -1,0 +1,389 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.application.resource;
+
+import org.primefaces.renderkit.RendererUtils;
+import org.primefaces.util.AgentUtils;
+import org.primefaces.util.Constants;
+import org.primefaces.util.LangUtils;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
+import jakarta.faces.FacesException;
+import jakarta.faces.component.UIComponent;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.context.ResponseWriter;
+import jakarta.faces.context.ResponseWriterWrapper;
+
+public class MoveScriptsToBottomResponseWriter extends ResponseWriterWrapper {
+
+    /**
+     * Marks a script that stays where it is written, e.g. one that must run before the first paint.
+     */
+    public static final String NO_MOVE_ATTRIBUTE = "data-p-no-move";
+
+    private static final String SCRIPT_TAG = "script";
+    private static final String BODY_TAG = "body";
+    private static final String HTML_TAG = "html";
+    private static final String TYPE_ATTRIBUTE = "type";
+    private static final Pattern TRACKING_SUFFIX_PATTERN = Pattern.compile("_\\d+$");
+
+    private final MoveScriptsToBottomState state;
+    private final Map<String, String> includeAttributes;
+    private final StringBuilder inline;
+
+    private boolean inScript;
+    private String scriptType;
+    private boolean scriptsRendered;
+
+    private boolean foundHtmlElement;
+    private boolean foundBodyElement;
+    private boolean writeFouc;
+    private int counter = 0; // used to track non-JS files
+
+    public MoveScriptsToBottomResponseWriter(ResponseWriter wrapped, MoveScriptsToBottomState state) {
+        super(wrapped);
+        this.state = state;
+
+        inScript = false;
+        scriptsRendered = false;
+        writeFouc = false;
+        foundHtmlElement = false;
+        foundBodyElement = false;
+
+        includeAttributes = new LinkedHashMap<>(6);
+        inline = new StringBuilder(256);
+    }
+
+    @Override
+    public void write(int c) throws IOException {
+        if (inScript) {
+            inline.append((char) c);
+        }
+        else {
+            getWrapped().write(c);
+        }
+    }
+
+    @Override
+    public void write(char[] cbuf) throws IOException {
+        if (inScript) {
+            inline.append(cbuf);
+        }
+        else {
+            getWrapped().write(cbuf);
+        }
+    }
+
+    @Override
+    public void write(char[] cbuf, int off, int len) throws IOException {
+        if (inScript) {
+            inline.append(cbuf, off, len);
+        }
+        else {
+            getWrapped().write(cbuf, off, len);
+        }
+    }
+
+    @Override
+    public void write(String str) throws IOException {
+        if (inScript) {
+            inline.append(str);
+        }
+        else {
+            getWrapped().write(str);
+        }
+    }
+
+    @Override
+    public void writeText(char[] cbuf, int off, int len) throws IOException {
+        if (inScript) {
+            inline.append(cbuf, off, len);
+        }
+        else {
+            getWrapped().writeText(cbuf, off, len);
+        }
+    }
+
+    @Override
+    public void writeText(Object text, String property) throws IOException {
+        if (inScript) {
+            inline.append(text);
+        }
+        else {
+            getWrapped().writeText(text, property);
+        }
+    }
+
+    @Override
+    public void writeText(Object text, UIComponent component, String property) throws IOException {
+        if (inScript) {
+            inline.append(text);
+        }
+        else {
+            getWrapped().writeText(text, property);
+        }
+    }
+
+    @Override
+    public void writeAttribute(String name, Object value, String property) throws IOException {
+        if (inScript) {
+            updateAttributes(name, (String) value);
+        }
+        else {
+            getWrapped().writeAttribute(name, value, property);
+        }
+    }
+
+    @Override
+    public void writeURIAttribute(String name, Object value, String property) throws IOException {
+        if (inScript) {
+            updateAttributes(name, (String) value);
+        }
+        else {
+            getWrapped().writeURIAttribute(name, value, property);
+        }
+    }
+
+    @Override
+    public void startElement(String name, UIComponent component) throws IOException {
+        if (SCRIPT_TAG.equalsIgnoreCase(name)) {
+            inScript = true;
+            scriptType = RendererUtils.SCRIPT_TYPE;
+        }
+        else {
+            writeFouc();
+
+            getWrapped().startElement(name, component);
+
+            if (BODY_TAG.equalsIgnoreCase(name)) {
+                if (foundBodyElement) {
+                    throw new FacesException("Duplicate <body> elements were found in the response.");
+                }
+                foundBodyElement = true;
+
+                if (isFirefox()) {
+                    writeFouc = true;
+                }
+            }
+
+            if (HTML_TAG.equalsIgnoreCase(name)) {
+                if (foundHtmlElement) {
+                    throw new FacesException("Duplicate <html> elements were found in the response.");
+                }
+                foundHtmlElement = true;
+            }
+
+        }
+    }
+
+    @Override
+    public void endElement(String name) throws IOException {
+        if (SCRIPT_TAG.equalsIgnoreCase(name)) {
+            inScript = false;
+
+            // the attributes are only known now: a marked script is written in place, without the marker
+            if (includeAttributes.containsKey(NO_MOVE_ATTRIBUTE)) {
+                includeAttributes.remove(NO_MOVE_ATTRIBUTE);
+                writeInPlace();
+            }
+            else {
+                state.addInline(scriptType, inline);
+                if (LangUtils.isNotBlank(includeAttributes.get("src"))) {
+                    state.addInclude(scriptType, includeAttributes);
+                }
+            }
+
+            scriptType = null;
+            includeAttributes.clear();
+            inline.setLength(0);
+        }
+        else if (BODY_TAG.equalsIgnoreCase(name) || (HTML_TAG.equalsIgnoreCase(name) && !scriptsRendered)) {
+
+            // write script includes
+            for (Entry<String, List<Map<String, String>>> entry : state.getIncludes().entrySet()) {
+
+                String type = TRACKING_SUFFIX_PATTERN.matcher(entry.getKey()).replaceAll(Constants.EMPTY_STRING);
+                List<Map<String, String>> includes = entry.getValue();
+                for (int i = 0; i < includes.size(); i++) {
+                    Map<String, String> attributes = includes.get(i);
+                    attributes.put(TYPE_ATTRIBUTE, type);
+                    getWrapped().startElement(SCRIPT_TAG, null);
+                    for (Entry<String, String> attribute : attributes.entrySet()) {
+                        String attributeName = attribute.getKey();
+                        String attributeValue = attribute.getValue();
+                        if (LangUtils.isNotBlank(attributeValue)) {
+                            getWrapped().writeAttribute(attributeName, attributeValue, null);
+                        }
+                    }
+                    if (state.isDeferred()) {
+                        getWrapped().writeAttribute("defer", "defer", null);
+                    }
+                    getWrapped().endElement(SCRIPT_TAG);
+                }
+            }
+
+            // write inline scripts
+            for (Map.Entry<String, List<String>> entry : state.getInlines().entrySet()) {
+                // strip tracking _0, _1, _2 etc off the end of the string
+                String type = TRACKING_SUFFIX_PATTERN.matcher(entry.getKey()).replaceAll(Constants.EMPTY_STRING);
+                List<String> inlines = entry.getValue();
+
+                String id = UUID.randomUUID().toString();
+                String merged = mergeAndMinimizeInlineScripts(id, type, inlines, state.isDeferred());
+
+                if (LangUtils.isNotBlank(merged)) {
+
+                    getWrapped().startElement(SCRIPT_TAG, null);
+                    getWrapped().writeAttribute("id", id, null);
+                    getWrapped().writeAttribute(TYPE_ATTRIBUTE, type, null);
+                    getWrapped().write(merged);
+                    getWrapped().endElement(SCRIPT_TAG);
+                }
+            }
+
+            getWrapped().endElement(name);
+
+            scriptsRendered = true;
+        }
+        else {
+            getWrapped().endElement(name);
+        }
+    }
+
+    protected void writeInPlace() throws IOException {
+        writeFouc();
+
+        getWrapped().startElement(SCRIPT_TAG, null);
+        // like the moved ones: without blank attributes
+        for (Entry<String, String> attribute : includeAttributes.entrySet()) {
+            if (LangUtils.isNotBlank(attribute.getValue())) {
+                getWrapped().writeAttribute(attribute.getKey(), attribute.getValue(), null);
+            }
+        }
+        if (inline.length() > 0) {
+            getWrapped().write(inline.toString());
+        }
+        getWrapped().endElement(SCRIPT_TAG);
+    }
+
+    protected void writeFouc() throws IOException {
+        if (writeFouc) {
+            writeFouc = false;
+            getWrapped().startElement(SCRIPT_TAG, null);
+            getWrapped().writeText("/*FIREFOX_FOUC_FIX*/", null);
+            getWrapped().endElement(SCRIPT_TAG);
+        }
+    }
+
+    protected String mergeAndMinimizeInlineScripts(String id, String type, List<String> inlines, boolean deferred) {
+        if (inlines == null || inlines.isEmpty()) {
+            return Constants.EMPTY_STRING;
+        }
+
+        boolean isJavascriptScript = RendererUtils.SCRIPT_TYPE.equalsIgnoreCase(type);
+        boolean hasPrimeFaces = false;
+
+        StringBuilder script = new StringBuilder(inlines.size() * 128 + 128);
+        for (int i = 0; i < inlines.size(); i++) {
+            // trim the single inline script! (for example <script> console.log('hello'); </script>)
+            // otherwise at the end of the merge you will get "console.log('hello'); ;"
+            String inline = inlines.get(i).trim();
+
+            if (LangUtils.isNotEmpty(inline)) {
+                if (i > 0) {
+                    script.append('\n');
+                }
+
+                if (isJavascriptScript) {
+                    if (inline.contains("PrimeFaces")) {
+                        hasPrimeFaces = true;
+                        inline = inline.replace("PrimeFaces.settings", "pf.settings")
+                                .replace("PrimeFaces.cw", "pf.cw")
+                                .replace("PrimeFaces.ab", "pf.ab")
+                                .replace("window.PrimeFaces", "pf");
+                    }
+
+                    script.append(inline);
+
+                    if (!inline.endsWith(";")) {
+                        script.append(';');
+                    }
+                }
+                else {
+                    script.append(inline);
+                }
+            }
+        }
+
+        if (LangUtils.isBlank(script)) {
+            return Constants.EMPTY_STRING;
+        }
+
+        if (isJavascriptScript) {
+            if (hasPrimeFaces) {
+                script.insert(0, "var pf=window.PrimeFaces;");
+            }
+
+            if (script.charAt(script.length() - 1) != ';') {
+                script.append(';');
+            }
+
+            script.append("document.getElementById('").append(id).append("').remove();");
+
+            // deferred scripts have to wait until scripts are loaded before it can execute inline
+            if (deferred) {
+                script.insert(0, "document.addEventListener(\"DOMContentLoaded\", function() {");
+                script.append("});");
+            }
+        }
+
+        return script.toString();
+    }
+
+    @Override
+    public ResponseWriter cloneWithWriter(Writer writer) {
+        return getWrapped().cloneWithWriter(writer);
+    }
+
+    protected void updateAttributes(String name, String value) {
+        includeAttributes.put(name, value);
+
+        // #10845 look for type attribute NOT equal to text/javascript
+        if (TYPE_ATTRIBUTE.equalsIgnoreCase(name) && !RendererUtils.SCRIPT_TYPE.equalsIgnoreCase(value)) {
+            scriptType = value + "_" + counter++;
+        }
+    }
+
+    protected boolean isFirefox() {
+        return AgentUtils.isFirefox(FacesContext.getCurrentInstance());
+    }
+}

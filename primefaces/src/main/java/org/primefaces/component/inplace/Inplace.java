@@ -1,0 +1,114 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.component.inplace;
+
+import org.primefaces.cdk.api.FacesComponentInfo;
+
+import java.util.Iterator;
+
+import jakarta.faces.application.ResourceDependency;
+import jakarta.faces.component.EditableValueHolder;
+import jakarta.faces.component.FacesComponent;
+import jakarta.faces.component.UIComponent;
+import jakarta.faces.context.FacesContext;
+
+@FacesComponent(value = Inplace.COMPONENT_TYPE, namespace = Inplace.COMPONENT_FAMILY)
+@FacesComponentInfo(description = "Inplace provides an easy way to edit content inplace with a custom input.")
+@ResourceDependency(library = "primefaces", name = "components.css")
+@ResourceDependency(library = "primefaces", name = "jquery/jquery.js")
+@ResourceDependency(library = "primefaces", name = "core.js")
+@ResourceDependency(library = "primefaces", name = "components.js")
+public class Inplace extends InplaceBaseImpl {
+
+    public static final String COMPONENT_TYPE = "org.primefaces.component.Inplace";
+
+    public static final String CONTAINER_CLASS = "p-inplace p-hidden-container";
+    public static final String DISPLAY_CLASS = "p-inplace-display";
+    public static final String DISABLED_DISPLAY_CLASS = "p-inplace-display-disabled";
+    public static final String CONTENT_CLASS = "p-inplace-content";
+    public static final String EDITOR_CLASS = "p-inplace-editor";
+    public static final String SAVE_BUTTON_CLASS = "p-inplace-save";
+    public static final String CANCEL_BUTTON_CLASS = "p-inplace-cancel";
+    public static final String SAVE_ICON_CLASS = "p-button-icon-left p-icon p-check-icon p-inplace-save-icon p-c";
+    public static final String CANCEL_ICON_CLASS = "p-button-icon-left p-icon p-close-icon p-inplace-cancel-icon p-c";
+    public static final String DISPLAY_INLINE = "inline";
+    public static final String DISPLAY_NONE = "none";
+
+
+    @Override
+    public void processDecodes(FacesContext context) {
+        if (!isRendered() || isDisabled()) {
+            return;
+        }
+        if (shouldSkipChildren(context)) {
+            decode(context);
+        }
+        else {
+            super.processDecodes(context);
+        }
+    }
+
+    @Override
+    public void processValidators(FacesContext context) {
+        if (!shouldSkipChildren(context)) {
+            super.processValidators(context);
+        }
+    }
+
+    @Override
+    public void processUpdates(FacesContext context) {
+        if (!shouldSkipChildren(context)) {
+            super.processUpdates(context);
+        }
+    }
+
+    private boolean shouldSkipChildren(FacesContext context) {
+        return context.getExternalContext().getRequestParameterMap().containsKey(getClientId(context) + "_cancel") || isDisabled();
+    }
+
+    public boolean isValid() {
+        boolean valid = true;
+
+        for (Iterator<UIComponent> it = getFacetsAndChildren(); it.hasNext(); ) {
+            UIComponent component = it.next();
+            if (component instanceof EditableValueHolder holder && !holder.isValid()) {
+                valid = false;
+                break;
+            }
+
+            int childCount = component.getChildCount();
+            if (childCount > 0) {
+                for (int i = 0; i < childCount; i++) {
+                    UIComponent child = component.getChildren().get(i);
+                    if (child instanceof EditableValueHolder holder1 && !holder1.isValid()) {
+                        valid = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return valid;
+    }
+}

@@ -1,0 +1,133 @@
+/*
+ * SplitButton: p:splitButton
+ *
+ * Markup: div.p-splitbutton > button.p-button (default command) + button.p-splitbutton-menubutton
+ *         overlay: .p-menu.p-splitbuttonmenu (styled by menu/menu.base.css) > .p-splitbuttonmenu-filter-container (optional)
+ *         + .p-splitbuttonmenu-list-wrapper > ul.p-menu-list
+ * The buttons themselves are styled by button.css (severities, outlined, flat, raised, sizes are put on the
+ * .p-splitbutton and mapped to both buttons there), this file only joins them.
+ */
+.p-splitbutton {
+    display: inline-flex;
+    position: relative;
+    border-radius: var(--p-splitbutton-border-radius);
+
+    > .p-button {
+        margin: 0;
+
+        /* default button: joined to the menu button on its end side */
+        &:has(+ .p-splitbutton-menubutton) {
+            border-start-end-radius: 0;
+            border-end-end-radius: 0;
+            border-inline-end-width: 0;
+        }
+
+        &:focus-visible {
+            z-index: 1;
+        }
+    }
+
+    .p-button.p-splitbutton-menubutton {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+
+        .p-splitbutton-dropdown-icon {
+            --_icon: var(--p-splitbutton-dropdown-icon);
+        }
+    }
+
+    /* raised: one shadow around the whole group instead of one per button (button.css sets it on both) */
+    &.p-button-raised {
+        box-shadow: var(--p-splitbutton-raised-shadow);
+
+        > .p-button:not(:focus-visible) {
+            box-shadow: none;
+        }
+    }
+
+    &.rounded-button {
+        border-radius: var(--p-splitbutton-rounded-border-radius);
+
+        > .p-button:first-child {
+            border-start-start-radius: var(--p-splitbutton-rounded-border-radius);
+            border-end-start-radius: var(--p-splitbutton-rounded-border-radius);
+        }
+
+        .p-button.p-splitbutton-menubutton {
+            border-start-end-radius: var(--p-splitbutton-rounded-border-radius);
+            border-end-end-radius: var(--p-splitbutton-rounded-border-radius);
+        }
+    }
+
+    /* menu not appended to the body */
+    .p-splitbuttonmenu {
+        min-width: 100%;
+    }
+}
+
+.p-splitbuttonmenu {
+    width: auto;
+
+    .p-splitbuttonmenu-filter-container {
+        position: relative;
+        display: block;
+        margin: 0;
+        padding: var(--p-list-header-padding);
+        /* inline padding fixed to one token so the search icon position can be derived from it */
+        padding-inline: var(--p-form-field-padding-x);
+        border-bottom: 0 none;
+        background: var(--p-menu-background);
+        color: var(--p-menu-color);
+
+        .p-splitbuttonmenu-filter.p-inputfield {
+            padding: var(--p-form-field-padding-y) var(--p-form-field-padding-x);
+            padding-inline-start: calc(2 * var(--p-form-field-padding-x) + var(--p-icon-size));
+        }
+
+        .p-splitbutton-filter-icon {
+            --_icon: var(--p-splitbutton-filter-icon);
+            position: absolute;
+            inset-inline-start: calc(2 * var(--p-form-field-padding-x));
+            top: 50%;
+            margin-top: calc(var(--p-icon-size) / -2);
+            color: var(--p-form-field-icon-color);
+        }
+    }
+
+    .p-splitbuttonmenu-filter {
+        width: 100%;
+    }
+
+    .p-splitbuttonmenu-list-wrapper {
+        overflow: auto;
+    }
+
+    .p-divider-horizontal {
+        width: auto;
+    }
+}
+
+.p-fluid {
+    .p-splitbutton {
+        display: flex;
+        width: 100%;
+
+        .p-button {
+            flex: 1 1 auto;
+            width: 100%;
+
+            &.p-splitbutton-menubutton {
+                flex: 0 0 auto;
+                width: var(--p-button-icon-only-width);
+
+                &.p-button-sm {
+                    width: var(--p-button-sm-icon-only-width);
+                }
+
+                &.p-button-lg {
+                    width: var(--p-button-lg-icon-only-width);
+                }
+            }
+        }
+    }
+}

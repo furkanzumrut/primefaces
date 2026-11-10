@@ -1,0 +1,96 @@
+/*
+ * Rating: p:rating
+ *
+ * Supported classes: p-state-error / p-state-disabled / readonly (on .p-rating), p-state-focus (on star / cancel),
+ *                    p-rating-star-on, p-rating-cancel-hover, p-state-highlight (on a parent, e.g. a selected row)
+ * Icons: --p-rating-off-icon / --p-rating-on-icon / --p-rating-cancel-icon.
+ */
+.p-rating-star,
+.p-rating-cancel {
+    display: inline-block;
+    cursor: pointer;
+
+    a {
+        display: block;
+        text-decoration: none;
+    }
+}
+
+.p-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-rating-gap);
+
+    &.p-state-disabled .p-rating-star,
+    &.p-state-readonly .p-rating-star,
+    &.p-state-readonly .p-rating-cancel,
+    &.p-state-disabled .p-rating-cancel {
+        cursor: default;
+    }
+
+    .p-rating-cancel,
+    .p-rating-star {
+        border-radius: 50%;
+        outline-color: transparent;
+        transition: outline-color var(--p-rating-transition-duration), box-shadow var(--p-rating-transition-duration);
+
+        &.p-state-focus {
+            outline: var(--p-rating-focus-ring-width) var(--p-rating-focus-ring-style) var(--p-rating-focus-ring-color);
+            outline-offset: var(--p-rating-focus-ring-offset);
+            box-shadow: var(--p-rating-focus-ring-shadow);
+        }
+
+        a {
+            font-style: normal;
+            font-weight: normal;
+            font-size: var(--p-rating-icon-size);
+            line-height: 1;
+            height: var(--p-rating-icon-size);
+            width: var(--p-rating-icon-size);
+            transition: color var(--p-rating-transition-duration);
+        }
+    }
+
+    .p-rating-cancel a {
+        color: var(--p-rating-cancel-icon-color);
+    }
+
+    .p-rating-cancel-icon {
+        --_icon: var(--p-rating-cancel-icon);
+    }
+
+    &:not(.p-state-disabled, .p-state-readonly) .p-rating-cancel.p-rating-cancel-hover a,
+    &:not(.p-state-disabled, .p-state-readonly) .p-rating-cancel a:hover {
+        color: var(--p-rating-cancel-icon-hover-color);
+    }
+
+    /* star icons: off / on (p-rating-star-on) */
+    .p-rating-star a {
+        color: var(--p-rating-icon-color);
+    }
+
+    .p-rating-icon {
+        --_icon: var(--p-rating-off-icon);
+    }
+
+    &:not(.p-state-disabled, .p-state-readonly) .p-rating-star a:hover {
+        color: var(--p-rating-icon-hover-color);
+    }
+
+    .p-rating-star-on a {
+        color: var(--p-rating-icon-active-color);
+    }
+
+    .p-rating-star-on .p-rating-icon {
+        --_icon: var(--p-rating-on-icon);
+    }
+
+    &.p-state-error .p-rating-star a {
+        color: var(--p-rating-invalid-icon-color);
+    }
+}
+
+.p-state-highlight .p-rating-star a,
+.p-state-highlight .p-rating-star-on a {
+    color: var(--p-highlight-color);
+}

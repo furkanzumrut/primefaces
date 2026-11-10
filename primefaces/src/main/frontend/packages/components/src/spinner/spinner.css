@@ -1,0 +1,304 @@
+/*
+ * Spinner: p:spinner (PrimeUIX: inputnumber)
+ *
+ * The buttons are .p-button, so only the private button variables of button.css are remapped,
+ * all button states keep working.
+ * Button layouts (class on .p-spinner): p-spinner-stacked (default), p-spinner-horizontal (- input +),
+ *                                        p-spinner-horizontal-after (input - +), p-spinner-vertical (+ above, - below)
+ * Supported classes: p-spinner-rtl, p-state-error / p-state-disabled (on input and buttons),
+ *                    text-left / text-center / text-right (input alignment)
+ */
+.p-spinner {
+    display: inline-block;
+    overflow: visible;
+    padding: 0;
+    position: relative;
+    vertical-align: middle;
+
+    /* disabled: the root carries p-state-disabled too; the input shows the disabled field look (like p:inputText), so
+       the root is not faded on top of it, only the buttons */
+    &.p-state-disabled {
+        opacity: 1;
+
+        > .p-spinner-button {
+            opacity: var(--p-disabled-opacity);
+        }
+    }
+
+    .p-spinner-input {
+        vertical-align: middle;
+        text-align: right;
+        width: 100%;
+        font-variant-numeric: tabular-nums;
+
+        &[dir="rtl"] {
+            text-align: left;
+        }
+    }
+
+    &.text-left .p-spinner-input {
+        text-align: left;
+    }
+
+    &.text-center .p-spinner-input {
+        text-align: center;
+    }
+
+    &.text-right .p-spinner-input {
+        text-align: right;
+    }
+
+    .p-spinner-button {
+        cursor: default;
+        display: block;
+        margin: 0;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        right: 0;
+        text-align: center;
+        vertical-align: middle;
+        z-index: 1;
+    }
+
+    .p-spinner-up {
+        top: 0;
+    }
+
+    .p-spinner-down {
+        bottom: 0;
+    }
+
+    .p-spinner-button.p-button {
+        --_bg: var(--p-inputnumber-button-background);
+        --_hover-bg: var(--p-inputnumber-button-hover-background);
+        --_active-bg: var(--p-inputnumber-button-active-background);
+        --_border: var(--p-inputnumber-button-border-color);
+        --_hover-border: var(--p-inputnumber-button-hover-border-color);
+        --_active-border: var(--p-inputnumber-button-active-border-color);
+        --_color: var(--p-inputnumber-button-color);
+        --_hover-color: var(--p-inputnumber-button-hover-color);
+        --_active-color: var(--p-inputnumber-button-active-color);
+
+        padding: 0;
+        border-radius: 0;
+        width: var(--p-inputnumber-button-width);
+        transition: background var(--p-inputnumber-transition-duration), color var(--p-inputnumber-transition-duration),
+            border-color var(--p-inputnumber-transition-duration), outline-color var(--p-inputnumber-transition-duration);
+
+        .p-button-text {
+            padding: 0;
+        }
+
+        .p-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: 0;
+            transform: translate(-50%, -50%);
+            font-size: var(--p-icon-size);
+            line-height: 1;
+        }
+
+        /* invalid: the buttons follow the input border */
+        &.p-state-error {
+            --_border: var(--p-form-field-invalid-border-color);
+            --_hover-border: var(--p-form-field-invalid-border-color);
+            --_active-border: var(--p-form-field-invalid-border-color);
+        }
+    }
+
+    .p-spinner-increment-icon {
+        --_icon: var(--p-inputnumber-increment-icon);
+    }
+
+    .p-spinner-decrement-icon {
+        --_icon: var(--p-inputnumber-decrement-icon);
+    }
+
+    /* horizontal / vertical: plus / minus; no inputnumber tokens for them, the generic icon tokens */
+    &:is(.p-spinner-horizontal, .p-spinner-horizontal-after, .p-spinner-vertical) {
+        .p-spinner-increment-icon {
+            --_icon: var(--p-icon-plus);
+        }
+
+        .p-spinner-decrement-icon {
+            --_icon: var(--p-icon-minus);
+        }
+    }
+
+    /* stacked (default): the buttons sit inside the input border like the PrimeUIX stacked inputnumber */
+    &.p-spinner-stacked {
+        .p-spinner-input {
+            padding-inline-end: calc(var(--p-inputnumber-button-width) + var(--p-form-field-padding-x));
+        }
+
+        .p-spinner-button.p-button {
+            --_border: transparent;
+            --_hover-border: transparent;
+            --_active-border: transparent;
+            height: calc(50% - 1px);
+            right: 1px;
+        }
+
+        .p-spinner-button.p-spinner-up {
+            top: 1px;
+            border-top-right-radius: calc(var(--p-inputnumber-button-border-radius) - 1px);
+        }
+
+        .p-spinner-button.p-spinner-down {
+            bottom: 1px;
+            border-bottom-right-radius: calc(var(--p-inputnumber-button-border-radius) - 1px);
+        }
+    }
+
+    &.p-spinner-stacked.p-spinner-rtl {
+        .p-spinner-button.p-button {
+            right: auto;
+            left: 1px;
+        }
+
+        .p-spinner-button.p-spinner-up {
+            border-top-right-radius: 0;
+            border-top-left-radius: calc(var(--p-inputnumber-button-border-radius) - 1px);
+        }
+
+        .p-spinner-button.p-spinner-down {
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: calc(var(--p-inputnumber-button-border-radius) - 1px);
+        }
+    }
+
+    /* horizontal: [-] input [+], the buttons cover the input edges and draw the outer corners */
+    &.p-spinner-horizontal .p-spinner-input {
+        text-align: center;
+        padding-inline: calc(var(--p-inputnumber-button-width) + var(--p-form-field-padding-x));
+    }
+
+    &.p-spinner-horizontal .p-spinner-button.p-button,
+    &.p-spinner-horizontal-after .p-spinner-button.p-button {
+        top: 0;
+        bottom: auto;
+        height: 100%;
+    }
+
+    &.p-spinner-horizontal {
+        .p-spinner-button.p-spinner-up {
+            right: 0;
+            left: auto;
+            border-radius: 0 var(--p-inputnumber-button-border-radius) var(--p-inputnumber-button-border-radius) 0;
+        }
+
+        .p-spinner-button.p-spinner-down {
+            left: 0;
+            right: auto;
+            border-radius: var(--p-inputnumber-button-border-radius) 0 0 var(--p-inputnumber-button-border-radius);
+        }
+    }
+
+    &.p-spinner-horizontal.p-spinner-rtl {
+        .p-spinner-button.p-spinner-up {
+            right: auto;
+            left: 0;
+            border-radius: var(--p-inputnumber-button-border-radius) 0 0 var(--p-inputnumber-button-border-radius);
+        }
+
+        .p-spinner-button.p-spinner-down {
+            left: auto;
+            right: 0;
+            border-radius: 0 var(--p-inputnumber-button-border-radius) var(--p-inputnumber-button-border-radius) 0;
+        }
+    }
+
+    /* horizontal-after: input [-][+] */
+    &.p-spinner-horizontal-after {
+        .p-spinner-input {
+            padding-inline-end: calc(var(--p-inputnumber-button-width) * 2 + var(--p-form-field-padding-x));
+        }
+
+        .p-spinner-button.p-spinner-up {
+            right: 0;
+            border-radius: 0 var(--p-inputnumber-button-border-radius) var(--p-inputnumber-button-border-radius) 0;
+        }
+
+        .p-spinner-button.p-spinner-down {
+            right: calc(var(--p-inputnumber-button-width) - 1px);
+            border-radius: 0;
+        }
+    }
+
+    &.p-spinner-horizontal-after.p-spinner-rtl {
+        .p-spinner-input {
+            padding-inline-end: var(--p-form-field-padding-x);
+            padding-inline-start: calc(var(--p-inputnumber-button-width) * 2 + var(--p-form-field-padding-x));
+        }
+
+        .p-spinner-button.p-spinner-up {
+            right: auto;
+            left: 0;
+            border-radius: var(--p-inputnumber-button-border-radius) 0 0 var(--p-inputnumber-button-border-radius);
+        }
+
+        .p-spinner-button.p-spinner-down {
+            right: auto;
+            left: calc(var(--p-inputnumber-button-width) - 1px);
+        }
+    }
+
+    /* vertical: [+] above, [-] below, full width */
+    &.p-spinner-vertical {
+        .p-spinner-input {
+            text-align: center;
+            padding-block: calc(var(--p-inputnumber-button-width) + var(--p-form-field-padding-y));
+            padding-inline: var(--p-form-field-padding-x);
+        }
+
+        .p-spinner-button.p-button {
+            left: 0;
+            right: auto;
+            width: 100%;
+            height: var(--p-inputnumber-button-width);
+        }
+
+        .p-spinner-button.p-spinner-up {
+            top: 0;
+            border-radius: var(--p-inputnumber-button-border-radius) var(--p-inputnumber-button-border-radius) 0 0;
+        }
+
+        .p-spinner-button.p-spinner-down {
+            bottom: 0;
+            border-radius: 0 0 var(--p-inputnumber-button-border-radius) var(--p-inputnumber-button-border-radius);
+        }
+    }
+
+    /* sizes: the input carries p-inputtext-sm / -lg (forms/inputfield.css), the icons follow */
+    &:has(> .p-inputtext-sm) .p-spinner-button .p-icon {
+        font-size: var(--p-form-field-sm-font-size);
+    }
+
+    &:has(> .p-inputtext-lg) .p-spinner-button .p-icon {
+        font-size: var(--p-form-field-lg-font-size);
+    }
+}
+
+.p-fluid .p-spinner {
+    width: 100%;
+
+    .p-spinner-input {
+        width: 100%;
+    }
+}
+
+/* client side validation marks the wrapper (the server marks input and buttons) */
+.p-spinner.p-state-error {
+    .p-spinner-input,
+    .p-spinner-input:is(:hover, :focus, .p-state-hover, .p-state-focus) {
+        border-color: var(--p-inputtext-invalid-border-color);
+    }
+
+    .p-spinner-button {
+        --_border: var(--p-form-field-invalid-border-color);
+        --_hover-border: var(--p-form-field-invalid-border-color);
+        --_active-border: var(--p-form-field-invalid-border-color);
+    }
+}

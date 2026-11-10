@@ -1,0 +1,368 @@
+/*
+ * Dialog: p:dialog, p:confirmDialog, PrimeFaces.showMessageInDialog (p-message-dialog), Dialog Framework
+ *
+ * Markup: .p-dialog (fixed full-viewport container) > .p-dialog-box > .p-dialog-titlebar, .p-dialog-content, .p-dialog-footer
+ * States: p-dialog-absolute, p-dialog-fitviewport, p-overflow-hidden, p-resizable, p-dialog-rtl,
+ *         p-dialog-maximized, p-confirm-dialog, p-message-dialog
+ * Minimized: the dialog is hidden, .p-dialog-docking-zone > .p-dialog-docked is an own bar with title and icons
+ */
+body.p-dialog-open {
+    position: relative;
+}
+
+.p-dialog {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* no token: viewport gutter around the dialog box, reuses the modal padding */
+    padding: var(--p-overlay-modal-padding);
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+    /* non modal: the container covers the viewport, only the box takes the pointer, so the page around the dialog stays
+       usable (scrolling over the box still scrolls the container); a modal dialog keeps it for its scrollbar */
+    &:not([aria-modal="true"]) {
+        pointer-events: none;
+    }
+
+    &.p-dialog-absolute {
+        position: absolute;
+    }
+
+    /* dialog framework: hidden by visibility until shown */
+    &.p-overlay-hidden {
+        display: block;
+    }
+
+    .p-dialog-titlebar {
+        position: relative;
+    }
+
+    .p-dialog-content {
+        position: relative;
+        overflow: auto;
+    }
+
+    .p-dialog-box .p-dialog-content.p-df-content {
+        overflow: hidden;
+        padding: 0;
+    }
+
+    .p-resizable-se {
+        position: absolute;
+        width: 9px;
+        height: 9px;
+        right: -5px;
+        bottom: -5px;
+    }
+
+    .p-dialog-titlebar-close,
+    .p-dialog-titlebar-minimize,
+    .p-dialog-titlebar-maximize {
+        cursor: pointer;
+    }
+
+    &.p-overflow-hidden,
+    &.p-dialog-absolute,
+    &.p-dialog-fitviewport {
+        overflow-y: hidden;
+    }
+
+    &.p-dialog-absolute .p-dialog-box {
+        position: absolute;
+    }
+
+    .p-dialog-box {
+        position: relative;
+        display: inline-flex;
+        pointer-events: auto;
+        flex-direction: column;
+        max-width: 100%;
+        background: var(--p-dialog-background);
+        color: var(--p-dialog-color);
+        border: 1px solid var(--p-dialog-border-color);
+        border-radius: var(--p-dialog-border-radius);
+        box-shadow: var(--p-dialog-shadow);
+
+        /* header: flex row like PrimeUIX; the icons are rendered close, maximize, minimize, actions and are reordered */
+        .p-dialog-titlebar {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            background: transparent;
+            color: var(--p-dialog-color);
+            font-weight: var(--p-dialog-title-font-weight);
+            border: 0 none;
+            border-radius: 0;
+            padding: var(--p-dialog-header-padding);
+
+            .p-dialog-title {
+                flex: 1 1 auto;
+                font-size: var(--p-dialog-title-font-size);
+                font-weight: var(--p-dialog-title-font-weight);
+                text-wrap: balance;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .p-dialog-actions {
+                order: 1;
+                display: inline-flex;
+                align-items: center;
+                margin-inline-start: var(--p-dialog-header-gap);
+            }
+
+            > .p-dialog-titlebar-minimize {
+                order: 2;
+            }
+
+            > .p-dialog-titlebar-maximize {
+                order: 3;
+            }
+
+            > .p-dialog-titlebar-close {
+                order: 4;
+            }
+
+            /* header icons: rounded text secondary icon-only button like PrimeUIX */
+            .p-dialog-titlebar-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                width: var(--p-button-icon-only-width);
+                height: var(--p-button-icon-only-width);
+                margin: 0;
+                margin-inline-start: var(--p-dialog-header-gap);
+                padding: 0;
+                border: 0 none;
+                border-radius: 50%;
+                background: transparent;
+                color: var(--p-button-text-secondary-color);
+                text-decoration: none;
+                -webkit-user-select: none;
+                user-select: none;
+                outline-color: transparent;
+                transition: background var(--p-button-transition-duration), color var(--p-button-transition-duration),
+                    outline-color var(--p-button-transition-duration), box-shadow var(--p-button-transition-duration);
+            }
+
+            .p-dialog-titlebar-icon:hover {
+                background: var(--p-button-text-secondary-hover-background);
+                color: var(--p-button-text-secondary-color);
+            }
+
+            .p-dialog-titlebar-icon:active {
+                background: var(--p-button-text-secondary-active-background);
+            }
+
+            .p-dialog-titlebar-icon:focus-visible {
+                outline: var(--p-button-focus-ring-width) var(--p-button-focus-ring-style) var(--p-button-secondary-focus-ring-color);
+                outline-offset: var(--p-button-focus-ring-offset);
+                box-shadow: var(--p-button-secondary-focus-ring-shadow);
+            }
+        }
+    }
+
+    .p-dialog-close-icon {
+        --_icon: var(--p-dialog-close-icon);
+    }
+
+    .p-dialog-minimize-icon {
+        --_icon: var(--p-dialog-minimize-icon);
+    }
+
+    .p-dialog-maximize-icon {
+        --_icon: var(--p-dialog-maximize-icon);
+    }
+
+    /* the maximized dialog shows the restore icon of maximize (only its own titlebar, not the one of a dialog nested in
+       its content) */
+    &.p-dialog-maximized > .p-dialog-box > .p-dialog-titlebar .p-dialog-maximize-icon {
+        --_icon: var(--p-dialog-unmaximize-icon);
+    }
+
+    .p-dialog-box {
+        .p-dialog-content {
+            flex-grow: 1;
+            background: transparent;
+            color: var(--p-dialog-color);
+            border: 0 none;
+            padding: var(--p-dialog-content-padding);
+        }
+
+        /* footer (p:dialog footer facet, p:confirmDialog button pane) */
+        .p-dialog-footer {
+            flex-shrink: 0;
+            background: transparent;
+            color: var(--p-dialog-color);
+            border: 0 none;
+            padding: var(--p-dialog-footer-padding);
+            margin: 0;
+            text-align: end;
+
+            button {
+                margin: 0;
+                margin-inline-start: var(--p-dialog-footer-gap);
+                width: auto;
+            }
+        }
+    }
+
+    /* maximized: the widget sizes the container to the window, the box follows it (!important beats the inline size) */
+    &.p-dialog-maximized {
+        padding: 0;
+
+        .p-dialog-box {
+            width: 100% !important;
+            height: 100% !important;
+            top: 0 !important;
+            left: 0 !important;
+            border-radius: 0;
+        }
+    }
+
+    /* confirm dialog and message dialog */
+    &.p-confirm-dialog .p-dialog-box .p-dialog-content,
+    &.p-message-dialog .p-dialog-box .p-dialog-content {
+        display: flex;
+        align-items: center;
+        gap: var(--p-confirmdialog-content-gap);
+    }
+
+    &.p-confirm-dialog .p-dialog-box .p-dialog-content > span,
+    &.p-message-dialog .p-dialog-box .p-dialog-content > span {
+        display: inline-block;
+        margin: 0;
+        color: var(--p-confirmdialog-message-color);
+        font-size: var(--p-confirmdialog-message-font-size);
+        font-weight: var(--p-confirmdialog-message-font-weight);
+    }
+
+    &.p-confirm-dialog .p-dialog-box .p-dialog-content > span.p-confirm-dialog-severity,
+    &.p-message-dialog .p-dialog-box .p-dialog-content > span.p-dialog-message {
+        flex-shrink: 0;
+        line-height: 1;
+        color: var(--p-confirmdialog-icon-color);
+        font-size: var(--p-confirmdialog-icon-size);
+    }
+
+    /* severity icon: p:confirmDialog severity, message dialog severity */
+    .p-dialog-warn-icon {
+        --_icon: var(--p-dialog-warn-icon);
+    }
+
+    .p-dialog-info-icon {
+        --_icon: var(--p-dialog-info-icon);
+    }
+
+    .p-dialog-error-icon {
+        --_icon: var(--p-dialog-error-icon);
+    }
+
+    .p-dialog-fatal-icon {
+        --_icon: var(--p-dialog-fatal-icon);
+    }
+}
+
+.p-draggable .p-dialog-titlebar {
+    cursor: move;
+}
+
+.p-dialog-docking-zone {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--p-dialog-header-gap);
+    padding: var(--p-dialog-header-gap);
+}
+
+/* minimized: the dialog is hidden, the docking zone shows an own bar for it with the title and the title bar icons */
+.p-dialog-docked {
+    display: flex;
+    align-items: center;
+    gap: var(--p-dialog-header-gap);
+    max-width: 20rem;
+    padding: var(--p-dialog-header-gap) var(--p-dialog-header-gap) var(--p-dialog-header-gap) var(--p-dialog-header-padding);
+    background: var(--p-dialog-background);
+    color: var(--p-dialog-color);
+    border: 1px solid var(--p-dialog-border-color);
+    border-radius: var(--p-dialog-border-radius);
+    box-shadow: var(--p-dialog-shadow);
+
+    .p-dialog-docked-title {
+        flex: 1 1 auto;
+        font-weight: var(--p-dialog-title-font-weight);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* rounded text secondary icon-only button like the title bar icons */
+    .p-dialog-docked-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: var(--p-button-icon-only-width);
+        height: var(--p-button-icon-only-width);
+        border-radius: 50%;
+        color: var(--p-button-text-secondary-color);
+        text-decoration: none;
+        cursor: pointer;
+        outline-color: transparent;
+        transition: background var(--p-button-transition-duration), color var(--p-button-transition-duration);
+
+        &:hover {
+            background: var(--p-button-text-secondary-hover-background);
+        }
+
+        &:active {
+            background: var(--p-button-text-secondary-active-background);
+        }
+
+        &:focus-visible {
+            outline: var(--p-button-focus-ring-width) var(--p-button-focus-ring-style) var(--p-button-secondary-focus-ring-color);
+            outline-offset: var(--p-button-focus-ring-offset);
+            box-shadow: var(--p-button-secondary-focus-ring-shadow);
+        }
+    }
+
+    .p-dialog-docked-restore .p-icon {
+        --_icon: var(--p-dialog-unminimize-icon);
+    }
+
+    .p-dialog-docked-maximize .p-icon {
+        --_icon: var(--p-dialog-maximize-icon);
+    }
+
+    .p-dialog-docked-close .p-icon {
+        --_icon: var(--p-dialog-close-icon);
+    }
+}
+
+/* transfer effect while minimizing */
+.p-dialog-minimizing {
+    border: 1px dashed var(--p-primary-color);
+    border-radius: var(--p-dialog-border-radius);
+}
+
+.p-dialog-mask {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.p-dialog-rtl {
+    direction: rtl;
+}

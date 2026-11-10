@@ -1,0 +1,461 @@
+/*
+ * InputField (shared): every .p-inputfield (p:inputText, p:inputTextarea, p:password, ...)
+ *
+ * Supported classes: p-state-hover, p-state-focus, p-state-error (invalid), p-state-disabled,
+ *                    p-input-filled (on the field or a parent), p-inputtext-sm, p-inputtext-lg
+ * Also: placeholders, .field / .p-field small.p-state-error, .p-float-label (+ p-float-label-in / p-float-label-on),
+ *       .p-input-icon-left / -right, p:inputTextarea autoResize, p:inputNumber / p:inputMask (plain .p-inputfield),
+ *       .p-sr-only
+ */
+
+/* autofill detection (animationstart), see https://github.com/primefaces/primefaces/issues/12444 */
+@keyframes pf-autofill {
+    to {
+        /* empty on purpose */
+    }
+}
+
+input:-webkit-autofill {
+    animation-name: pf-autofill;
+    animation-duration: 0.1s;
+    animation-fill-mode: both;
+}
+
+/* visually hidden, still available for assistive technology */
+.p-sr-only {
+    border: 0;
+    clip: rect(1px, 1px, 1px, 1px);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+    word-wrap: normal;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--p-form-field-placeholder-color);
+    opacity: 1;
+}
+
+.p-inputfield {
+    font-family: inherit;
+    font-size: var(--p-inputtext-font-size);
+    font-weight: var(--p-inputtext-font-weight);
+    line-height: var(--p-typography-line-height);
+    margin: 0;
+    padding-block: var(--p-inputtext-padding-y);
+    padding-inline: var(--p-inputtext-padding-x);
+    color: var(--p-inputtext-color);
+    background: var(--p-inputtext-background);
+    /* the states set --_border-color, the filled variant draws its line with it */
+    --_border-color: var(--p-inputtext-border-color);
+    border: 1px solid var(--_border-color);
+    border-radius: var(--p-inputtext-border-radius);
+    box-shadow: var(--p-inputtext-shadow);
+    outline: 0 none;
+    outline-color: transparent;
+    appearance: none;
+    transition: background var(--p-inputtext-transition-duration), color var(--p-inputtext-transition-duration),
+        border-color var(--p-inputtext-transition-duration), outline-color var(--p-inputtext-transition-duration),
+        box-shadow var(--p-inputtext-transition-duration);
+
+    &::placeholder {
+        color: var(--p-inputtext-placeholder-color);
+    }
+
+    &:not(:disabled, .p-state-disabled):hover,
+    &.p-state-hover {
+        --_border-color: var(--p-inputtext-hover-border-color);
+    }
+
+    &:not(:disabled, .p-state-disabled):focus,
+    &.p-state-focus {
+        --_border-color: var(--p-inputtext-focus-border-color);
+        outline: var(--p-inputtext-focus-ring-width) var(--p-inputtext-focus-ring-style) var(--p-inputtext-focus-ring-color);
+        outline-offset: var(--p-inputtext-focus-ring-offset);
+        box-shadow: var(--p-inputtext-focus-ring-shadow);
+    }
+
+    /* invalid: the border also wins over hover and focus (same specificity, later), the focus ring stays */
+    &.p-state-error,
+    &.p-state-error:is(:hover, :focus, .p-state-hover, .p-state-focus) {
+        --_border-color: var(--p-inputtext-invalid-border-color);
+    }
+
+    &.p-state-error {
+        &::placeholder {
+            color: var(--p-inputtext-invalid-placeholder-color);
+        }
+    }
+
+    /* filled: both alternatives have the same specificity. Border and focus ring are shown with
+       --p-form-field-filled-border-opacity, a line in the border color is drawn at the bottom
+       (--p-form-field-filled-indicator-width, thicker on focus): Material 0% and a line, the M3 filled field */
+    .p-input-filled &,
+    &.p-input-filled {
+        --_line-width: var(--p-form-field-filled-indicator-width);
+        --_line: linear-gradient(var(--_border-color), var(--_border-color)) bottom / 100% var(--_line-width) no-repeat
+            border-box;
+        background: var(--_line), var(--p-inputtext-filled-background);
+        border-color: color-mix(in srgb, var(--_border-color) var(--p-form-field-filled-border-opacity), transparent);
+        border-end-start-radius: var(--p-form-field-filled-bottom-border-radius);
+        border-end-end-radius: var(--p-form-field-filled-bottom-border-radius);
+
+        &:not(:disabled, .p-state-disabled):hover,
+        &.p-state-hover {
+            background: var(--_line), var(--p-inputtext-filled-hover-background);
+        }
+
+        &:focus,
+        &.p-state-focus {
+            --_line-width: var(--p-form-field-filled-focus-indicator-width);
+            background: var(--_line), var(--p-inputtext-filled-focus-background);
+            outline-color: color-mix(in srgb, var(--p-inputtext-focus-ring-color) var(--p-form-field-filled-border-opacity),
+                transparent);
+        }
+
+        &:disabled,
+        &.p-state-disabled {
+            background: var(--_line), var(--p-inputtext-disabled-background);
+        }
+    }
+
+    /* after filled (same specificity), filled disabled above: the disabled background, like PrimeUIX */
+    &:disabled,
+    &.p-state-disabled {
+        background: var(--p-inputtext-disabled-background);
+        color: var(--p-inputtext-disabled-color);
+        opacity: 1;
+    }
+
+    &.p-inputtext-sm {
+        font-size: var(--p-inputtext-sm-font-size);
+        padding-block: var(--p-inputtext-sm-padding-y);
+        padding-inline: var(--p-inputtext-sm-padding-x);
+    }
+
+    &.p-inputtext-lg {
+        font-size: var(--p-inputtext-lg-font-size);
+        padding-block: var(--p-inputtext-lg-padding-y);
+        padding-inline: var(--p-inputtext-lg-padding-x);
+    }
+}
+
+/*
+ * p:inputTextarea: the .p-inputfield rules above read the inputtext tokens, a textarea points them to its own
+ * textarea tokens (same defaults), so overriding a --p-textarea-* token styles every state of the textarea
+ */
+.p-inputtextarea {
+    --p-inputtext-font-size: var(--p-textarea-font-size);
+    --p-inputtext-font-weight: var(--p-textarea-font-weight);
+    --p-inputtext-background: var(--p-textarea-background);
+    --p-inputtext-disabled-background: var(--p-textarea-disabled-background);
+    --p-inputtext-filled-background: var(--p-textarea-filled-background);
+    --p-inputtext-filled-hover-background: var(--p-textarea-filled-hover-background);
+    --p-inputtext-filled-focus-background: var(--p-textarea-filled-focus-background);
+    --p-inputtext-border-color: var(--p-textarea-border-color);
+    --p-inputtext-hover-border-color: var(--p-textarea-hover-border-color);
+    --p-inputtext-focus-border-color: var(--p-textarea-focus-border-color);
+    --p-inputtext-invalid-border-color: var(--p-textarea-invalid-border-color);
+    --p-inputtext-color: var(--p-textarea-color);
+    --p-inputtext-disabled-color: var(--p-textarea-disabled-color);
+    --p-inputtext-placeholder-color: var(--p-textarea-placeholder-color);
+    --p-inputtext-invalid-placeholder-color: var(--p-textarea-invalid-placeholder-color);
+    --p-inputtext-shadow: var(--p-textarea-shadow);
+    --p-inputtext-padding-x: var(--p-textarea-padding-x);
+    --p-inputtext-padding-y: var(--p-textarea-padding-y);
+    --p-inputtext-border-radius: var(--p-textarea-border-radius);
+    --p-inputtext-focus-ring-width: var(--p-textarea-focus-ring-width);
+    --p-inputtext-focus-ring-style: var(--p-textarea-focus-ring-style);
+    --p-inputtext-focus-ring-color: var(--p-textarea-focus-ring-color);
+    --p-inputtext-focus-ring-offset: var(--p-textarea-focus-ring-offset);
+    --p-inputtext-focus-ring-shadow: var(--p-textarea-focus-ring-shadow);
+    --p-inputtext-transition-duration: var(--p-textarea-transition-duration);
+    --p-inputtext-sm-font-size: var(--p-textarea-sm-font-size);
+    --p-inputtext-sm-padding-x: var(--p-textarea-sm-padding-x);
+    --p-inputtext-sm-padding-y: var(--p-textarea-sm-padding-y);
+    --p-inputtext-lg-font-size: var(--p-textarea-lg-font-size);
+    --p-inputtext-lg-padding-x: var(--p-textarea-lg-padding-x);
+    --p-inputtext-lg-padding-y: var(--p-textarea-lg-padding-y);
+
+    vertical-align: top;
+}
+
+/* p:inputTextarea autoResize */
+.p-inputtextarea-resizable {
+    overflow: hidden;
+    resize: none;
+}
+
+/* p:inputNumber: digits of equal width, the value does not jump while typing */
+.p-inputnumber > .p-inputfield {
+    font-variant-numeric: tabular-nums;
+}
+
+/* fluid: InputText, InputNumber, InputTextarea, InputMask and any other .p-inputfield (e.g. p:keyboard) */
+.p-fluid {
+    .p-inputfield,
+    .p-inputtext,
+    .p-inputnumber,
+    .p-inputtextarea,
+    .p-inputmask {
+        width: 100%;
+    }
+
+    .p-inputtext[size],
+    .p-inputfield[size] {
+        width: auto;
+    }
+}
+
+/* validation message below a field */
+.p-field small.p-state-error,
+.field small.p-state-error {
+    color: var(--p-message-error-simple-color);
+}
+
+.p-float-label {
+    display: block;
+    position: relative;
+
+    .p-outputlabel {
+        display: block;
+        min-height: 100%;
+        max-width: 95%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    > label {
+        position: absolute;
+        top: 50%;
+        left: var(--p-floatlabel-position-x);
+        margin-top: -0.5em;
+        margin-left: 0;
+        line-height: 1;
+        pointer-events: none;
+        color: var(--p-floatlabel-color);
+        font-size: var(--p-floatlabel-font-size);
+        font-weight: var(--p-floatlabel-font-weight);
+        transition-property: all;
+        transition-timing-function: var(--p-transition-easing);
+        transition-duration: var(--p-floatlabel-transition-duration);
+    }
+
+    > label.p-outputlabel-rtl {
+        left: 0;
+        right: var(--p-floatlabel-position-x);
+    }
+
+    > textarea ~ label {
+        top: var(--p-floatlabel-position-y);
+        margin-top: 0;
+    }
+
+    > input:focus ~ label,
+    > input.p-state-filled ~ label,
+    > textarea:focus ~ label,
+    > textarea.p-state-filled ~ label,
+    > .p-inputwrapper-focus ~ label,
+    > .p-selectcheckboxmenu.p-state-focus ~ label,
+    > :where(.p-selectcheckboxmenu:has(> .p-hidden-accessible > [aria-expanded="true"])) ~ label,
+    > .p-inputwrapper-filled ~ label,
+    > :where(.p-autocomplete-multiple:has(.p-autocomplete-token), .p-chips:has(.p-chips-token),
+        .p-selectcheckboxmenu:has(> .p-hidden > :checked)) ~ label,
+    > input:-webkit-autofill ~ label,
+    > textarea:-webkit-autofill ~ label {
+        top: var(--p-floatlabel-over-active-top);
+        margin-top: 0;
+        font-size: var(--p-floatlabel-active-font-size);
+        font-weight: var(--p-floatlabel-active-font-weight);
+    }
+
+    > input.p-state-filled ~ label,
+    > textarea.p-state-filled ~ label,
+    > .p-inputwrapper-filled ~ label,
+    > :where(.p-autocomplete-multiple:has(.p-autocomplete-token), .p-chips:has(.p-chips-token),
+        .p-selectcheckboxmenu:has(> .p-hidden > :checked)) ~ label {
+        color: var(--p-floatlabel-active-color);
+    }
+
+    > input:focus ~ label,
+    > textarea:focus ~ label,
+    > .p-inputwrapper-focus ~ label,
+    > .p-selectcheckboxmenu.p-state-focus ~ label,
+    > :where(.p-selectcheckboxmenu:has(> .p-hidden-accessible > [aria-expanded="true"])) ~ label,
+    > input:-webkit-autofill ~ label,
+    > textarea:-webkit-autofill ~ label {
+        color: var(--p-floatlabel-focus-color);
+    }
+
+    > .p-state-error ~ label,
+    > .p-state-error:is(:focus, .p-inputwrapper-focus) ~ label {
+        color: var(--p-floatlabel-invalid-color);
+    }
+
+    /*
+     * variant "in" (PrimeUIX FloatLabel variant="in" / IftaLabel): the label sits inside the field at the top, the field
+     * gets more space above the text. Colors and the active font come from the rules above.
+     */
+    &.p-float-label-in {
+        /* the box of the field: plain input / textarea, or the input of a wrapper (p:password, p:inputNumber, p:datePicker, ...) */
+        > .p-inputfield,
+        > * > .p-inputfield {
+            padding-block-start: var(--p-floatlabel-in-input-padding-top);
+            padding-block-end: var(--p-floatlabel-in-input-padding-bottom);
+        }
+
+        /* components whose own label / input rule is more specific than the one above */
+        > :is(.p-selectonemenu, .p-cascadeselect, .p-autocomplete) > .p-inputfield {
+            padding-block-start: var(--p-floatlabel-in-input-padding-top);
+            padding-block-end: var(--p-floatlabel-in-input-padding-bottom);
+        }
+
+        /* chips containers: half of the padding is on the container, the other half on the chips / input token */
+        > .p-chips > .p-chips-container {
+            padding-block-start: calc(var(--p-floatlabel-in-input-padding-top) - var(--p-inputchips-padding-y) / 2);
+            padding-block-end: calc(var(--p-floatlabel-in-input-padding-bottom) - var(--p-inputchips-padding-y) / 2);
+        }
+
+        > .p-autocomplete > .p-autocomplete-multiple-container {
+            padding-block-start: calc(var(--p-floatlabel-in-input-padding-top) - var(--p-autocomplete-padding-y) / 2);
+            padding-block-end: calc(var(--p-floatlabel-in-input-padding-bottom) - var(--p-autocomplete-padding-y) / 2);
+        }
+
+        /* selectCheckboxMenu: label container (single), token container like the chips (multiple) */
+        > .p-selectcheckboxmenu .p-selectcheckboxmenu-label-container {
+            padding-block-start: var(--p-floatlabel-in-input-padding-top);
+            padding-block-end: var(--p-floatlabel-in-input-padding-bottom);
+        }
+
+        > .p-selectcheckboxmenu .p-selectcheckboxmenu-multiple-container.p-inputfield {
+            min-height: calc(var(--p-floatlabel-in-input-padding-top) + var(--p-floatlabel-in-input-padding-bottom)
+                + var(--p-typography-line-height) * var(--p-multiselect-font-size));
+            padding-block-start: calc(var(--p-floatlabel-in-input-padding-top) - var(--p-multiselect-padding-y) / 2);
+            padding-block-end: calc(var(--p-floatlabel-in-input-padding-bottom) - var(--p-multiselect-padding-y) / 2);
+        }
+
+        /* textarea: the empty label stays on the first line */
+        > textarea ~ label {
+            top: var(--p-floatlabel-in-input-padding-top);
+        }
+
+        > :is(input:focus, input.p-state-filled, textarea:focus, textarea.p-state-filled, .p-inputwrapper-focus,
+            .p-selectcheckboxmenu.p-state-focus,
+            :where(.p-selectcheckboxmenu:has(> .p-hidden-accessible > [aria-expanded="true"])),
+            .p-inputwrapper-filled, input:-webkit-autofill, textarea:-webkit-autofill,
+            :where(.p-autocomplete-multiple:has(.p-autocomplete-token), .p-chips:has(.p-chips-token),
+                .p-selectcheckboxmenu:has(> .p-hidden > :checked))) ~ label {
+            top: var(--p-floatlabel-in-active-top);
+            margin-top: 0;
+        }
+    }
+
+    /* variant "on" (PrimeUIX FloatLabel variant="on"): the active label sits on the top border, on a background */
+    &.p-float-label-on {
+        > :is(input:focus, input.p-state-filled, textarea:focus, textarea.p-state-filled, .p-inputwrapper-focus,
+            .p-selectcheckboxmenu.p-state-focus,
+            :where(.p-selectcheckboxmenu:has(> .p-hidden-accessible > [aria-expanded="true"])),
+            .p-inputwrapper-filled, input:-webkit-autofill, textarea:-webkit-autofill,
+            :where(.p-autocomplete-multiple:has(.p-autocomplete-token), .p-chips:has(.p-chips-token),
+                .p-selectcheckboxmenu:has(> .p-hidden > :checked))) ~ label {
+            top: 0;
+            /* .p-outputlabel spans the field height (min-height: 100%); on the border only the text gets the background */
+            min-height: 0;
+            margin-top: 0;
+            translate: 0 -50%;
+            padding: var(--p-floatlabel-on-active-padding);
+            background: var(--p-floatlabel-on-active-background);
+            border-radius: var(--p-floatlabel-on-border-radius);
+            z-index: 1;
+        }
+    }
+}
+
+/*
+ * fields with a trigger button next to the input (p:autoComplete dropdown, p:datePicker showIcon): the focus
+ * ring encloses input and button, like a field with the icon inside (password, colorPicker); the input keeps its focus
+ * border. The --p-inputtext-* tokens are the ones of the component (autocomplete.css remaps them).
+ */
+.p-autocomplete.p-autocomplete-dd,
+.p-calendar.p-trigger-calendar {
+    border-radius: var(--p-inputtext-border-radius);
+    /* the ring follows the wrapper: it wraps input and button, also as a stretched flex / grid item */
+    width: fit-content;
+    max-width: 100%;
+
+    .p-fluid & {
+        width: 100%;
+    }
+
+    &:has(> .p-inputfield:not(:disabled, .p-state-disabled):is(:focus-within, .p-state-focus)) {
+        outline: var(--p-inputtext-focus-ring-width) var(--p-inputtext-focus-ring-style) var(--p-inputtext-focus-ring-color);
+        outline-offset: var(--p-inputtext-focus-ring-offset);
+        box-shadow: var(--p-inputtext-focus-ring-shadow);
+
+        > .p-inputfield {
+            outline: 0 none;
+            box-shadow: none;
+        }
+
+        /* filled: the ring like the one of a filled input (above) */
+        .p-input-filled & {
+            outline-color: color-mix(in srgb, var(--p-inputtext-focus-ring-color) var(--p-form-field-filled-border-opacity),
+                transparent);
+        }
+    }
+}
+
+/* input with icon */
+.p-input-icon-left,
+.p-input-icon-right {
+    position: relative;
+    display: inline-block;
+    /* the icon is positioned at the edge of the wrapper: it wraps its input, also as a stretched flex / grid item */
+    width: fit-content;
+    max-width: 100%;
+
+    .p-fluid & {
+        display: block;
+        width: auto;
+    }
+
+    > i {
+        position: absolute;
+        top: 50%;
+        margin-top: calc(-1 * var(--p-icon-size) / 2);
+        line-height: 1;
+        z-index: 1;
+    }
+}
+
+/*
+ * physical sides on purpose: the class names the side, the renderers swap the class for RTL (p:password toggleMask),
+ * and dir="rtl" is often only written on the input, so logical sides of the wrapper / icon would resolve LTR
+ */
+.p-input-icon-left {
+    > i:first-of-type {
+        left: var(--p-form-field-padding-x);
+        color: var(--p-iconfield-icon-color);
+    }
+
+    > .p-inputfield {
+        padding-left: calc(var(--p-form-field-padding-x) * 2 + var(--p-icon-size));
+    }
+}
+
+.p-input-icon-right {
+    > i:last-of-type {
+        right: var(--p-form-field-padding-x);
+        color: var(--p-iconfield-icon-color);
+    }
+
+    > .p-inputfield {
+        padding-right: calc(var(--p-form-field-padding-x) * 2 + var(--p-icon-size));
+    }
+}

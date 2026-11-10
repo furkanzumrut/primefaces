@@ -1,0 +1,280 @@
+/*
+ * CascadeSelect: p:cascadeSelect
+ *
+ * Supported classes: p-state-focus, p-state-error, p-state-disabled, p-input-filled (on a parent),
+ *                    p-cascadeselect-sm, p-cascadeselect-lg (styleClass)
+ * Label: .p-cascadeselect-label (+ p-cascadeselect-label-placeholder while it shows the placeholder); it is also a
+ * .p-inputfield, so its input look (border, background, focus ring) is reset here.
+ * Items: p-state-highlight (expanded / focused), p-state-active (selected). Icons: p-cascadeselect-dropdown-icon,
+ * p-cascadeselect-group-icon.
+ */
+.p-cascadeselect {
+    display: inline-flex;
+    cursor: pointer;
+    position: relative;
+    -webkit-user-select: none;
+    user-select: none;
+    background: var(--p-cascadeselect-background);
+    color: var(--p-cascadeselect-color);
+    /* the states set --_border-color, the filled variant draws its line with it */
+    --_border-color: var(--p-cascadeselect-border-color);
+    border: 1px solid var(--_border-color);
+    border-radius: var(--p-cascadeselect-border-radius);
+    box-shadow: var(--p-cascadeselect-shadow);
+    outline-color: transparent;
+    transition: background var(--p-cascadeselect-transition-duration), color var(--p-cascadeselect-transition-duration),
+        border-color var(--p-cascadeselect-transition-duration), outline-color var(--p-cascadeselect-transition-duration),
+        box-shadow var(--p-cascadeselect-transition-duration);
+
+    &:not(.p-state-disabled):hover {
+        --_border-color: var(--p-cascadeselect-hover-border-color);
+    }
+
+    &:not(.p-state-disabled).p-state-focus {
+        --_border-color: var(--p-cascadeselect-focus-border-color);
+        outline: var(--p-cascadeselect-focus-ring-width) var(--p-cascadeselect-focus-ring-style) var(--p-cascadeselect-focus-ring-color);
+        outline-offset: var(--p-cascadeselect-focus-ring-offset);
+        box-shadow: var(--p-cascadeselect-focus-ring-shadow);
+    }
+
+    /* invalid: the border also wins over hover and focus (same specificity, later), the focus ring stays */
+    &.p-state-error,
+    &.p-state-error:is(:hover, .p-state-focus) {
+        --_border-color: var(--p-cascadeselect-invalid-border-color);
+    }
+
+    &.p-state-disabled {
+        background: var(--p-cascadeselect-disabled-background);
+        opacity: 1;
+    }
+
+    /* label: reset the .p-inputfield look in every state, the wrapper draws border and background */
+    .p-cascadeselect-label.p-inputfield,
+    .p-cascadeselect-label.p-inputfield:not(.p-state-disabled):hover,
+    .p-cascadeselect-label.p-inputfield:not(.p-state-disabled):focus {
+        background: transparent;
+        border: 0 none;
+        border-radius: 0;
+        outline: 0 none;
+        box-shadow: none;
+    }
+
+    .p-cascadeselect-label.p-inputfield {
+        padding-block: var(--p-cascadeselect-padding-y);
+        padding-inline: var(--p-cascadeselect-padding-x);
+        font-size: var(--p-cascadeselect-font-size);
+        font-weight: var(--p-cascadeselect-font-weight);
+        color: var(--p-cascadeselect-color);
+    }
+
+    .p-cascadeselect-label.p-inputfield.p-cascadeselect-label-placeholder {
+        color: var(--p-cascadeselect-placeholder-color);
+    }
+
+    &.p-state-error .p-cascadeselect-label.p-inputfield.p-cascadeselect-label-placeholder {
+        color: var(--p-cascadeselect-invalid-placeholder-color);
+    }
+
+    &.p-state-disabled .p-cascadeselect-label.p-inputfield {
+        color: var(--p-cascadeselect-disabled-color);
+    }
+
+    .p-cascadeselect-dropdown-icon {
+        --_icon: var(--p-cascadeselect-dropdown-icon);
+    }
+
+    .p-cascadeselect-trigger {
+        background: transparent;
+        color: var(--p-cascadeselect-dropdown-color);
+        width: var(--p-cascadeselect-dropdown-width);
+        border-start-end-radius: var(--p-cascadeselect-border-radius);
+        border-end-end-radius: var(--p-cascadeselect-border-radius);
+    }
+
+    /* sizes (styleClass): the size tokens replace the base ones, the icon follows */
+    &.p-cascadeselect-sm {
+        --p-cascadeselect-font-size: var(--p-cascadeselect-sm-font-size);
+        --p-cascadeselect-padding-x: var(--p-cascadeselect-sm-padding-x);
+        --p-cascadeselect-padding-y: var(--p-cascadeselect-sm-padding-y);
+    }
+
+    &.p-cascadeselect-lg {
+        --p-cascadeselect-font-size: var(--p-cascadeselect-lg-font-size);
+        --p-cascadeselect-padding-x: var(--p-cascadeselect-lg-padding-x);
+        --p-cascadeselect-padding-y: var(--p-cascadeselect-lg-padding-y);
+    }
+
+    &.p-cascadeselect-sm .p-cascadeselect-trigger .p-cascadeselect-trigger-icon,
+    &.p-cascadeselect-lg .p-cascadeselect-trigger .p-cascadeselect-trigger-icon {
+        font-size: var(--p-cascadeselect-font-size);
+    }
+}
+
+.p-cascadeselect-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.p-cascadeselect-label {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    flex: 1 1 auto;
+    width: 1%;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+/* no value and no placeholder: an empty block has no line box, the field keeps its height */
+.p-cascadeselect-label:empty::before {
+    content: "\200b";
+}
+
+/* overlay: the root panel and every (sub)list carry p-cascadeselect-panel */
+.p-cascadeselect-panel {
+    min-width: 100%;
+    position: absolute;
+    background: var(--p-cascadeselect-overlay-background);
+    color: var(--p-cascadeselect-overlay-color);
+    border: 1px solid var(--p-cascadeselect-overlay-border-color);
+    border-radius: var(--p-cascadeselect-overlay-border-radius);
+    box-shadow: var(--p-cascadeselect-overlay-shadow);
+
+    .p-cascadeselect-items {
+        padding: var(--p-cascadeselect-list-padding);
+    }
+}
+
+.p-cascadeselect-items {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.p-cascadeselect-item {
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.p-cascadeselect-item-content {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+
+    .p-cascadeselect-group-icon {
+        margin-inline-start: auto;
+    }
+}
+
+.p-cascadeselect-panel .p-cascadeselect-items .p-cascadeselect-item {
+    margin: 0;
+    border: 0 none;
+    color: var(--p-cascadeselect-option-color);
+    background: transparent;
+    font-size: var(--p-cascadeselect-option-font-size);
+    font-weight: var(--p-cascadeselect-option-font-weight);
+    border-radius: var(--p-cascadeselect-option-border-radius);
+    transition: background var(--p-list-option-transition-duration), color var(--p-list-option-transition-duration),
+        border-color var(--p-list-option-transition-duration), box-shadow var(--p-list-option-transition-duration),
+        outline-color var(--p-list-option-transition-duration);
+
+    & + .p-cascadeselect-item {
+        margin-top: var(--p-cascadeselect-list-gap);
+    }
+
+    .p-cascadeselect-item-content {
+        padding: var(--p-cascadeselect-option-padding);
+        border-radius: var(--p-cascadeselect-option-border-radius);
+        outline-color: transparent;
+
+        &:focus {
+            outline: var(--p-focus-ring-width) var(--p-focus-ring-style) var(--p-focus-ring-color);
+            outline-offset: calc(-1 * var(--p-focus-ring-width));
+            box-shadow: var(--p-focus-ring-shadow);
+        }
+    }
+
+    /* p-state-highlight = the active (expanded) item */
+    &.p-state-highlight {
+        color: var(--p-cascadeselect-option-focus-color);
+        background: var(--p-cascadeselect-option-focus-background);
+    }
+
+    &:not(.p-state-highlight):not(.p-state-disabled):hover {
+        color: var(--p-cascadeselect-option-focus-color);
+        background: var(--p-cascadeselect-option-focus-background);
+    }
+
+    /* p-state-active = the selected item (the value of the component) */
+    &.p-state-active {
+        color: var(--p-cascadeselect-option-selected-color);
+        background: var(--p-cascadeselect-option-selected-background);
+
+        &.p-state-highlight,
+        &:not(.p-state-disabled):hover {
+            color: var(--p-cascadeselect-option-selected-focus-color);
+            background: var(--p-cascadeselect-option-selected-focus-background);
+        }
+    }
+
+    .p-cascadeselect-group-icon {
+        --_icon: var(--p-cascadeselect-group-icon);
+        font-size: var(--p-cascadeselect-option-icon-size);
+        color: var(--p-cascadeselect-option-icon-color);
+    }
+
+    &.p-state-highlight > .p-cascadeselect-item-content .p-cascadeselect-group-icon,
+    &:not(.p-state-disabled):hover > .p-cascadeselect-item-content .p-cascadeselect-group-icon {
+        color: var(--p-cascadeselect-option-icon-focus-color);
+    }
+}
+
+/* sublists are positioned by the widget (inline left / top) */
+.p-cascadeselect-sublist {
+    position: absolute;
+    min-width: 100%;
+    z-index: 1;
+    display: none;
+}
+
+.p-cascadeselect-item-active > .p-cascadeselect-sublist {
+    display: block;
+    left: 100%;
+    top: 0;
+}
+
+/* filled variant (border, focus ring and line at the bottom: see forms/inputfield.css) */
+.p-input-filled .p-cascadeselect {
+    --_line-width: var(--p-form-field-filled-indicator-width);
+    --_line: linear-gradient(var(--_border-color), var(--_border-color)) bottom / 100% var(--_line-width) no-repeat
+        border-box;
+    background: var(--_line), var(--p-cascadeselect-filled-background);
+    border-color: color-mix(in srgb, var(--_border-color) var(--p-form-field-filled-border-opacity), transparent);
+    border-end-start-radius: var(--p-form-field-filled-bottom-border-radius);
+    border-end-end-radius: var(--p-form-field-filled-bottom-border-radius);
+
+    &:not(.p-state-disabled):hover {
+        background: var(--_line), var(--p-cascadeselect-filled-hover-background);
+    }
+
+    &:not(.p-state-disabled).p-state-focus {
+        --_line-width: var(--p-form-field-filled-focus-indicator-width);
+        background: var(--_line), var(--p-cascadeselect-filled-focus-background);
+        outline-color: color-mix(in srgb, var(--p-cascadeselect-focus-ring-color) var(--p-form-field-filled-border-opacity), transparent);
+    }
+
+    &.p-state-disabled {
+        background: var(--_line), var(--p-cascadeselect-disabled-background);
+    }
+}
+
+.p-fluid .p-cascadeselect {
+    display: flex;
+
+    .p-cascadeselect-label {
+        width: 1%;
+    }
+}

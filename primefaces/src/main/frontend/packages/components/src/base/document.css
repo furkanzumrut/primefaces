@@ -1,0 +1,148 @@
+/*
+ * Document level defaults and user preferences: native controls, text selection, reduced motion, print.
+ */
+:root {
+    /* native checkboxes, radios, ranges, progress of the application in the primary color */
+    accent-color: var(--p-primary-color);
+}
+
+::selection {
+    background: var(--p-highlight-background);
+    color: var(--p-highlight-color);
+}
+
+/* WCAG 2.2 target size: small icon controls get an invisible 24px hit area (centered), the layout stays the same */
+:where(.p-chips-token-icon, .p-autocomplete-token-icon, .p-selectcheckboxmenu-token-icon, .p-password-icon,
+    .p-chip-remove-icon, .p-breadcrumb-home-icon)::after {
+    content: "";
+    position: absolute;
+    inset: calc(50% - 12px);
+}
+
+:where(.p-chip-remove-icon, .p-breadcrumb-home-icon) {
+    position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root,
+    [data-p-scope] {
+        --p-transition-duration: 0s;
+        --p-ripple-opacity: 0;
+    }
+
+    /* fixed durations (keyframes, speed dial, dock); 0.01ms instead of none so animation events still fire
+       (the autofill detection of the input fields listens to animationstart) */
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* reduced transparency: no blur behind floating layers (Glass, growl) */
+@media (prefers-reduced-transparency: reduce) {
+    :root,
+    [data-p-scope] {
+        --p-overlay-backdrop-filter: none;
+        --p-navigation-backdrop-filter: none;
+        --p-button-backdrop-filter: none;
+        --p-mask-backdrop-filter: none;
+        --p-toast-blur: 0px;
+    }
+}
+
+/*
+ * PrimeFaces.utils.disableAnimations() (also called by PrimeFaces Selenium): content that fades in when it is inserted
+ * appears at once. These animations start at opacity 0, so the content would be invisible in its first frame.
+ * Also on scopes, which re-declare the tokens.
+ */
+:root[data-p-animations="off"],
+:root[data-p-animations="off"] [data-p-scope] {
+    --p-message-enter-duration: 0s;
+    --p-dataview-content-enter-duration: 0s;
+    --p-fileupload-transition-duration: 0s;
+    --p-ripple-opacity: 0;
+}
+
+/*
+ * Page background: transparent in most presets (the page keeps its own background), a wallpaper in translucent presets
+ * (Glass), which need something colorful behind their glass. Application CSS (unlayered) wins.
+ */
+:root {
+    background: var(--p-document-background);
+}
+
+@media print {
+    /* light on paper, also over an application color-scheme: dark (a layered !important beats unlayered CSS) */
+    :root {
+        color-scheme: light !important;
+    }
+
+    *,
+    ::before,
+    ::after {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    /*
+     * Browsers drop backgrounds when printing (unless the user enables background graphics) but keep the text color:
+     * white text on a primary button would vanish, checked boxes / switches / selections would lose their state. These
+     * small elements print their background (inherited by their parts); large areas stay ink saving.
+     */
+    .p-button,
+    .p-badge,
+    .p-tag,
+    .p-chip,
+    .p-chkbox-box,
+    .p-radiobutton-box,
+    .p-toggleswitch,
+    .p-slider,
+    .p-progressbar,
+    .p-state-highlight,
+    .p-state-active {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* scrollable tables print all rows */
+    .p-datatable-scrollable-body,
+    .p-treetable-scrollable-body,
+    .p-datatable-virtualscroll .p-datatable-scrollable-body {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    tr,
+    .p-panel,
+    .p-card,
+    .p-fieldset {
+        break-inside: avoid;
+    }
+
+    /* overlays, and the fixed helpers browsers would repeat on every page: the sticky header clone of a dataTable,
+       p:log, p:stack, p:dock */
+    .p-growl,
+    .p-tooltip,
+    .p-scrolltop,
+    .p-blockui,
+    .p-widget-overlay,
+    .p-ajax-status,
+    .p-paginator,
+    .p-datatable-sticky,
+    .p-log,
+    .p-stack,
+    .p-dock {
+        display: none !important;
+    }
+
+    /* a pinned p:sticky target prints in its place (the widget sets position fixed inline) */
+    .p-sticky {
+        position: static !important;
+        width: auto !important;
+    }
+}

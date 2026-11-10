@@ -1,0 +1,104 @@
+/*
+ * Splitter: p:splitter (layout horizontal | vertical, nested splitters)
+ *
+ * The gutter size is set inline by the widget (gutterSize); .p-splitter-gutter-resizing / .p-splitter-resizing
+ * are set while dragging.
+ */
+
+.p-splitter {
+    display: flex;
+    flex-wrap: nowrap;
+    background: var(--p-splitter-background);
+    color: var(--p-splitter-color);
+    border: 1px solid var(--p-splitter-border-color);
+    border-radius: var(--p-border-radius-md);
+
+    .p-splitter-gutter {
+        position: relative;
+        z-index: 1;
+        background: var(--p-splitter-gutter-background);
+        transition: background var(--p-splitter-transition-duration);
+
+        .p-splitter-gutter-handle {
+            background: var(--p-splitter-handle-background);
+            border-radius: var(--p-splitter-handle-border-radius);
+            outline-color: transparent;
+            transition: background var(--p-splitter-transition-duration), outline-color var(--p-splitter-transition-duration),
+                box-shadow var(--p-splitter-transition-duration);
+        }
+
+        &:focus-visible {
+            outline: 0 none;
+        }
+
+        &:focus-visible > .p-splitter-gutter-handle,
+        .p-splitter-gutter-handle:focus-visible {
+            outline: var(--p-splitter-handle-focus-ring-width) var(--p-splitter-handle-focus-ring-style) var(--p-splitter-handle-focus-ring-color);
+            outline-offset: var(--p-splitter-handle-focus-ring-offset);
+            box-shadow: var(--p-splitter-handle-focus-ring-shadow);
+        }
+    }
+
+    .p-splitter-gutter-resizing {
+        background: var(--p-splitter-gutter-resizing-background);
+    }
+}
+
+.p-splitter-panel {
+    flex-grow: 1;
+}
+
+.p-splitter-panel-nested {
+    display: flex;
+}
+
+/* nested splitters have no own frame */
+.p-splitter-panel .p-splitter {
+    flex-grow: 1;
+    border: 0 none;
+    border-radius: 0;
+}
+
+.p-splitter-gutter {
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.p-splitter-horizontal {
+    &.p-splitter-resizing {
+        cursor: col-resize;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    > .p-splitter-gutter {
+        cursor: col-resize;
+
+        > .p-splitter-gutter-handle {
+            width: 100%;
+            height: var(--p-splitter-handle-size);
+        }
+    }
+}
+
+.p-splitter-vertical {
+    flex-direction: column;
+
+    &.p-splitter-resizing {
+        cursor: row-resize;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    > .p-splitter-gutter {
+        cursor: row-resize;
+
+        > .p-splitter-gutter-handle {
+            width: var(--p-splitter-handle-size);
+            height: 100%;
+        }
+    }
+}

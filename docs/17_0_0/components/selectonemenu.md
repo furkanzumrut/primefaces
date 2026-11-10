@@ -1,0 +1,126 @@
+# SelectOneMenu
+
+SelectOneMenu is an extended version of the standard SelectOneMenu.
+
+## Getting started with SelectOneMenu
+Basic SelectOneMenu usage is same as the standard one.
+
+## Custom Content
+SelectOneMenu can display custom content in overlay panel by using column component and the
+var option to refer to each item. Facets for column _header_ and overall _footer_ may also be used.
+
+```java
+public class MenuBean {
+    private List<Player> players;
+    private Player selectedPlayer;
+
+    public OrderListBean() {
+        players = new ArrayList<Player>();
+        players.add(new Player("Messi", 10, "messi.jpg"));
+        //more players
+    }
+    //getters and setters
+}
+```
+```xhtml
+<p:selectOneMenu value="#{menuBean.selectedPlayer}" converter="player" var="p">
+    <f:selectItem itemLabel="Select One" itemValue="" />
+    <f:selectItems value="#{menuBean.players}" var="player" itemLabel="#{player.name}" itemValue="#{player}"/>
+    <p:column>
+        <p:graphicImage value="/images/barca/#{p.photo}" width="40" height="50"/>
+    </p:column>
+    <p:column>
+        #{p.name} - #{p.number}
+        <f:facet name="header">
+             <h:outputText value="Player"/>
+         </f:facet>
+    </p:column>
+
+    <f:facet name="footer">
+         <p:divider />
+         <h:outputText value="#{menuBean.players.size()} available players" style="font-weight:bold;"/>
+    </f:facet>
+</p:selectOneMenu>
+```
+
+## Editable
+Editable SelectOneMenu provides a UI to either choose from the predefined options or enter a
+manual input. Set editable option to true to use this feature.
+
+## Filtering
+When filtering is enabled with setting `filter` on, an input field is rendered at overlay header and on
+keyup event filtering is executed on client side using `filterMatchMode`. Default modes of
+`filterMatchMode` are `startsWith`, `contains`, `endsWith` and `custom`. Custom mode requires a javascript
+function to do the filtering.
+
+```xhtml
+<p:selectOneMenu value="#{bean.selectedOptions}" filterMatchMode="custom" filterFunction="customFilter">
+    <f:selectItems value="#{bean.options}" />
+</p:selectOneMenu>
+```
+```js
+function customFilter(itemLabel, filterValue) {
+    //return true to accept and false to reject
+}
+```
+
+## Keyboard Navigation
+By default the option that gets the focus while navigating with the keyboard is selected: with a closed overlay, the arrow
+keys and typing the first letters of an option change the value right away, and with an open overlay the label shows the
+highlighted option. Set `selectOnFocus` to `false` to only move the focus while navigating and filtering. The arrow
+keys and typing then open the overlay, and the focused option gets the `p-state-focus` style class. The selected option
+keeps its highlight, `aria-selected` and the label, and the value only changes when an option is selected with `enter`,
+`tab` or a click. `escape` and a click outside close the overlay without changing the value.
+
+```xhtml
+<p:selectOneMenu value="#{bean.selectedOption}" filter="true" selectOnFocus="false">
+    <f:selectItems value="#{bean.options}" />
+</p:selectOneMenu>
+```
+
+## Client Side API
+Widget: _PrimeFaces.widget.SelectOneMenu_
+
+| Method | Params | Return Type | Description | 
+| --- | --- | --- | --- | 
+show() | - | void | Shows overlay menu.
+hide() | - | void | Hides overlay menu.
+blur() | - | void | Invokes blur event.
+focus() | - | void | Invokes focus event.
+enable() | - | void | Enables component.
+disable() | - | void | Disabled component.
+selectValue(value) | value: itemValue | void | Selects given value.
+getSelectedValue() | - | Object | Returns value of selected item.
+getSelectedLabel() | - | String | Returns label of selected item.
+
+## Accessibility
+An item with an empty `itemLabel` has no text for a screen reader to announce. Such an item is therefore
+rendered with the localized `nullLabel` ARIA label ("Not Selected"), both in the options list and on the
+closed menu once it is selected. If a `placeholder` is set, the placeholder is the visible text and is
+announced instead.
+
+The text can be changed application-wide via the locale settings (see the
+[Localization](/core/localization.md) section):
+
+```javascript
+PrimeFaces.locales['en_US'].aria.nullLabel = 'Empty';
+```
+
+## Skinning
+SelectOneMenu resides in a container element that _style_ and _styleClass_ attributes apply. As skinning
+style classes are global, see the main theming section for more information. Following is the list of
+structural style classes;
+
+
+| Class | Applies | 
+| --- | --- | 
+.p-selectonemenu | Main container.
+.p-selectonemenu-label | Label of the component.
+.p-selectonemenu-trigger | Container of dropdown icon.
+.p-selectonemenu-items | Items list.
+.p-selectonemenu-item | Each item in the list.
+.p-selectonemenu-rtl | When RTL direction is set
+.p-selectonemenu-footer | Style applied to footer facet
+
+Rows: _panelStyleClass_ accepts `p-rows-striped` (striped rows), with _p:column_ children also `p-rows-gridlines`
+(cell borders), `p-rows-sm` and `p-rows-lg` (cell padding); the cells always have borders, so `p-rows-gridlines` has no effect. See the [theming](/core/theming.md) variants.

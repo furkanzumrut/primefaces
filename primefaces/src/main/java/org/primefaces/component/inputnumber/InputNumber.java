@@ -1,0 +1,66 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.component.inputnumber;
+
+import org.primefaces.cdk.api.FacesComponentInfo;
+import org.primefaces.util.LocaleUtils;
+
+import jakarta.faces.application.ResourceDependency;
+import jakarta.faces.component.FacesComponent;
+
+@FacesComponent(value = InputNumber.COMPONENT_TYPE, namespace = InputNumber.COMPONENT_FAMILY)
+@FacesComponentInfo(description = "InputNumber is an extension to the InputText with optimized handling for numbers.")
+@ResourceDependency(library = "primefaces", name = "components.css")
+@ResourceDependency(library = "primefaces", name = "jquery/jquery.js")
+@ResourceDependency(library = "primefaces", name = "core.js")
+@ResourceDependency(library = "primefaces", name = "components.js")
+@ResourceDependency(library = "primefaces", name = "inputnumber/inputnumber.js")
+public class InputNumber extends InputNumberBaseImpl {
+
+    public static final String COMPONENT_TYPE = "org.primefaces.component.InputNumber";
+
+    public static final String STYLE_CLASS = "p-inputnumber p-widget";
+
+    @Override
+    public String getInputClientId() {
+        return getClientId() + "_input";
+    }
+
+    @Override
+    public String getValidatableInputClientId() {
+        return getClientId() + "_hinput";
+    }
+
+    @Override
+    public String getDecimalSeparator() {
+        return (String) getStateHelper().eval(PropertyKeys.decimalSeparator,
+            () -> LocaleUtils.getDecimalSeparator(getFacesContext()));
+    }
+
+    @Override
+    public String getThousandSeparator() {
+        return (String) getStateHelper().eval(PropertyKeys.thousandSeparator,
+            () -> LocaleUtils.getThousandSeparator(getFacesContext()));
+    }
+}

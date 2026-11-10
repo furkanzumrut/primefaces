@@ -1,0 +1,124 @@
+/*
+ * Tag: p:tag
+ *
+ * Markup: span.p-tag > span.p-tag-icon?, span.p-tag-value
+ * Supported classes: p-tag-success | -info | -warning | -danger | -secondary | -help, p-tag-rounded, p-tag-outlined,
+ *                    p-tag-contrast (styleClass only, the severity attribute does not know it)
+ */
+
+.p-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--p-tag-gap);
+    background: var(--p-tag-primary-background);
+    color: var(--p-tag-primary-color);
+    font-size: var(--p-tag-font-size);
+    font-weight: var(--p-tag-font-weight);
+    padding: var(--p-tag-padding);
+    border-radius: var(--p-tag-border-radius);
+
+    .p-tag-icon,
+    .p-tag-value {
+        line-height: var(--p-typography-line-height);
+    }
+
+    /* tag used as plain styleClass (e.g. <span class="p-tag">) */
+    &:not(.p-widget) {
+        display: inline-block;
+        text-align: center;
+        line-height: 1;
+    }
+
+    &.p-tag-success {
+        background: var(--p-tag-success-background);
+        color: var(--p-tag-success-color);
+    }
+
+    &.p-tag-info {
+        background: var(--p-tag-info-background);
+        color: var(--p-tag-info-color);
+    }
+
+    &.p-tag-warning {
+        background: var(--p-tag-warn-background);
+        color: var(--p-tag-warn-color);
+    }
+
+    &.p-tag-danger {
+        background: var(--p-tag-danger-background);
+        color: var(--p-tag-danger-color);
+    }
+
+    &.p-tag-secondary {
+        background: var(--p-tag-secondary-background);
+        color: var(--p-tag-secondary-color);
+    }
+
+    &.p-tag-help {
+        background: var(--p-tag-help-background);
+        color: var(--p-tag-help-color);
+    }
+
+    &.p-tag-contrast {
+        background: var(--p-tag-contrast-background);
+        color: var(--p-tag-contrast-color);
+    }
+
+    /* outlined (outlined="true"): the border is an inset shadow, so outlined and filled tags have the same size */
+    &.p-tag-outlined {
+        --_border-color: var(--p-tag-outlined-primary-border-color);
+        background: var(--p-tag-outlined-background);
+        color: var(--p-tag-outlined-primary-color);
+        box-shadow: inset 0 0 0 var(--p-tag-outlined-border-width) var(--_border-color);
+
+        &.p-tag-success {
+            --_border-color: var(--p-tag-outlined-success-border-color);
+            color: var(--p-tag-outlined-success-color);
+        }
+
+        &.p-tag-info {
+            --_border-color: var(--p-tag-outlined-info-border-color);
+            color: var(--p-tag-outlined-info-color);
+        }
+
+        &.p-tag-warning {
+            --_border-color: var(--p-tag-outlined-warn-border-color);
+            color: var(--p-tag-outlined-warn-color);
+        }
+
+        &.p-tag-danger {
+            --_border-color: var(--p-tag-outlined-danger-border-color);
+            color: var(--p-tag-outlined-danger-color);
+        }
+
+        &.p-tag-secondary {
+            --_border-color: var(--p-tag-outlined-secondary-border-color);
+            color: var(--p-tag-outlined-secondary-color);
+        }
+
+        &.p-tag-help {
+            --_border-color: var(--p-tag-outlined-help-border-color);
+            color: var(--p-tag-outlined-help-color);
+        }
+
+        &.p-tag-contrast {
+            --_border-color: var(--p-tag-outlined-contrast-border-color);
+            color: var(--p-tag-outlined-contrast-color);
+        }
+    }
+
+    &.p-tag-rounded {
+        border-radius: var(--p-tag-rounded-border-radius);
+    }
+
+    .p-tag-icon {
+        margin: 0;
+        font-size: var(--p-tag-icon-size);
+    }
+
+    /* inline-block variant has no flex gap */
+    &:not(.p-widget) .p-tag-icon {
+        margin-inline-end: var(--p-tag-gap);
+    }
+}

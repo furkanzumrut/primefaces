@@ -1,0 +1,185 @@
+/*
+ * Chronoline: p:chronoline (PrimeUIX timeline tokens)
+ *
+ * The default marker is a ring with a primary dot (::before) like the PrimeUIX timeline; a custom marker facet is not styled.
+ * Supported classes: p-chronoline-vertical, p-chronoline-horizontal, p-chronoline-left, p-chronoline-right,
+ *                    p-chronoline-top, p-chronoline-bottom, p-chronoline-alternate
+ */
+.p-chronoline {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+
+    .p-chronoline-event {
+        min-height: var(--p-chronoline-event-min-height);
+
+        &:last-child {
+            min-height: 0;
+        }
+    }
+
+    .p-chronoline-event-marker {
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        border-width: var(--p-chronoline-event-marker-border-width);
+        border-style: solid;
+        border-color: var(--p-chronoline-event-marker-border-color);
+        border-radius: var(--p-chronoline-event-marker-border-radius);
+        width: var(--p-chronoline-event-marker-size);
+        height: var(--p-chronoline-event-marker-size);
+        background: var(--p-chronoline-event-marker-background);
+
+        &::before {
+            content: " ";
+            border-radius: var(--p-chronoline-event-marker-content-border-radius);
+            width: var(--p-chronoline-event-marker-content-size);
+            height: var(--p-chronoline-event-marker-content-size);
+            background: var(--p-chronoline-event-marker-content-background);
+        }
+
+        &::after {
+            content: " ";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: var(--p-chronoline-event-marker-border-radius);
+            box-shadow: var(--p-chronoline-event-marker-content-inset-shadow);
+        }
+    }
+
+    .p-chronoline-event-connector {
+        background: var(--p-chronoline-event-connector-color);
+    }
+
+    &.p-chronoline-vertical {
+        .p-chronoline-event-opposite,
+        .p-chronoline-event-content {
+            padding: var(--p-chronoline-vertical-event-content-padding);
+        }
+
+        .p-chronoline-event-connector {
+            width: var(--p-chronoline-event-connector-size);
+        }
+    }
+
+    &.p-chronoline-horizontal {
+        .p-chronoline-event-opposite,
+        .p-chronoline-event-content {
+            padding: var(--p-chronoline-horizontal-event-content-padding);
+        }
+
+        .p-chronoline-event-connector {
+            height: var(--p-chronoline-event-connector-size);
+        }
+    }
+}
+
+/* opposite and content are aligned towards the line */
+.p-chronoline-left {
+    .p-chronoline-event-opposite {
+        text-align: end;
+    }
+
+    .p-chronoline-event-content {
+        text-align: start;
+    }
+}
+
+.p-chronoline-right {
+    .p-chronoline-event {
+        flex-direction: row-reverse;
+    }
+
+    .p-chronoline-event-opposite {
+        text-align: start;
+    }
+
+    .p-chronoline-event-content {
+        text-align: end;
+    }
+}
+
+.p-chronoline-vertical.p-chronoline-alternate .p-chronoline-event {
+    &:nth-child(even) {
+        flex-direction: row-reverse;
+    }
+
+    &:nth-child(odd) {
+        .p-chronoline-event-opposite {
+            text-align: end;
+        }
+
+        .p-chronoline-event-content {
+            text-align: start;
+        }
+    }
+
+    &:nth-child(even) {
+        .p-chronoline-event-opposite {
+            text-align: start;
+        }
+
+        .p-chronoline-event-content {
+            text-align: end;
+        }
+    }
+}
+
+.p-chronoline-event {
+    display: flex;
+    position: relative;
+}
+
+.p-chronoline-event-opposite {
+    flex: 1;
+}
+
+.p-chronoline-event-content {
+    flex: 1;
+}
+
+.p-chronoline-event-separator {
+    flex: 0;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.p-chronoline-event-marker {
+    display: flex;
+    align-self: baseline;
+}
+
+.p-chronoline-event-connector {
+    flex-grow: 1;
+}
+
+.p-chronoline-horizontal {
+    flex-direction: row;
+
+    .p-chronoline-event {
+        flex-direction: column;
+        flex: 1;
+
+        &:last-child {
+            flex: 0;
+        }
+    }
+
+    .p-chronoline-event-separator {
+        flex-direction: row;
+    }
+
+    .p-chronoline-event-connector {
+        width: 100%;
+    }
+
+    &.p-chronoline-alternate .p-chronoline-event:nth-child(even) {
+        flex-direction: column-reverse;
+    }
+}
+
+.p-chronoline-bottom .p-chronoline-event {
+    flex-direction: column-reverse;
+}

@@ -1,0 +1,522 @@
+/*
+ * Menu family (shared part): p:menu, p:menubar, p:megaMenu, p:tieredMenu, p:slideMenu, p:contextMenu, p:menuButton
+ * (and the p:splitButton menu). They all share .p-menu, .p-menu-list, .p-menuitem, .p-menuitem-link markup.
+ * This file styles that common markup; the tag specific rules are in menu/menu.css (p:menu toggleable),
+ * megamenu.css, slidemenu.css, tieredmenu.css and contextmenu.css (bundled after this file).
+ * The .p-menubar rules stay here too: p:megaMenu also renders .p-menubar, so they style both p:menubar and p:megaMenu
+ * and must come before megamenu.css (so p:menubar has no file of its own in components/).
+ *
+ * The component classes only switch the private --_* variables, the visual rules exist once:
+ *   .p-menu (menu, slidemenu, menubutton) -> menu tokens
+ *   .p-tieredmenu -> tieredmenu, .p-contextmenu -> contextmenu, .p-menubar -> menubar, .p-megamenu -> megamenu
+ * State classes set by the widgets: p-state-hover / p-state-focus (keyboard + mouse), p-menuitem-active (open submenu).
+ */
+.p-menu {
+    --_bg: var(--p-menu-background);
+    --_border-color: var(--p-menu-border-color);
+    --_border-radius: var(--p-menu-border-radius);
+    --_color: var(--p-menu-color);
+    --_shadow: var(--p-menu-shadow);
+    --_list-padding: var(--p-menu-list-padding);
+    --_list-gap: var(--p-menu-list-gap);
+    --_transition-duration: var(--p-menu-transition-duration);
+    --_item-border-radius: var(--p-menu-item-border-radius);
+    --_item-padding: var(--p-menu-item-padding);
+    --_item-gap: var(--p-menu-item-gap);
+    --_item-color: var(--p-menu-item-color);
+    --_item-focus-background: var(--p-menu-item-focus-background);
+    --_item-focus-color: var(--p-menu-item-focus-color);
+    --_item-active-background: var(--p-menu-item-focus-background);
+    --_item-active-color: var(--p-menu-item-focus-color);
+    --_item-icon-color: var(--p-menu-item-icon-color);
+    --_item-icon-focus-color: var(--p-menu-item-icon-focus-color);
+    --_item-icon-active-color: var(--p-menu-item-icon-focus-color);
+    --_item-icon-size: var(--p-menu-item-icon-size);
+    --_item-label-font-size: var(--p-menu-item-label-font-size);
+    --_item-label-font-weight: var(--p-menu-item-label-font-weight);
+    --_submenu-icon-color: var(--p-menu-submenu-icon-color);
+    --_submenu-icon-focus-color: var(--p-menu-submenu-icon-focus-color);
+    --_submenu-icon-size: var(--p-menu-submenu-icon-size);
+    --_submenu-icon-active-color: var(--p-menu-item-icon-focus-color);
+    --_separator-border-color: var(--p-menu-separator-border-color);
+    --_submenu-label-background: var(--p-menu-submenu-label-background);
+    --_submenu-label-color: var(--p-menu-submenu-label-color);
+    --_submenu-label-font-size: var(--p-menu-submenu-label-font-size);
+    --_submenu-label-font-weight: var(--p-menu-submenu-label-font-weight);
+    --_submenu-label-padding: var(--p-menu-submenu-label-padding);
+    /* overlay submenus (.p-menu-child) */
+    --_submenu-background: var(--p-menu-background);
+    --_submenu-border-color: var(--p-menu-border-color);
+    --_submenu-border-radius: var(--p-menu-border-radius);
+    --_submenu-padding: var(--p-menu-list-padding);
+    --_submenu-shadow: var(--p-menu-shadow);
+    /* horizontal menus (menubar, megamenu) */
+    --_padding: var(--p-menubar-padding);
+    --_gap: var(--p-menubar-gap);
+    --_base-item-padding: var(--p-menubar-base-item-padding);
+    --_base-item-border-radius: var(--p-menubar-base-item-border-radius);
+
+    /* fit-content: a static menu does not stretch to the full row */
+    width: fit-content;
+    position: relative;
+    outline: 0 none;
+    padding: 0;
+    background: var(--_bg);
+    color: var(--_color);
+    border: 1px solid var(--_border-color);
+    border-radius: var(--_border-radius);
+
+    /* PrimeUIX min-width, only without an inline width (style="width: ..." or the width the slidemenu widget writes) */
+    &:not(.p-menubar):not([style*="width"]) {
+        min-width: 12.5rem;
+    }
+
+    /* overlay menus */
+    &.p-menu-dynamic {
+        position: absolute;
+        display: none;
+        z-index: 100000;
+        border: 1px solid var(--_border-color);
+        box-shadow: var(--_shadow);
+    }
+
+    &.p-menu-dynamic-maxheight {
+        overflow-y: auto;
+    }
+
+    .p-menu-list .p-widget-header {
+        clear: both;
+    }
+
+    .p-menuitem {
+        clear: both;
+        padding: 0;
+    }
+
+    .p-menuitem-link {
+        display: flex;
+        align-items: center;
+        outline: none;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .p-menuitem-link .p-menuitem-icon,
+    .p-submenu-icon {
+        display: inline-block;
+    }
+
+    .p-widget-header {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            display: block;
+            margin: 0;
+        }
+    }
+
+    .p-menu-parent {
+        position: relative;
+
+        /* min-width only without an inline width (the slidemenu widget writes one on its lists) */
+        .p-menu-child {
+            display: none;
+            width: auto;
+            position: absolute;
+            margin: 0;
+            outline: 0;
+            text-decoration: none;
+            font-size: 100%;
+            list-style: none;
+
+            &:not([style*="width"]) {
+                min-width: 12.5rem;
+            }
+        }
+    }
+
+    .p-menu-list {
+        list-style: none;
+        padding: var(--_list-padding);
+        margin: 0;
+
+        /* submenu header content (p:menu): [toggle icon] [submenu icon] label */
+        .p-widget-header h3 {
+            display: flex;
+            align-items: center;
+            gap: var(--_item-gap);
+        }
+
+        .p-widget-header .p-submenu-icon {
+            position: static;
+            float: none;
+            margin: 0;
+            color: var(--_item-icon-color);
+        }
+    }
+
+    /* submenu headers */
+    .p-menu-list .p-widget-header {
+        margin: 0;
+        width: 100%;
+        background: var(--_submenu-label-background);
+        color: var(--_submenu-label-color);
+        float: none;
+        border: 0 none;
+        padding: var(--_submenu-label-padding);
+        border-radius: 0;
+        transition: background var(--_transition-duration), color var(--_transition-duration);
+
+        h3 {
+            padding: 0;
+            font-size: var(--_submenu-label-font-size);
+            font-weight: var(--_submenu-label-font-weight);
+            color: var(--_submenu-label-color);
+            float: none;
+        }
+
+        &.p-state-hover {
+            background: var(--_item-focus-background);
+            color: var(--_item-focus-color);
+
+            .p-submenu-icon {
+                color: var(--_item-icon-focus-color);
+            }
+        }
+    }
+
+    .p-menu-list .p-menuitem {
+        margin: 0;
+        width: 100%;
+        border: 0 none;
+        float: none;
+        border-radius: var(--_item-border-radius);
+        transition: background var(--_transition-duration), color var(--_transition-duration);
+
+        /* link = PrimeUIX item link: flex row, icon / label / submenu icon separated by the item gap */
+        .p-menuitem-link {
+            padding: var(--_item-padding);
+            width: 100%;
+            gap: var(--_item-gap);
+            border: 0 none;
+            float: none;
+            color: var(--_item-color);
+            border-radius: var(--_item-border-radius);
+            line-height: var(--p-typography-line-height);
+            transition: background var(--_transition-duration), color var(--_transition-duration);
+
+            /* margin 0: the gap separates the parts */
+            .p-menuitem-icon {
+                margin: 0;
+                float: none;
+                flex-shrink: 0;
+                color: var(--_item-icon-color);
+                font-size: var(--_item-icon-size);
+            }
+
+            .p-menuitem-text {
+                float: none;
+                color: var(--_item-color);
+                font-size: var(--_item-label-font-size);
+                font-weight: var(--_item-label-font-weight);
+            }
+
+            &:not(.p-state-disabled):hover,
+            &.p-state-hover,
+            &.p-state-focus,
+            &:focus-visible {
+                background: var(--_item-focus-background);
+            }
+
+            /* keyboard focus (tab to a link with href): the background is the indicator, as for the widget focus */
+            &:focus-visible {
+                outline: 0 none;
+            }
+
+            &:not(.p-state-disabled):hover .p-menuitem-icon,
+            &.p-state-hover .p-menuitem-icon,
+            &.p-state-focus .p-menuitem-icon,
+            &:focus-visible .p-menuitem-icon {
+                color: var(--_item-icon-focus-color);
+            }
+
+            &:not(.p-state-disabled):hover .p-menuitem-text,
+            &.p-state-hover .p-menuitem-text,
+            &.p-state-focus .p-menuitem-text,
+            &:focus-visible .p-menuitem-text {
+                color: var(--_item-focus-color);
+            }
+
+            /* submenu indicators: vertical submenus, menubar root items */
+            .p-menu-submenu-icon,
+            .p-menubar-submenu-icon {
+                margin: 0;
+                font-size: var(--_submenu-icon-size);
+                color: var(--_submenu-icon-color);
+            }
+
+            .p-menu-submenu-icon {
+                --_icon: var(--p-menu-submenu-icon);
+
+                /* pushed to the end, like the PrimeUIX submenu icon (margin-inline-start: auto); RTL: see .p-menu-rtl */
+                &:last-child {
+                    margin-inline-start: auto;
+                }
+
+                /* RTL (rendered RTL in .p-menu-rtl: the icon comes first; or dir="rtl" only): the icon points to the start.
+                   Not a bare :first-child: in LTR a submenu without label and icon has the indicator as only child */
+                &:dir(rtl),
+                &:first-child:where(.p-menu-rtl *) {
+                    scale: -1 1;
+                }
+            }
+
+            .p-menubar-submenu-icon {
+                --_icon: var(--p-menubar-submenu-icon);
+            }
+
+            &:not(.p-state-disabled):hover :is(.p-menu-submenu-icon, .p-menubar-submenu-icon),
+            &.p-state-hover :is(.p-menu-submenu-icon, .p-menubar-submenu-icon),
+            &.p-state-focus :is(.p-menu-submenu-icon, .p-menubar-submenu-icon) {
+                color: var(--_submenu-icon-focus-color);
+            }
+        }
+
+        /* item (li) hover, used by the tiered menus */
+        &.p-state-hover {
+            background: var(--_item-focus-background);
+            color: var(--_item-focus-color);
+
+            > .p-menuitem-link {
+                color: var(--_item-focus-color);
+
+                .p-menuitem-icon,
+                .p-icon {
+                    color: var(--_item-icon-focus-color);
+                }
+            }
+        }
+
+        /* item with an open submenu */
+        &.p-menuitem-active > .p-menuitem-link {
+            background: var(--_item-active-background);
+
+            .p-menuitem-text {
+                color: var(--_item-active-color);
+            }
+
+            .p-menuitem-icon {
+                color: var(--_item-icon-active-color);
+            }
+
+            .p-menu-submenu-icon,
+            .p-menubar-submenu-icon {
+                color: var(--_submenu-icon-active-color);
+            }
+        }
+    }
+
+    /*
+     * list gap: PrimeUIX lists are flex columns with gap: <menu>.list.gap (menubar / megamenu: submenu.gap). Here it is a
+     * margin between the list children instead, because the widgets open the overlay submenus with jQuery .show(),
+     * which writes an inline "display: block" that would drop a display: flex of the list. Same visual result.
+     * Must come after the item / header "margin: 0" rules (same specificity).
+     */
+    .p-menu-list > :not(:first-child) {
+        margin-top: var(--_list-gap);
+    }
+
+    /* overlay submenus */
+    .p-menu-list .p-menu-child {
+        background: var(--_submenu-background);
+        padding: var(--_submenu-padding);
+        border-radius: var(--_submenu-border-radius);
+        border: 1px solid var(--_submenu-border-color);
+        box-shadow: var(--_submenu-shadow);
+    }
+
+    /* separators (p:divider inside menus) */
+    .p-divider.p-widget.p-divider-vertical {
+        display: inline-flex;
+        vertical-align: middle;
+        margin: var(--p-menu-list-gap) 0;
+
+        &::before {
+            border-left-color: var(--_separator-border-color);
+        }
+    }
+
+    .p-divider.p-widget.p-divider-horizontal {
+        margin: 0;
+
+        &::before {
+            border-top-color: var(--_separator-border-color);
+        }
+
+        /* list gap above the separator (the one below comes from the next item), like the PrimeUIX separator li */
+        &:not(:first-child) {
+            margin-top: var(--_list-gap);
+        }
+    }
+
+    /*
+     * RTL (.p-menu-rtl: p:menubar, p:megaMenu, p:tieredMenu): an explicit rtl direction, so the menubar root row starts
+     * at the right and the facets / submenu icons use the logical margins, independent of the page direction.
+     * The renderers write the link content in reversed order for RTL ([submenu icon] label [icon], label [icon]),
+     * row-reverse restores the visual order (icon at the right edge), flex-end keeps it at the right edge.
+     */
+    &.p-menu-rtl {
+        direction: rtl;
+
+        .p-menu-list .p-menuitem .p-menuitem-link {
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+
+            /* submenu icon (pointing left) pushed to the left end, like the PrimeUIX submenu icon :dir(rtl) */
+            .p-menu-submenu-icon:first-child {
+                margin-inline-start: auto;
+            }
+        }
+    }
+
+    /* menubar tokens: they also hit p:megaMenu (it carries .p-menubar), menu/megamenu.css overrides all of them */
+    &.p-menubar {
+        --_bg: var(--p-menubar-background);
+        --_border-color: var(--p-menubar-border-color);
+        --_border-radius: var(--p-menubar-border-radius);
+        --_color: var(--p-menubar-color);
+        /* vertical lists of the menubar = its submenus (the root row uses --_gap) */
+        --_list-gap: var(--p-menubar-submenu-gap);
+        --_transition-duration: var(--p-menubar-transition-duration);
+        --_item-border-radius: var(--p-menubar-item-border-radius);
+        --_item-padding: var(--p-menubar-item-padding);
+        --_item-gap: var(--p-menubar-item-gap);
+        --_item-color: var(--p-menubar-item-color);
+        --_item-focus-background: var(--p-menubar-item-focus-background);
+        --_item-focus-color: var(--p-menubar-item-focus-color);
+        --_item-active-background: var(--p-menubar-item-active-background);
+        --_item-active-color: var(--p-menubar-item-active-color);
+        --_item-icon-color: var(--p-menubar-item-icon-color);
+        --_item-icon-focus-color: var(--p-menubar-item-icon-focus-color);
+        --_item-icon-active-color: var(--p-menubar-item-icon-active-color);
+        --_item-icon-size: var(--p-menubar-item-icon-size);
+        --_item-label-font-size: var(--p-menubar-item-label-font-size);
+        --_item-label-font-weight: var(--p-menubar-item-label-font-weight);
+        --_submenu-icon-color: var(--p-menubar-submenu-icon-color);
+        --_submenu-icon-focus-color: var(--p-menubar-submenu-icon-focus-color);
+        --_submenu-icon-size: var(--p-menubar-submenu-icon-size);
+        --_submenu-icon-active-color: var(--p-menubar-submenu-icon-active-color);
+        --_separator-border-color: var(--p-menubar-separator-border-color);
+        --_submenu-background: var(--p-menubar-submenu-background);
+        --_submenu-border-color: var(--p-menubar-submenu-border-color);
+        --_submenu-border-radius: var(--p-menubar-submenu-border-radius);
+        --_submenu-padding: var(--p-menubar-submenu-padding);
+        --_submenu-shadow: var(--p-menubar-submenu-shadow);
+        --_padding: var(--p-menubar-padding);
+        --_gap: var(--p-menubar-gap);
+        --_base-item-padding: var(--p-menubar-base-item-padding);
+        --_base-item-border-radius: var(--p-menubar-base-item-border-radius);
+
+        /*
+         * bar: a flex row with the menubar gap of [start facet] [root list] [options facet] [end facet]; the facets
+         * are rendered next to the list (a role="menubar" must only contain menu items), so the row is the bar and
+         * the list is one wrapping flex item of it. The vertical megamenu turns both into a column (megamenu.css).
+         */
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--_gap);
+        padding: var(--_padding);
+        background: var(--_bg);
+        border-radius: var(--_border-radius);
+
+        /* root list: a flex row with the menubar gap like the PrimeUIX menubar / megamenu root list, no list padding */
+        > .p-menu-list {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--_gap);
+            padding: 0;
+        }
+
+        /* margin 0: no list gap margin in the row (the flex gap separates the items) */
+        > .p-menu-list > .p-menuitem {
+            width: auto;
+            margin: 0;
+
+            > .p-menuitem-link {
+                padding: var(--_base-item-padding);
+                border-radius: var(--_base-item-border-radius);
+            }
+        }
+
+        /* facets (PrimeUIX start / end): start before the items, options and end pushed to the end of the row */
+        > .p-menubar-start,
+        > .p-menubar-options,
+        > .p-menubar-end {
+            display: flex;
+            align-items: center;
+        }
+
+        > .p-menubar-options,
+        > .p-menubar-end {
+            margin-inline-start: auto;
+        }
+
+        > .p-menubar-options + .p-menubar-end {
+            margin-inline-start: 0;
+        }
+    }
+
+    /*
+     * start / end facets of the vertical menus (p:tieredMenu, p:contextMenu), rendered next to the list: the menu gets
+     * the list padding and the list gap separates the facets from the list, the same spacing as list items
+     */
+    &:not(.p-menubar):has(> .p-menubar-start, > .p-menubar-options, > .p-menubar-end) {
+        padding: var(--_list-padding);
+
+        > .p-menu-list {
+            padding: 0;
+        }
+
+        > :not(:first-child) {
+            margin-top: var(--_list-gap);
+        }
+    }
+}
+
+.p-menu-list {
+    position: static;
+}
+
+/* menubar (p:menubar and p:megaMenu) */
+.p-menubar {
+    width: auto;
+
+    .p-menuitem {
+        clear: none;
+    }
+
+    .p-menu-child {
+        top: 25px;
+        left: 0;
+    }
+
+    .p-widget-header {
+        clear: none;
+    }
+}
+
+/* keyboard focus outline used by the panelmenu / tabmenu widgets */
+.p-menuitem-outline {
+    outline: var(--p-focus-ring-width) var(--p-focus-ring-style) var(--p-focus-ring-color);
+    outline-offset: var(--p-focus-ring-offset);
+    z-index: 1;
+}
+
+.p-fluid .p-menu {
+    width: 100%;
+}

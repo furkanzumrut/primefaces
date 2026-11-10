@@ -1,0 +1,151 @@
+/*
+ * Log: p:log (client side log window)
+ *
+ * No PrimeUIX counterpart: styled like a dialog, PF only tokens in the log block of presets/*.css.
+ * Markup: .p-log > .p-log-header (> a.p-log-button.p-log-{clear|all|info|warn|debug|error}),
+ *         .p-log-content > ul.p-log-items > li.p-log-item.p-log-item-{info|warn|debug|error} (> span.p-icon + text)
+ */
+
+.p-log {
+    position: fixed;
+    width: 400px;
+    left: 50px;
+    top: 50px;
+    display: flex;
+    flex-direction: column;
+    background: var(--p-log-background);
+    color: var(--p-log-color);
+    border: 1px solid var(--p-log-border-color);
+    border-radius: var(--p-log-border-radius);
+    box-shadow: var(--p-log-shadow);
+
+    .p-log-header {
+        display: flex;
+        align-items: center;
+        gap: var(--p-log-header-gap);
+        background: transparent;
+        color: var(--p-log-color);
+        border: 0 none;
+        border-radius: 0;
+        padding: var(--p-log-header-padding);
+        cursor: move;
+
+        /* header buttons: rounded text secondary icon-only buttons */
+        .p-log-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: var(--p-log-button-size);
+            height: var(--p-log-button-size);
+            padding: 0;
+            border: 0 none;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--p-log-button-color);
+            text-decoration: none;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+            outline-color: transparent;
+            transition: background var(--p-log-button-transition-duration), color var(--p-log-button-transition-duration),
+                outline-color var(--p-log-button-transition-duration), box-shadow var(--p-log-button-transition-duration);
+
+            &:hover,
+            &.p-state-hover {
+                background: var(--p-log-button-hover-background);
+                color: var(--p-log-button-color);
+            }
+
+            &:active,
+            &.p-state-active {
+                background: var(--p-log-button-active-background);
+                color: var(--p-log-button-active-color);
+            }
+
+            &:focus-visible {
+                outline: var(--p-log-button-focus-ring-width) var(--p-log-button-focus-ring-style) var(--p-log-button-focus-ring-color);
+                outline-offset: var(--p-log-button-focus-ring-offset);
+                box-shadow: var(--p-log-button-focus-ring-shadow);
+            }
+        }
+    }
+
+    /* header buttons and log entries */
+    .p-icon {
+        color: inherit;
+    }
+
+    .p-log-clear-icon {
+        --_icon: var(--p-log-clear-icon);
+    }
+
+    .p-log-all-icon {
+        --_icon: var(--p-log-all-icon);
+    }
+
+    .p-log-info-icon {
+        --_icon: var(--p-log-info-icon);
+    }
+
+    .p-log-warn-icon {
+        --_icon: var(--p-log-warn-icon);
+    }
+
+    .p-log-debug-icon {
+        --_icon: var(--p-log-debug-icon);
+    }
+
+    .p-log-error-icon {
+        --_icon: var(--p-log-error-icon);
+    }
+
+    .p-log-content {
+        flex-grow: 1;
+        background: transparent;
+        color: var(--p-log-color);
+        border: 0 none;
+        padding: var(--p-log-content-padding);
+    }
+
+    .p-log-items {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+
+    .p-log-item {
+        margin: 0 0 var(--p-log-item-gap) 0;
+        font-size: var(--p-log-item-font-size);
+        overflow-wrap: anywhere;
+
+        .p-icon {
+            margin-inline-end: var(--p-log-item-gap);
+        }
+
+        &.p-log-item-info .p-icon {
+            color: var(--p-log-item-info-icon-color);
+        }
+
+        &.p-log-item-warn .p-icon {
+            color: var(--p-log-item-warn-icon-color);
+        }
+
+        &.p-log-item-debug .p-icon {
+            color: var(--p-log-item-debug-icon-color);
+        }
+
+        &.p-log-item-error .p-icon {
+            color: var(--p-log-item-error-icon-color);
+        }
+    }
+}
+
+.p-log-header {
+    position: relative;
+}
+
+.p-log-content {
+    overflow: auto;
+    height: 274px;
+}

@@ -1,0 +1,413 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.component.datatable.feature;
+
+import org.primefaces.component.datatable.DataTable;
+import org.primefaces.component.datatable.DataTableState;
+import org.primefaces.model.LazyDataModel;
+import org.primefaces.util.LangUtils;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import jakarta.el.ValueExpression;
+import jakarta.faces.FacesException;
+import jakarta.faces.context.FacesContext;
+
+public class SelectionFeature implements DataTableFeature {
+
+    /**
+     * Selector used to indicate "select all rows".
+     */
+    private static final String ALL_SELECTOR = "@all";
+
+    @Override
+    public void decode(FacesContext context, DataTable table) {
+        String clientId = table.getClientId(context);
+        Map<String, String> params = context.getExternalContext().getRequestParameterMap();
+        Object originalValue = table.getValue();
+        boolean allEligibleToSelection = table.isFilteringCurrentlyActive() && !table.isSelectAllFilteredOnly();
+
+        String selection = params.get(clientId + "_selection");
+        Set<String> rowKeys = Collections.emptySet();
+
+        if (LangUtils.isNotBlank(selection)) {
+            rowKeys = LangUtils.newLinkedHashSet(selection.split(","));
+            table.setSelectAll(ALL_SELECTOR.equals(selection));
+        }
+        else {
+            table.setSelectAll(false);
+        }
+
+        if (allEligibleToSelection) {
+            table.setValue(null);
+        }
+
+        // Store rowKeys for lazy tables to apply after data loading
+        // For non-lazy tables or lazy tables with data loaded, apply selection immediately
+        if (!table.isLazy() || table.isLazyDataLoaded()) {
+            decodeSelection(context, table, rowKeys);
+        }
+        else {
+            // Lazy table without data - store rowKeys for later application
+            table.setSelectedRowKeys(rowKeys);
+        }
+
+        if (allEligibleToSelection) {
+            table.setValue(originalValue);
+        }
+
+        if (table.isMultiViewState()) {
+            DataTableState ts = table.getMultiViewState(true);
+            ts.setSelectedRowKeys(table.getSelectedRowKeys());
+        }
+    }
+
+    public void decodeSelection(FacesContext context, DataTable table, Set<String> rowKeys) {
+        table.setSelection(null);
+        table.setSelectedRowKeys(rowKeys);
+
+        if (table.isSingleSelectionMode()) {
+            decodeSingleSelection(context, table, rowKeys);
+        }
+        else {
+            decodeMultipleSelection(context, table, rowKeys);
+        }
+    }
+
+    public void decodeSelectionRowKeys(FacesContext context, DataTable table) {
+        Set<String> rowKeys = table.getSelectedRowKeys();
+
+        // If rowKeys are already set from decode phase (lazy table scenario), resolve them to objects
+        if (table.isLazy() && rowKeys != null && !rowKeys.isEmpty()) {
+            decodeSelection(context, table, rowKeys);
+            return;
+        }
+
+        // Otherwise, derive rowKeys from selection value expression (initial render)
+        rowKeys = null;
+        Map<String, Object> rowKeyToObjectMap = getSelectionMapFromValueExpression(context, table);
+
+        if (rowKeyToObjectMap != null && !rowKeyToObjectMap.isEmpty()) {
+            rowKeys = new HashSet<>(rowKeyToObjectMap.keySet());
+        }
+        table.setSelectedRowKeys(rowKeys);
+    }
+
+    protected void decodeSingleSelection(FacesContext context, DataTable table, Set<String> rowKeys) {
+        if (rowKeys.size() > 1) {
+            throw new IllegalArgumentException("DataTable '" + table.getClientId(context)
+                    + "' is configured for single selection while multiple rows have been selected");
+        }
+
+        if (rowKeys.isEmpty()) {
+            setSelection(context, table, false, new HashMap<>());
+        }
+        else {
+            String rowKey = rowKeys.iterator().next();
+            Object o = table.getRowData(rowKey);
+            if (o != null) {
+                Map<String, Object> requestMap = context.getExternalContext().getRequestMap();
+                String var = table.getVar();
+
+                Map<String, Object> selectionMap = new HashMap<>();
+                if (isSelectable(table, var, requestMap, o)) {
+                    selectionMap.put(rowKey, o);
+                }
+
+                setSelection(context, table, false, selectionMap);
+            }
+            else {
+                setSelection(context, table, false, new HashMap<>());
+            }
+        }
+    }
+
+    protected void decodeMultipleSelection(FacesContext context, DataTable table, Set<String> rowKeys) {
+        if (rowKeys.isEmpty()) {
+            setSelection(context, table, true, new HashMap<>());
+        }
+        else {
+            Map<String, Object> requestMap = context.getExternalContext().getRequestMap();
+            String var = table.getVar();
+            Map<String, Object> rowKeyToObjectMap = getSelectionMapFromValueExpression(context, table);
+
+            if (rowKeys.contains(ALL_SELECTOR)) {
+                // Extract deselected rows (only relevant when @all is present)
+                Set<String> deselectedRows = extractDeselectedRows(rowKeys);
+
+                // Only load all data if there's a value expression binding that needs actual objects
+                ValueExpression selectionVE = table.getValueExpression(DataTable.PropertyKeys.selection.toString());
+                if (selectionVE != null) {
+                    // Current behavior: load all data and populate selection
+                    selectAllRows(context, table, var, requestMap, rowKeyToObjectMap, deselectedRows);
+                    setSelection(context, table, true, rowKeyToObjectMap);
+                }
+                else {
+                    // Optimized behavior: just store the rowKeys with @all marker
+                    // This avoids loading all data for lazy models when no selection binding exists
+                    table.setSelection(null); // Clear any stale selection from previous non-@all selections
+                    table.setSelectedRowKeys(rowKeys); // Keep @all and ! markers
+                }
+            }
+            else {
+                // Standard selection - explicit rowKeys
+                rowKeyToObjectMap.keySet().retainAll(rowKeys);
+
+                // Add/update entries from rowKeys (newly selected or still selected rows)
+                for (String rowKey : rowKeys) {
+                    if (!rowKeyToObjectMap.containsKey(rowKey)) {
+                        Object rowData = table.getRowData(rowKey);
+                        if (rowData != null && isSelectable(table, var, requestMap, rowData)) {
+                            rowKeyToObjectMap.put(rowKey, rowData);
+                        }
+                    }
+                }
+
+                setSelection(context, table, true, rowKeyToObjectMap);
+            }
+        }
+    }
+
+    @Override
+    public boolean shouldDecode(FacesContext context, DataTable table) {
+        return table.isSelectionEnabled();
+    }
+
+    @Override
+    public boolean shouldEncode(FacesContext context, DataTable table) {
+        return false;
+    }
+
+    protected boolean isSelectable(DataTable table, String var, Map<String, Object> requestMap, Object o) {
+        boolean containsVar = requestMap.containsKey(var);
+        if (!containsVar) {
+            requestMap.put(var, o);
+        }
+
+        boolean selectable = table.isSelectionEnabled() && !table.isSelectionDisabled();
+
+        if (!containsVar) {
+            requestMap.remove(var);
+        }
+
+        return selectable;
+    }
+
+    protected void setSelection(FacesContext context, DataTable table, boolean multiple, Map<String, Object> selectionMap) {
+        ValueExpression selectionVE = table.getValueExpression(DataTable.PropertyKeys.selection.toString());
+        Class<?> clazz = selectionVE == null ? null : selectionVE.getType(context.getELContext());
+        boolean isArray = clazz != null && clazz.isArray();
+
+        if (multiple && clazz != null && !isArray && !List.class.isAssignableFrom(clazz)) {
+            throw new FacesException("Multiple selection reference must be an Array or a List for DataTable " + table.getClientId());
+        }
+
+        Object selection;
+        Set<String> rowKeys;
+        if (selectionMap.isEmpty()) {
+            if (multiple) {
+                selection = isArray
+                        ? Array.newInstance(clazz.getComponentType(), 0)
+                        : new ArrayList<>();
+            }
+            else {
+                selection = null;
+            }
+            rowKeys = new HashSet<>();
+        }
+        else {
+            if (multiple) {
+                if (isArray) {
+                    Object arr = Array.newInstance(clazz.getComponentType(), selectionMap.size());
+                    selection = selectionMap.values().toArray((Object[]) arr);
+                }
+                else {
+                    selection = new ArrayList<>(selectionMap.values());
+                }
+                rowKeys = new HashSet<>(selectionMap.keySet());
+            }
+            else {
+                String rowKeySingle = selectionMap.keySet().iterator().next();
+                selection = selectionMap.get(rowKeySingle);
+                rowKeys = new HashSet<>(Collections.singletonList(rowKeySingle));
+            }
+        }
+
+        table.setSelectedRowKeys(rowKeys);
+
+        if (selectionVE != null) {
+            selectionVE.setValue(context.getELContext(), selection);
+        }
+        else {
+            table.setSelection(selection);
+        }
+    }
+
+    /**
+     * Selects all rows in the DataTable, handling both lazy and non-lazy modes.
+     * <p>
+     * <strong>Performance Warning:</strong> For lazy tables, this method loads ALL data at once using the lazy data model.
+     * This can cause significant memory and performance issues with large datasets. This method is only called when a
+     * selection value expression binding exists. To avoid this performance impact, consider:
+     * <ul>
+     * <li>Not binding a selection value expression (selection will be tracked via rowKeys with @all marker only)</li>
+     * <li>Using selectionPageOnly=true to limit selection to current page</li>
+     * </ul>
+     * For non-lazy tables, iterates through all row indices.
+     * Deselected rows (if any) are excluded from the selection.
+     *
+     * @param context the FacesContext
+     * @param table the DataTable
+     * @param var the variable name for the current row
+     * @param requestMap the request map for storing the current row variable
+     * @param rowKeyToObjectMap the map to populate with selected rows
+     * @param deselectedRows set of rowKeys to exclude from selection (may be empty)
+     */
+    private void selectAllRows(FacesContext context, DataTable table, String var,
+                               Map<String, Object> requestMap, Map<String, Object> rowKeyToObjectMap,
+                               Set<String> deselectedRows) {
+        // Clear existing selections for select all
+        rowKeyToObjectMap.clear();
+
+        if (table.isLazy()) {
+            // For lazy tables, load all data at once using the lazy data model
+            LazyDataModel<?> lazyModel = table.getLazyDataModel();
+            int rowCount = lazyModel.getRowCount();
+            List<?> allData = lazyModel.load(0, rowCount, table.getSortByAsMap(), table.getFilterByAsMap());
+
+            if (allData == null) {
+                return;
+            }
+            for (int i = 0; i < allData.size(); i++) {
+                Object rowData = allData.get(i);
+                if (rowData == null) {
+                    continue;
+                }
+
+                String rowKey = table.getRowKey(rowData);
+                if (rowKey != null && !deselectedRows.contains(rowKey) && isSelectable(table, var, requestMap, rowData)) {
+                    rowKeyToObjectMap.put(rowKey, rowData);
+                }
+            }
+        }
+        else {
+            // For non-lazy tables, iterate through row indices
+            for (int i = 0; i < table.getRowCount(); i++) {
+                table.setRowIndex(i);
+                Object rowData = table.getRowData();
+                if (rowData == null) {
+                    continue;
+                }
+
+                String rowKey = table.getRowKey(rowData);
+                if (rowKey != null && !deselectedRows.contains(rowKey) && isSelectable(table, var, requestMap, rowData)) {
+                    rowKeyToObjectMap.put(rowKey, rowData);
+                }
+            }
+        }
+    }
+
+    /**
+     * Extracts deselected rows from the rowKeys set.
+     * This method is self-contained and checks if the {@link #ALL_SELECTOR} is present.
+     * If not present, it returns an empty set since deselection markers are only valid
+     * in combination with the "select all" operation.
+     * <p>
+     * Deselected rows are marked with a '!' prefix and allow tracking individual rows that were
+     * explicitly deselected after a "select all" operation.
+     *
+     * @param rowKeys the set of rowKeys to process
+     * @return a set of deselected row keys (without the '!' prefix), or empty set if @all is not present or no deselections found
+     */
+    private static Set<String> extractDeselectedRows(Set<String> rowKeys) {
+        Set<String> deselectedRows = new HashSet<>();
+
+        // Only extract deselection markers if @all selector is present
+        if (!rowKeys.contains(ALL_SELECTOR)) {
+            return deselectedRows;
+        }
+
+        // Convert to array for indexed iteration
+        String[] keys = rowKeys.toArray(new String[0]);
+        for (int i = 0; i < keys.length; i++) {
+            if (keys[i].startsWith("!")) {
+                deselectedRows.add(keys[i].substring(1));
+            }
+        }
+        return deselectedRows;
+    }
+
+    /**
+     * Reads the selection value expression and converts it to a Map of rowKey to selected object.
+     * Handles both single selection (returns map with one entry) and multiple selection (array or List).
+     *
+     * @param context the FacesContext
+     * @param table the DataTable
+     * @return a Map with rowKey as key and selected object as value, or empty map if selection value expression is null or selection is null
+     * @throws FacesException if multiple selection is not an Array or List
+     */
+    private static Map<String, Object> getSelectionMapFromValueExpression(FacesContext context, DataTable table) {
+        Map<String, Object> rowKeyToObjectMap = new HashMap<>();
+        ValueExpression selectionVE = table.getValueExpression(DataTable.PropertyKeys.selection.name());
+        if (selectionVE == null) {
+            return rowKeyToObjectMap;
+        }
+
+        Object selection = selectionVE.getValue(context.getELContext());
+        if (selection == null) {
+            return rowKeyToObjectMap;
+        }
+
+        if (table.isSingleSelectionMode()) {
+            String rowKey = table.getRowKey(selection);
+            rowKeyToObjectMap.put(rowKey, selection);
+        }
+        else {
+            Class<?> clazz = selection.getClass();
+            boolean isArray = clazz.isArray();
+
+            if (!isArray && !List.class.isAssignableFrom(clazz)) {
+                throw new FacesException("Multiple selection reference must be an Array or a List for datatable "
+                        + table.getClientId());
+            }
+
+            List<Object> selectionList = isArray ? Arrays.asList((Object[]) selection) : (List<Object>) selection;
+            for (int i = 0; i < selectionList.size(); i++) {
+                Object selectedItem = selectionList.get(i);
+                String rowKey = table.getRowKey(selectedItem);
+                rowKeyToObjectMap.put(rowKey, selectedItem);
+            }
+        }
+
+        return rowKeyToObjectMap;
+    }
+}

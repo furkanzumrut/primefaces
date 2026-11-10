@@ -1,0 +1,56 @@
+# Tag
+
+Tag component is used to categorize content.
+
+## Getting Started
+Content of the tag is specified using the ```value``` property.
+
+```xhtml
+<p:tag value="New"></p:tag>
+```
+
+## Icon
+An icon can also be configured to be displayed next to the value with the ```icon``` property.
+
+```xhtml
+<p:tag value="2" severity="success" icon="pi pi-check"></p:tag>
+```
+
+## Severities
+Different color options are available as severity levels.
+
+* success
+* info
+* warning
+* danger
+* secondary
+* help
+
+## Outlined
+A tag can be displayed in an outlined style using the ```outlined``` property.
+
+```xhtml
+<p:tag value="Success" severity="success" outlined="true"></p:tag>
+```
+
+## Templating
+Content can easily be customized with the default slot instead of using the built-in display.
+
+```xhtml
+<p:tag>
+    Content
+</p:tag>
+```
+
+## Skinning of Tag
+Tag resides in a main container element which _style_ and _styleClass_ options apply. As skinning
+style classes are global, see the main theming section for more information. Following is the list of
+structural style classes;
+
+| Name | Element |
+| --- | --- |
+|.p-tag | Tag element
+|.p-tag-rounded | Rounded element
+|.p-tag-outlined | Outlined element
+|.p-tag-icon | Icon of the tag
+|.p-tag-value	| Value of the tag

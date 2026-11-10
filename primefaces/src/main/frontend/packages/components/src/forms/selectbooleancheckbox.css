@@ -1,0 +1,6 @@
+/*
+ * SelectBooleanCheckbox / TriStateCheckbox: the root is a .p-chkbox, styled in forms/checkbox.css
+ */
+.p-fluid .p-selectbooleancheckbox {
+    width: 100%;
+}

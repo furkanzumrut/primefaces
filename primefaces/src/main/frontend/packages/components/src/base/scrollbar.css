@@ -1,0 +1,26 @@
+/*
+ * Scrollbars: thin, themed scrollbars for the scroll containers of the components (--p-scrollbar-* semantic tokens).
+ *
+ * Component scoped on purpose, not global: the page and the scroll areas of the application keep the scrollbars of the
+ * browser / OS (an application opts in with the same two declarations on :root or its own containers).
+ * :where() keeps the specificity at 0, so any component or application rule overrides it.
+ * scrollbar-color is inherited: scroll areas of the application inside a dialog / sidebar get the themed colors too
+ * (not the thin width, which is not inherited). The forced colors mode resets both to the system scrollbars.
+ * p:scrollPanel draws its own scrollbars (scrollpanel/scrollpanel/src/scrollpanel.css), the tabView navigator scrolls with buttons.
+ */
+:where(
+    /* overlays and dropdown lists */
+    .p-autocomplete-panel, .p-selectonemenu-items-wrapper, .p-selectcheckboxmenu-items-wrapper,
+    .p-splitbuttonmenu-list-wrapper, .p-columntoggler, .p-menu-dynamic-maxheight, .p-slidemenu-content,
+    /* lists */
+    .p-selectlistbox-listcontainer, .p-multiselectlistbox-listcontainer, .p-picklist-list, .p-orderlist-list,
+    .p-tree-container, .p-log-content, .p-terminal, textarea.p-inputfield,
+    /* data */
+    .p-datatable-tablewrapper, .p-datatable-scrollable-body, .p-treetable-scrollable-body,
+    .p-datascroller-inline .p-datascroller-content, .p-carousel-content,
+    /* panels, dialogs, navigation */
+    .p-dialog, .p-dialog-content, .p-sidebar, .p-accordion-content, .p-panelmenu-content, .p-tabmenu-nav
+) {
+    scrollbar-width: var(--p-scrollbar-width);
+    scrollbar-color: var(--p-scrollbar-thumb-color) var(--p-scrollbar-track-color);
+}

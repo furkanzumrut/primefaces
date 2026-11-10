@@ -1,0 +1,87 @@
+/*
+ * DataScroller: p:dataScroller (document and inline mode, loader facet, virtual scroll)
+ *
+ * No own PrimeUIX component: styled with the dataview tokens (+ PrimeFaces dataview tokens).
+ * The default loading indicator (div.p-datascroller-loading-default.p-icon.p-loading-icon.p-datascroller-loading-icon
+ * without loading facet) is the --p-dataview-loading-icon spinner (p-spin keyframes of ajaxstatus/ajaxstatus.css).
+ */
+
+.p-datascroller {
+    .p-datascroller-header {
+        text-align: center;
+        background: var(--p-dataview-header-background);
+        color: var(--p-dataview-header-color);
+        padding: var(--p-dataview-header-padding);
+        font-weight: var(--p-dataview-header-font-weight);
+        border: 1px solid var(--p-dataview-header-border-color);
+        border-width: var(--p-dataview-header-border-width);
+        border-radius: var(--p-dataview-header-border-radius);
+    }
+
+    .p-datascroller-content {
+        border: 1px solid var(--p-dataview-content-border-color);
+        border-width: var(--p-dataview-content-border-width);
+        border-radius: var(--p-dataview-content-border-radius);
+        background: var(--p-dataview-content-background);
+        color: var(--p-dataview-content-color);
+        padding: var(--p-dataview-content-padding);
+    }
+
+    .p-datascroller-list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .p-datascroller-item {
+        border: 1px solid var(--p-dataview-item-border-color);
+        border-width: 0 0 1px 0;
+
+        &:last-child {
+            border-bottom-width: 0;
+        }
+    }
+
+    /* loaded items fade and slide in (base/common.css); not with virtual scrolling, it replaces the items while scrolling */
+    .p-datascroller-content > .p-datascroller-list > .p-datascroller-item {
+        --_enter-offset: var(--p-dataview-content-enter-offset);
+        animation: p-enter var(--p-dataview-content-enter-duration) var(--p-transition-easing-enter);
+    }
+
+    .p-datascroller-virtualscroll-wrapper {
+        position: relative;
+
+        .p-datascroller-list {
+            top: 0;
+            left: 0;
+            position: absolute;
+        }
+    }
+
+    /* loader facet (e.g. a "more" button) */
+    .p-datascroller-loader:not(:empty) {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: var(--p-dataview-loader-padding);
+    }
+
+    .p-datascroller-loading-icon {
+        --_icon: var(--p-dataview-loading-icon);
+    }
+
+    .p-datascroller-loading .p-datascroller-loading-default {
+        display: block;
+        width: var(--p-dataview-loading-icon-size);
+        height: var(--p-dataview-loading-icon-size);
+        margin: 0 auto;
+        padding: 0;
+        font-size: var(--p-dataview-loading-icon-size);
+        color: var(--p-dataview-loading-icon-color);
+        animation: p-spin var(--p-dataview-loading-icon-animation-duration) linear infinite;
+    }
+}
+
+.p-datascroller-inline .p-datascroller-content {
+    overflow: auto;
+}

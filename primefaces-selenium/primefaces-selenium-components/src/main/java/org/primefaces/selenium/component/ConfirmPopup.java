@@ -1,0 +1,108 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.selenium.component;
+
+import org.primefaces.selenium.PrimeExpectedConditions;
+import org.primefaces.selenium.PrimeSelenium;
+import org.primefaces.selenium.component.base.AbstractComponent;
+
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+
+/**
+ * Component wrapper for the PrimeFaces {@code p:confirmPopup}.
+ */
+public abstract class ConfirmPopup extends AbstractComponent {
+
+    @FindBy(className = "p-confirm-popup-icon")
+    private WebElement icon;
+
+    @FindBy(className = "p-confirm-popup-message")
+    private WebElement message;
+
+    @FindBy(className = "p-confirm-popup-yes")
+    private CommandButton yesButton;
+
+    @FindBy(className = "p-confirm-popup-no")
+    private CommandButton noButton;
+
+    public WebElement getMessage() {
+        return message;
+    }
+
+    public WebElement getIcon() {
+        return icon;
+    }
+
+    public CommandButton getYesButton() {
+        return yesButton;
+    }
+
+    public CommandButton getNoButton() {
+        return noButton;
+    }
+
+    /**
+     * Is the popup currently visible.
+     *
+     * @return true if visible false if not
+     */
+    public boolean isVisible() {
+        return PrimeSelenium.executeScript("return " + getWidgetByIdScript() + ".isVisible();");
+    }
+
+    /**
+     * Answers the popup with yes. For a global popup the confirmed command (AJAX request, full page submit or JavaScript
+     * function) runs within the click, so it waits until no request is pending and the popup is hidden.
+     * For a non-global popup the yes button is a command of the page: it guards its own request, hiding the popup is up to the page.
+     */
+    public void confirm() {
+        if (!getWidgetConfiguration().optBoolean("global", false)) {
+            getYesButton().click();
+        }
+        else {
+            ConfirmDialog.guardConfirmedCommand(getYesButton()).click();
+            PrimeSelenium.waitGui().until(PrimeExpectedConditions.invisibleAndAnimationComplete(this));
+        }
+    }
+
+    /**
+     * Answers the popup with no.
+     */
+    public void cancel() {
+        getNoButton().click();
+        PrimeSelenium.waitGui().until(PrimeExpectedConditions.invisibleAndAnimationComplete(this));
+    }
+
+    /**
+     * Hides the overlay panel.
+     */
+    public void hidePopup() {
+        if (isEnabled() && isDisplayed()) {
+            PrimeSelenium.executeScript(getWidgetByIdScript() + ".hide();");
+            PrimeSelenium.waitGui().until(PrimeExpectedConditions.invisibleAndAnimationComplete(this));
+        }
+    }
+
+}

@@ -1,0 +1,320 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.selenium.component;
+
+import org.primefaces.selenium.PrimeExpectedConditions;
+import org.primefaces.selenium.PrimeSelenium;
+import org.primefaces.selenium.component.base.AbstractInputComponent;
+import org.primefaces.selenium.component.base.ComponentUtils;
+import org.primefaces.selenium.findby.FindByParentPartialId;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.json.JSONObject;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+
+/**
+ * Component wrapper for the PrimeFaces {@code p:selectOneMenu}.
+ */
+public abstract class SelectOneMenu extends AbstractInputComponent {
+
+    @FindByParentPartialId("_input")
+    private WebElement input;
+
+    @FindByParentPartialId(value = "_panel", searchFromRoot = true)
+    private WebElement panel;
+
+    @FindByParentPartialId(value = "_filter", searchFromRoot = true)
+    private WebElement filterInput;
+
+    /**
+     * Is the input using AJAX "itemSelect" event?
+     *
+     * @return true if using AJAX for itemSelect
+     */
+    public boolean isItemSelectAjaxified() {
+        return ComponentUtils.hasAjaxBehavior(getRoot(), "itemSelect");
+    }
+
+    /**
+     * Either display the dropdown or hide it if is already displayed.
+     */
+    public void toggleDropdown() {
+        if (getPanel().isDisplayed()) {
+            hide();
+        }
+        else {
+            show();
+        }
+    }
+
+    /**
+     * Shows the SelectOneMenu panel.
+     */
+    public void show() {
+        WebElement panel = getPanel();
+        if (isEnabled() && !panel.isDisplayed()) {
+            PrimeSelenium.executeScript(getWidgetByIdScript() + ".show();");
+            PrimeSelenium.waitGui().until(PrimeExpectedConditions.visibleAndAnimationComplete(panel));
+        }
+    }
+
+    /**
+     * Hides the SelectOneMenu panel.
+     */
+    public void hide() {
+        WebElement panel = getPanel();
+        if (isEnabled() && panel.isDisplayed()) {
+            PrimeSelenium.executeScript(getWidgetByIdScript() + ".hide();");
+            PrimeSelenium.waitGui().until(PrimeExpectedConditions.invisibleAndAnimationComplete(panel));
+        }
+    }
+
+    public void deselect(String label) {
+        if (!isSelected(label) || !isEnabled()) {
+            return;
+        }
+
+        if (!getPanel().isDisplayed()) {
+            toggleDropdown();
+        }
+
+        for (WebElement element : getItems().findElements(By.cssSelector("li.p-selectonemenu-item"))) {
+            if (element.getText().equalsIgnoreCase(label)) {
+                click(element);
+                break;
+            }
+        }
+
+        if (getPanel().isDisplayed()) {
+            toggleDropdown();
+        }
+    }
+
+    public void select(String label) {
+        if (isSelected(label) || !isEnabled()) {
+            return;
+        }
+
+        if (!getPanel().isDisplayed()) {
+            toggleDropdown();
+        }
+
+        for (WebElement element : getItems().findElements(By.cssSelector("li.p-selectonemenu-item"))) {
+            if (element.getText().equalsIgnoreCase(label)) {
+                click(element);
+                break;
+            }
+        }
+
+        if (getPanel().isDisplayed()) {
+            toggleDropdown();
+        }
+    }
+
+    public String getSelectedLabel() {
+        WebElement label = getLabel();
+        if (PrimeSelenium.isElementDisplayed(label)) {
+            return label.getText();
+        }
+        return label.getDomProperty("textContent");
+    }
+
+    public boolean isSelected(String label) {
+        boolean result = false;
+        try {
+            result = getSelectedLabel().equalsIgnoreCase(label);
+        }
+        catch (Exception e) {
+            // do nothing
+        }
+        return result;
+    }
+
+    /**
+     * All labels independent of filter.
+     * @return
+     */
+    public List<String> getLabels() {
+        JSONObject widgetConfiguration = getWidgetConfiguration();
+
+        if (widgetConfiguration.has("filter") && widgetConfiguration.getBoolean("filter")) {
+            show(); //listElt.isDisplayed only works when panel is visible
+
+            return getItems().findElements(By.cssSelector("li.p-selectonemenu-item")).stream()
+                    .filter(listElt -> listElt.isDisplayed())
+                    .map(e -> e.getDomProperty("innerHTML"))
+                    .collect(Collectors.toList());
+        }
+        else {
+            return getInput().findElements(By.tagName("option")).stream()
+                    .map(e -> e.getDomProperty("innerHTML"))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public void select(int index) {
+        if (isSelected(index)) {
+            return;
+        }
+
+        select(getLabel(index));
+    }
+
+    public void deselect(int index) {
+        if (!isSelected(index)) {
+            return;
+        }
+
+        deselect(getLabel(index));
+    }
+
+    public void selectByValue(String value) {
+        PrimeSelenium.executeScript(String.format("PrimeFaces.getWidgetById('%s').selectValue('%s');", getId(), value));
+    }
+
+    public boolean isSelected(int index) {
+        return getLabel(index).equals(getSelectedLabel());
+    }
+
+    public String getLabel(int index) {
+        return getLabels().get(index);
+    }
+
+    @Override
+    public WebElement getAssignedLabel() {
+        // editable menus expose a real, labelable <input>; non-editable menus have no labelable focusable
+        // element (the visible one is a <span>), so the label references the hidden native "_input" select instead
+        return getWebDriver().findElement(By.cssSelector("label[for='" + getId() + (isEditable() ? "_editableInput" : "_input") + "']"));
+    }
+
+    @Override
+    public WebElement getInput() {
+        return input;
+    }
+
+    public WebElement getEditableInput() {
+        return getRoot().findElement(By.name(getId() + "_editableInput"));
+    }
+
+    public WebElement getLabel() {
+        return getRoot().findElement(By.id(getId() + "_label"));
+    }
+
+    /**
+     * Gets items when using normal rendering.
+     * @return the WebElement of the items
+     */
+    public WebElement getItems() {
+        return getWebDriver().findElement(By.id(getId() + "_items"));
+    }
+
+    /**
+     * Gets the table element when using advanced rendering.
+     * @return the WebElement of the table
+     */
+    public WebElement getTable() {
+        return getWebDriver().findElement(By.id(getId() + "_table"));
+    }
+
+    /**
+     * Gets the items in the panel, independent of the rendering: list items for normal rendering, table rows for advanced rendering (columns). Group
+     * headers are not included, items hidden by the filter are. The panel must have been shown once for a dynamic menu.
+     *
+     * @return the item elements
+     */
+    public List<WebElement> getItemElements() {
+        return getPanel().findElements(By.className("p-selectonemenu-item"));
+    }
+
+    /**
+     * Gets the item at the index, see {@link #getItemElements()}.
+     *
+     * @param index the index of the item (group headers are not counted)
+     * @return the item element
+     */
+    public WebElement getItem(int index) {
+        return getItemElements().get(index);
+    }
+
+    /**
+     * Gets the group header elements in the panel (one per {@code SelectItemGroup}). The panel must have been shown once for a dynamic menu.
+     *
+     * @return the group header elements
+     */
+    public List<WebElement> getItemGroupElements() {
+        return getPanel().findElements(By.className("p-selectonemenu-item-group"));
+    }
+
+    /**
+     * Gets the item that currently has the keyboard focus (e.g. moved there with the arrow keys).
+     *
+     * @return the focused item element or {@code null} if no item is focused
+     */
+    public WebElement getFocusedItem() {
+        return getPanel().findElements(By.cssSelector(".p-selectonemenu-item.p-state-focus")).stream().findFirst().orElse(null);
+    }
+
+    /**
+     * Gets the item that is highlighted as selected in the panel.
+     *
+     * @return the highlighted item element or {@code null} if no item is highlighted
+     */
+    public WebElement getHighlightedItem() {
+        return getPanel().findElements(By.cssSelector(".p-selectonemenu-item.p-state-highlight")).stream().findFirst().orElse(null);
+    }
+
+    /**
+     * Filters the items like the user: shows the panel and replaces the text of the filter input. Filtering is done on the client.
+     *
+     * @param value the filter text
+     */
+    public void filter(String value) {
+        show();
+        ComponentUtils.replaceText(getFilterInput(), value);
+    }
+
+    public WebElement getPanel() {
+        return panel;
+    }
+
+    protected void click(WebElement element) {
+        if (isOnchangeAjaxified() || isItemSelectAjaxified()) {
+            PrimeSelenium.guardAjax(element).click();
+        }
+        else {
+            element.click();
+        }
+    }
+
+    public WebElement getFilterInput() {
+        return filterInput;
+    }
+
+    public boolean isEditable() {
+        return getWidgetConfiguration().optBoolean("editable");
+    }
+}

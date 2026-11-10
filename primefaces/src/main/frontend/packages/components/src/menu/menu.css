@@ -1,0 +1,45 @@
+/*
+ * Menu: p:menu
+ *
+ * The common .p-menu markup is styled by menu/menu.base.css, this file only has the toggleable p:menu
+ * (.p-menu-toggleable): li.p-widget-header[aria-expanded] > h3 > [.p-menu-toggle-icon] [.p-submenu-icon] label.
+ */
+.p-menu.p-menu-toggleable {
+    li.p-widget-header {
+        position: relative;
+        min-height: 0;
+        cursor: pointer;
+    }
+
+    .p-menu-list .p-widget-header {
+        .p-menu-toggle-icon {
+            --_icon: var(--p-menu-toggle-collapsed-icon);
+            color: var(--_submenu-icon-color);
+            font-size: var(--_submenu-icon-size);
+        }
+
+        &[aria-expanded="true"] .p-menu-toggle-icon {
+            --_icon: var(--p-menu-toggle-expanded-icon);
+        }
+
+        /* the collapsed icon points to the start */
+        &:not([aria-expanded="true"]) .p-menu-toggle-icon:dir(rtl) {
+            scale: -1 1;
+        }
+
+        .p-submenu-icon {
+            color: var(--_item-icon-color);
+            font-size: var(--_item-icon-size);
+        }
+
+        &.p-state-hover {
+            .p-menu-toggle-icon {
+                color: var(--_submenu-icon-focus-color);
+            }
+
+            .p-submenu-icon {
+                color: var(--_item-icon-focus-color);
+            }
+        }
+    }
+}

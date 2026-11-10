@@ -1,0 +1,213 @@
+/*
+ * Accordion: p:accordionPanel
+ *
+ * PF renders header/content pairs as siblings (no panel wrapper), so the PrimeUIX "panel" border
+ * (accordion.panel.border.*) is drawn by an ::after overlay on the last visible element of each pair:
+ * the header while collapsed, the content while expanded.
+ * States: p-state-active, p-state-hover, p-state-disabled, p-state-error, p-accordion-rtl
+ */
+.p-accordion {
+    .p-accordion-header {
+        position: relative;
+        margin: 0;
+        padding: var(--p-accordion-header-padding);
+        font-size: var(--p-accordion-header-font-size);
+        font-weight: var(--p-accordion-header-font-weight);
+        color: var(--p-accordion-header-color);
+        background: var(--p-accordion-header-background);
+        border-style: solid;
+        border-width: var(--p-accordion-header-border-width);
+        border-color: var(--p-accordion-header-border-color);
+        border-radius: var(--p-accordion-header-border-radius);
+        cursor: pointer;
+        -webkit-user-select: none;
+        user-select: none;
+        outline: 0 none;
+        outline-color: transparent;
+        transition: background var(--p-accordion-transition-duration), color var(--p-accordion-transition-duration),
+            outline-color var(--p-accordion-transition-duration), box-shadow var(--p-accordion-transition-duration);
+    }
+
+    .p-accordion-header:not(.p-state-active)::after,
+    .p-accordion-content::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        border-style: solid;
+        border-width: var(--p-accordion-panel-border-width);
+        border-color: var(--p-accordion-panel-border-color);
+        border-radius: inherit;
+    }
+
+    .p-accordion-header:first-child {
+        border-width: var(--p-accordion-header-first-border-width);
+        border-start-start-radius: var(--p-accordion-header-first-top-border-radius);
+        border-start-end-radius: var(--p-accordion-header-first-top-border-radius);
+    }
+
+    > .p-accordion-header:not(:has(~ .p-accordion-header)) {
+        border-end-start-radius: var(--p-accordion-header-last-bottom-border-radius);
+        border-end-end-radius: var(--p-accordion-header-last-bottom-border-radius);
+    }
+
+    > .p-accordion-header.p-state-active:not(:has(~ .p-accordion-header)) {
+        border-end-start-radius: var(--p-accordion-header-last-active-bottom-border-radius);
+        border-end-end-radius: var(--p-accordion-header-last-active-bottom-border-radius);
+    }
+
+    .p-accordion-header {
+        &.p-state-hover,
+        &:not(.p-state-active, .p-state-disabled):hover {
+            background: var(--p-accordion-header-hover-background);
+            color: var(--p-accordion-header-hover-color);
+        }
+
+        &.p-state-active {
+            background: var(--p-accordion-header-active-background);
+            color: var(--p-accordion-header-active-color);
+
+            &:not(.p-state-disabled):hover {
+                background: var(--p-accordion-header-active-hover-background);
+                color: var(--p-accordion-header-active-hover-color);
+            }
+        }
+
+        &:not(.p-state-disabled):focus-visible {
+            outline: var(--p-accordion-header-focus-ring-width) var(--p-accordion-header-focus-ring-style) var(--p-accordion-header-focus-ring-color);
+            outline-offset: var(--p-accordion-header-focus-ring-offset);
+            box-shadow: var(--p-accordion-header-focus-ring-shadow);
+        }
+
+        /* invalid: PrimeFaces tokens */
+        &.p-state-error,
+        &.p-state-error:hover,
+        &.p-state-error.p-state-active:hover {
+            border-color: var(--p-accordion-header-invalid-border-color);
+            background: var(--p-accordion-header-invalid-background);
+            color: var(--p-accordion-header-invalid-color);
+        }
+
+        &.p-state-error::after,
+        &.p-state-error + .p-accordion-content,
+        &.p-state-error + .p-accordion-content::after {
+            border-color: var(--p-accordion-header-invalid-border-color);
+        }
+
+        /* toggle icon, at the end like PrimeUIX */
+        > .p-accordion-toggler {
+            float: right;
+            line-height: var(--p-typography-line-height);
+            color: var(--p-accordion-header-toggle-icon-color);
+            transition: color var(--p-accordion-transition-duration);
+        }
+
+        &.p-state-hover > .p-accordion-toggler,
+        &:not(.p-state-active, .p-state-disabled):hover > .p-accordion-toggler {
+            color: var(--p-accordion-header-toggle-icon-hover-color);
+        }
+
+        &.p-state-active {
+            > .p-accordion-toggler {
+                color: var(--p-accordion-header-toggle-icon-active-color);
+            }
+
+            &:not(.p-state-disabled):hover > .p-accordion-toggler {
+                color: var(--p-accordion-header-toggle-icon-active-hover-color);
+            }
+        }
+
+        &.p-state-error > .p-accordion-toggler {
+            color: inherit;
+        }
+
+        .p-accordion-header-icon {
+            --_icon: var(--p-accordion-header-collapsed-icon);
+        }
+
+        &[aria-expanded="true"] .p-accordion-header-icon {
+            --_icon: var(--p-accordion-header-expanded-icon);
+        }
+
+        /* options menu trigger: text/secondary rounded icon button like the PrimeUIX panel header buttons */
+        .p-panel-titlebar-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--p-button-icon-only-width);
+            height: var(--p-button-icon-only-width);
+            margin: 0;
+            /* no token: vertically center the icon button on the header line */
+            margin-block: calc((var(--p-typography-line-height) * 1em - var(--p-button-icon-only-width)) / 2);
+            padding: 0;
+            background: transparent;
+            color: var(--p-button-text-secondary-color);
+            border: 0 none;
+            border-radius: 50%;
+            text-align: center;
+            text-decoration: none;
+            -webkit-user-select: none;
+            user-select: none;
+            outline-color: transparent;
+            transition: background var(--p-button-transition-duration), color var(--p-button-transition-duration),
+                outline-color var(--p-button-transition-duration), box-shadow var(--p-button-transition-duration);
+
+            &:hover {
+                background: var(--p-button-text-secondary-hover-background);
+                color: var(--p-button-text-secondary-color);
+            }
+
+            &:active {
+                background: var(--p-button-text-secondary-active-background);
+            }
+
+            &:focus-visible {
+                outline: var(--p-button-focus-ring-width) var(--p-button-focus-ring-style) var(--p-button-secondary-focus-ring-color);
+                outline-offset: var(--p-button-focus-ring-offset);
+                box-shadow: var(--p-button-secondary-focus-ring-shadow);
+            }
+
+            .p-accordion-header-menu-icon {
+                --_icon: var(--p-accordion-header-menu-icon);
+            }
+        }
+    }
+
+    .p-panel-titlebar-icon {
+        float: right;
+        cursor: pointer;
+    }
+
+    .p-panel-actions {
+        float: right;
+    }
+
+    .p-accordion-content {
+        position: relative;
+        margin: 0;
+        padding: var(--p-accordion-content-padding);
+        background: var(--p-accordion-content-background);
+        color: var(--p-accordion-content-color);
+        border-style: solid;
+        border-width: var(--p-accordion-content-border-width);
+        border-color: var(--p-accordion-content-border-color);
+        overflow: auto;
+
+        /* no token: the last content closes the rounded box opened by the first header */
+        &:last-of-type {
+            border-end-start-radius: var(--p-accordion-header-last-bottom-border-radius);
+            border-end-end-radius: var(--p-accordion-header-last-bottom-border-radius);
+        }
+    }
+
+    /* RTL: the floats (toggle icon, options menu, actions) move to the left (= end) edge */
+    &.p-accordion-rtl {
+        direction: rtl;
+
+        .p-accordion-header > .p-accordion-toggler,
+        .p-panel-titlebar-icon,
+        .p-panel-actions {
+            float: left;
+        }
+    }
+}

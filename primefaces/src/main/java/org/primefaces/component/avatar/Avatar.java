@@ -1,0 +1,52 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.component.avatar;
+
+import org.primefaces.cdk.api.FacesComponentInfo;
+import org.primefaces.util.LangUtils;
+
+import jakarta.faces.application.ResourceDependency;
+import jakarta.faces.component.FacesComponent;
+
+@FacesComponent(value = Avatar.COMPONENT_TYPE, namespace = Avatar.COMPONENT_FAMILY)
+@FacesComponentInfo(description = "Avatar is a visual representation of a user or entity.")
+@ResourceDependency(library = "primefaces", name = "components.css")
+public class Avatar extends AvatarBaseImpl {
+    public static final String COMPONENT_TYPE = "org.primefaces.component.Avatar";
+
+    public static final String STYLE_CLASS = "p-avatar p-widget";
+    public static final String CIRCLE_CLASS = "p-avatar-circle";
+    public static final String SIZE_LARGE_CLASS = "p-avatar-lg";
+    public static final String SIZE_XLARGE_CLASS = "p-avatar-xl";
+    public static final String SIZE_TEXT_CLASS = "p-avatar-text";
+    public static final String DYNAMIC_COLOR_CLASS = "p-avatar-dynamic";
+    public static final String DYNAMIC_COLOR_DARK_CLASS = "p-avatar-dark";
+    public static final String DYNAMIC_COLOR_LIGHT_CLASS = "p-avatar-light";
+    public static final String ICON_CLASS = "p-avatar-icon";
+
+    public boolean canFallback() {
+        return LangUtils.isNotBlank(getLabel()) || LangUtils.isNotBlank(getIcon());
+    }
+
+}

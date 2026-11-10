@@ -1,0 +1,116 @@
+/*
+ * Tooltip: p:tooltip (also the global tooltip .p-tooltip-global and p:message display="tooltip")
+ *
+ * Markup: .p-tooltip.p-tooltip-{top|right|bottom|left} > .p-tooltip-arrow, .p-tooltip-text
+ */
+
+.p-tooltip {
+    position: absolute;
+    display: none;
+    max-width: var(--p-tooltip-max-width);
+
+    &.p-tooltip-right,
+    &.p-tooltip-left {
+        padding: 0 var(--p-tooltip-gutter);
+    }
+
+    &.p-tooltip-top,
+    &.p-tooltip-bottom {
+        padding: var(--p-tooltip-gutter) 0;
+    }
+
+    .p-tooltip-text {
+        word-break: break-word;
+        background: var(--p-tooltip-background);
+        color: var(--p-tooltip-color);
+        padding: var(--p-tooltip-padding);
+        box-shadow: var(--p-tooltip-shadow);
+        border-radius: var(--p-tooltip-border-radius);
+        font-size: var(--p-tooltip-font-size);
+        font-weight: var(--p-tooltip-font-weight);
+
+        /* p:tooltip with content: images fit into the box (max width of the tooltip) */
+        img,
+        svg,
+        video,
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+    }
+
+    &.p-tooltip-right .p-tooltip-arrow {
+        margin-top: calc(-1 * var(--p-tooltip-gutter));
+        border-width: var(--p-tooltip-gutter) var(--p-tooltip-gutter) var(--p-tooltip-gutter) 0;
+        border-right-color: var(--p-tooltip-background);
+    }
+
+    &.p-tooltip-left .p-tooltip-arrow {
+        margin-top: calc(-1 * var(--p-tooltip-gutter));
+        border-width: var(--p-tooltip-gutter) 0 var(--p-tooltip-gutter) var(--p-tooltip-gutter);
+        border-left-color: var(--p-tooltip-background);
+    }
+
+    &.p-tooltip-top .p-tooltip-arrow {
+        margin-left: calc(-1 * var(--p-tooltip-gutter));
+        border-width: var(--p-tooltip-gutter) var(--p-tooltip-gutter) 0 var(--p-tooltip-gutter);
+        border-top-color: var(--p-tooltip-background);
+    }
+
+    &.p-tooltip-bottom .p-tooltip-arrow {
+        margin-left: calc(-1 * var(--p-tooltip-gutter));
+        border-width: 0 var(--p-tooltip-gutter) var(--p-tooltip-gutter) var(--p-tooltip-gutter);
+        border-bottom-color: var(--p-tooltip-background);
+    }
+
+    /* invalid: the widget marks text and arrow when the target is p-state-error (p:message display="tooltip") */
+    .p-tooltip-text.p-state-error {
+        background: var(--p-tooltip-invalid-background);
+        color: var(--p-tooltip-invalid-color);
+    }
+
+    &.p-tooltip-right .p-tooltip-arrow.p-state-error {
+        border-right-color: var(--p-tooltip-invalid-background);
+    }
+
+    &.p-tooltip-left .p-tooltip-arrow.p-state-error {
+        border-left-color: var(--p-tooltip-invalid-background);
+    }
+
+    &.p-tooltip-top .p-tooltip-arrow.p-state-error {
+        border-top-color: var(--p-tooltip-invalid-background);
+    }
+
+    &.p-tooltip-bottom .p-tooltip-arrow.p-state-error {
+        border-bottom-color: var(--p-tooltip-invalid-background);
+    }
+}
+
+.p-tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+}
+
+.p-tooltip-right .p-tooltip-arrow {
+    top: 50%;
+    left: 0;
+}
+
+.p-tooltip-left .p-tooltip-arrow {
+    top: 50%;
+    right: 0;
+}
+
+.p-tooltip-top .p-tooltip-arrow {
+    bottom: 0;
+    left: 50%;
+}
+
+.p-tooltip-bottom .p-tooltip-arrow {
+    top: 0;
+    left: 50%;
+}

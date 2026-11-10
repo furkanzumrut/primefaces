@@ -1,0 +1,58 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2009-2026 PrimeFaces
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.primefaces.component.paginator;
+
+import org.primefaces.component.api.Pageable;
+import org.primefaces.component.api.UIPageableData;
+import org.primefaces.util.LocaleUtils;
+
+import java.io.IOException;
+
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.context.ResponseWriter;
+
+public class JumpToPageInputRenderer implements PaginatorElementRenderer {
+
+    @Override
+    public void render(FacesContext context, Pageable pageable) throws IOException {
+        ResponseWriter writer = context.getResponseWriter();
+        String id = buildId(context, pageable, "jumpToPage");
+        int pageCount = pageable.getPageCount();
+        // expose the number of digits so the stylesheet can size the input to the live page count
+        int digits = Integer.toString(Math.max(pageCount, 1)).length();
+
+        writer.startElement("input", null);
+        writer.writeAttribute("id", id, null);
+        writer.writeAttribute("name", id, null);
+        writer.writeAttribute("type", "number", null);
+        writer.writeAttribute("min", 1, null);
+        writer.writeAttribute("max", pageCount, null);
+        writer.writeAttribute("autocomplete", "off", null);
+        writer.writeAttribute("class", UIPageableData.PAGINATOR_JTP_INPUT_CLASS, null);
+        writer.writeAttribute("style", "--p-jtp-digits:" + digits, null);
+        writer.writeAttribute("value", LocaleUtils.formatInteger(context, pageable.getPage() + 1), null);
+        writer.endElement("input");
+    }
+
+}
